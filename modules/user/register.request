@@ -1,0 +1,92 @@
+<?php
+function register($args=null) {
+	if($_POST) processForm();
+	else buildInterface(456);
+}
+
+function buildInterface($arg) {
+	global $agave;
+	$fm = $agave->load('fieldManager');
+	$user = $agave->load('user');
+	$t = $agave->load('themer');
+	
+	$elements = array();
+	$elements[] = array(
+		'name'=>'fname',
+		'type'=>'text',
+		'label'=>'First name'
+	);
+	$elements[] = array(
+		'name'=>'lname',
+		'type'=>'text',
+		'label'=>'Last name'
+	);
+	$elements[] = array(
+		'name'=>'email',
+		'type'=>'text',
+		'label'=>'Email'
+	);
+	$elements[] = array(
+		'name'=>'login',
+		'type'=>'text',
+		'label'=>'Login'
+	);
+	$elements[] = array(
+		'name'=>'pword',
+		'type'=>'password',
+		'label'=>'Password'
+	);
+	$elements[] = array(
+		'name'=>'pwordConfirm',
+		'type'=>'password',
+		'label'=>'Confirm password'
+	);
+	
+	//generate form
+	$form = $fm->startForm($agave->base_url."user/register", "post");
+	$form .= $fm->generateElements($elements);
+	$form .= $fm->endForm("Register", TRUE);
+	
+	//assemble output
+	$themevars = array(
+		'form'=>$form
+	);
+	$t->output = $t->theme('user','register', $themevars);
+}
+
+function processForm() {
+	global $agave;
+	foreach($_POST as $key=>$value) $$key = mysql_real_escape_string($value);
+	
+	if(!$lname || !$fname || !$login || !$email || !$pword || !$pwordConfirm) {
+		$agave->message('error', "MISSING_FIELD");
+		$agave->redirect("user/register");
+	}
+	
+	if($pword != $pwordConfirm) {
+		$agave->message('error', "NONMATCHING_PASSWORDS");
+		$agave->redirect("user/register");
+	}
+	
+	$query = "SELECT * FROM `users` WHERE `email`='$email'";
+	$result = $agave->doSQLQuery($query, 3);
+	if($result) {
+		$agave->message('error', "EMAIL_TAKEN");
+		$agave->redirect("user/register");
+	}
+
+	$query = "SELECT * FROM `users` WHERE `login`='$login'";
+	$result = $agave->doSQLQuery($query, 3);
+	if($result) {
+		$agave->message('error', "LOGIN_TAKEN");
+		$agave->redirect("user/register");
+	}
+	
+	$query = "INSERT INTO `users` (`firstName`,`lastName`,`login`,`password`,`email`,`date_added`) VALUES('$fname','$lname','$login','".md5($pword)."','$email','".time()."')";
+	$agave->doSQLQuery($query);
+	
+	//TODO: add session for user, log them in
+	
+	$agave->message('general', NULL, "Welcome to our site!!");
+	$agave->redirect();
+}

@@ -1,0 +1,4 @@
+<?php
+$objects = array();
+$classes['mediaPlayer'] = 'mediaPlayer.object';
+$classes['mediaPlayerPluginInterface'] = 'mediaPlayerPluginInterface.object';

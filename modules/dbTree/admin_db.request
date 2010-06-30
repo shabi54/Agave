@@ -1,0 +1,17 @@
+<?php
+function executeRequest($args=null) {
+	global $agave, $db_info;
+	$themer = $agave->load('themer');
+	$dbTree = $agave->load('dbTree');
+	
+	// Build heirarchical table structure from innodb constraints
+	$dbTree->connect($agave->db_info);
+	$tree = $dbTree->build();
+		
+	//theme page
+	$themer->page['title'] = "DB Tree";
+	$themer->output = $dbTree->displayTree($tree);
+	//$themer->output = $themer->theme('dbTree','dbTree', $tree);
+	$themer->output = $themer->theme('admin', 'admin');
+}
+?>

@@ -1,0 +1,432 @@
+<?php
+final class fieldManager2 {
+	private $extensionsLoaded = FALSE;
+	public $fields = array();
+	public $forms = array();
+	public $validators = array();
+	public $alterers = array();
+	private $fieldLocations = array();
+	private $validatorLocations = array();
+	private $firstpass = TRUE; // for multistep forms upon which getForm may be called twice before rendering
+	
+	public function __construct() {
+		global $agave;
+		$this->agave = $agave;
+		//load extensions from settings
+		if(!$this->extensionsLoaded) {
+			//populate ->forms, ->fields, ->validators, ->alterers
+			$this->registerForms();
+			$this->registerFields();
+			$this->registerValidators();
+			$this->registerAlterers();
+			global $agave;
+			$this->extensionsLoaded = TRUE;
+		}
+		$firstpass = TRUE;
+	}
+	public function __destruct() {}
+	
+	/**
+	 * Methods for extension registration
+	 */
+	
+	private function registerForms() {
+		if(!empty($this->agave->module_env['extensions']['fieldManager2']['form'])) {
+			foreach($this->agave->module_env['extensions']['fieldManager2']['form'] as $form) {
+				$this->forms[$form['data']['name']]['func'] = $form['data']['func']; 
+			}
+		}
+	}
+	
+	private function registerFields() {
+		//check fields directory for default fields
+		$files = scandir("modules/fieldManager2/fields/");
+		foreach($files as $file) {
+			if(substr($file, 0, 6) == "field_") {
+				$name = explode(".", $file);
+				$name = explode("_", $name[0]);
+				$name = isset($name[1]) ? $name[1] : NULL;
+				if(!in_array($name, $this->fields)) $this->fields[] = $name;
+				$this->fieldLocations[$name] = "modules/fieldManager2/fields/field_$name.object";
+			}
+		}
+
+		//check extensions for fields - note that extensions can overwrite default fields, this is on purpose
+		if(isset($this->agave->module_env['extensions']['fieldManager2']['fields'])) {
+			foreach($this->agave->module_env['extensions']['fieldManager2']['fields'] as $field) {
+				if(!in_array($field['data']['fieldname'], $this->fields)) $this->fields[] = $field['data']['fieldname'];
+				$this->fieldLocations[$field['data']['fieldname']] = $field['file'];
+			}
+		}		
+	}
+	
+	private function registerValidators() {
+		$files = scandir("modules/fieldManager2/validators/");
+		foreach($files as $file) {
+			if(substr($file, 0, 10) == "validator_") {
+				$name = explode(".", $file);
+				$name = explode("_", $name[0]);
+				$name = isset($name[1]) ? $name[1] : NULL;
+				if(!in_array($name, $this->fields)) $this->fields[] = $name;
+				$this->validatorLocations[$name] = "modules/fieldManager2/validators/validator_$name.object";
+			}
+		}
+	}
+	
+	private function registerAlterers() {
+		if(!empty($this->agave->module_env['extensions']['fieldManager2']['alterer'])) {
+			foreach($this->agave->module_env['extensions']['fieldManager2']['alterer'] as $alterer) {
+				$this->alterers[$alterer['data']['name']]['location'] = $alterer['data']['location'];
+				$this->alterers[$alterer['data']['name']]['targetform'] = $alterer['data']['targetform'];
+			}
+		}
+	}
+	
+	/**
+	 * Methods for loading extension class objects
+	 */
+	
+	public function loadField($field) {
+		$class = "field_".$field;
+		//return already instantiated things
+		if(class_exists($class, FALSE) && isset($GLOBALS['objects']['fields'][$class])) {
+			 return $GLOBALS['objects']['fields'][$class];
+		}
+		else {
+			$file = $this->fieldLocations[$field];
+			include_once($file);
+			$GLOBALS['objects']['fields'][$class] = new $class;
+			return $GLOBALS['objects']['fields'][$class];
+		}
+	}
+	
+	public function loadValidator($validator) {
+		$class = "validator_".$validator;
+		//return already instantiated things
+		if(class_exists($class, FALSE) && isset($GLOBALS['objects']['validators'][$class])) {
+			 return $GLOBALS['objects']['validators'][$class];
+		}
+		else {
+			$file = $this->validatorLocations[$validator];
+			include_once($file);
+			$GLOBALS['objects']['validators'][$class] = new $class;
+			return $GLOBALS['objects']['validators'][$class];
+		}
+	}
+
+	/**
+	 * Methods for retrieving and processing forms
+	 */
+
+	public function getForm() { // Give it arguments like: getForm($formname, $multistep, $argtopass1, $argstopass2, ...)
+		$args= func_get_args();
+		$id = array_shift($args);
+		$multistep = array_shift($args);
+		
+		//For multistep forms which need $form_values
+		if($multistep){
+			$form_values = $_POST;
+			if(!empty($_POST)){ global $agave; $agave->death($_POST); }
+			array_unshift($args,$form_values);
+		}
+
+		//run necessary function to build form properties
+		$func = $this->forms[$id]['func'];
+		$data = call_user_func_array($func, $args);
+		
+		//assign properties to $form object
+		$form = new stdClass; // $form->fields points to hierarchically nested array of fields and their properties - #attrib for properties and normal for nested children?
+		if($data) foreach($data as $key=>$value) $form->$key = $value;
+		$form->origin = $this->agave->current_url;
+		if(!isset($form->method)) $form->method = "post";
+		if(!isset($form->action)) $form->action = $this->agave->current_location;
+		if(!isset($form->multistep)) $form->multistep = FALSE;
+		
+		//process current state of form to complete $form
+		$form->processed = FALSE;
+		$form = $this->processForm($form);
+
+		//check extensions for form alterers
+		//global $agave;
+		//$agave->death($this->alterers);
+		foreach($this->alterers as $classname => $arr) {
+			if($arr['targetform'] == $form->id){
+				include_once($arr['location']);
+				$alterer = new $classname;
+				$alterer->alter($form);
+			}
+		}
+
+		$this->firstpass = FALSE;
+		
+		return $form;
+	}
+
+	private function processForm($form) {
+		//forms start with state properties as false
+		$form->submitted = FALSE;
+		$form->values = FALSE;
+		$form->files = FALSE;
+		$form->validateOK = FALSE;
+		$form->block = FALSE;
+		$form->errors = FALSE; // populate with errors to render
+		
+		if( ($form->multistep && $this->firstpass) || !$form->multistep){
+			//if the form was just submitted, populate values/files, mark as submitted
+			if($form->method == "post" && !empty($_POST)) $form->values = $_POST;
+			else if($form->method == "get" && !empty($_GET)) $form->values = $_GET;
+			if($form->values || !empty($_FILES)) $form->submitted = TRUE;
+		}
+		elseif($form->multistep && !$this->firstpass){
+			$form->submitted = FALSE;
+		}
+		
+		//DO FORMATS
+		$this->formatValuesWithFieldsArray($form->fields, $form);
+		
+		//if this form has not just been submitted, then it's going out for the user, so add the id, and secureID (if enabled)
+		if(!$form->submitted) {
+			$form->fields['fm_form_id'] = array(
+				'#name' => 'fm_form_id',
+				'#type' => 'hidden',
+				'#value' => $form->id
+			);
+			if($this->agave->setting('secure-forms')) {
+				$string = time().$agave->setting('SALT');
+				$form->secureID = $agave->encrypt($string);
+				$_SESSION['forms'][$form->id]['secureID'] = $this->secureID;
+				$form->fields['fm_secureID'] = array(
+					'#name' => 'fm_secureID',
+					'#type' => 'hidden',
+					'#value' => $form->secureID
+				);
+			}
+		}
+
+		//if this form has just been submitted, validate it
+		if($form->values && $form->submitted) {
+			//unset($form->values['fm_form_id']);
+			$form->validateOK = $this->validateForm($form); //if fm_secureID is set, it's unset during ->validate()
+		}	
+		
+		$form->processed = TRUE;
+		return $form;
+	}
+	
+	private function formatValuesWithFieldsArray($array, &$form){
+		foreach($array as $key=>$value){
+			if(!$this->isProp($key)){
+				$class = $value['#type'];
+				$field = $this->loadField($class);
+				$form->values[$field['name']] = $field->format($form->values, $field['name']);
+				$this->formatValuesWithFieldsArray($value, $form);
+			}
+		}
+	}
+
+	/**
+	 * Methods for saving, validating, and altering forms
+	 */
+
+	private function validateForm(&$form) {
+		//TODO: make sure to check for errors against secureID FIRST, then unset it?
+		$fields = $form->fields;
+		$retval = true;
+		$this->validateFieldsArray($fields, $retval, $form);
+		return $retval;
+	}
+	
+	private function validateFieldsArray($array, &$bool, &$form){
+		foreach($array as $key=>$value){
+			if(!$this->isProp($key)){
+				if(isset($value['#validation'])){
+					$validations = $value['#validation'];
+					if(is_array($validations)){
+						foreach($validations as $validation) {
+							if(preg_match("/^\/.*\/$/",$validation)!=0){ // if they've typed in a regexp to check on
+								if(preg_match($validation, $form->values[$key])==0){
+									$form->errors[$key]=$value['#errormessage']; 
+									$bool = false;
+								}
+							}
+							elseif(preg_match("/^\/.*\/$/",$validation)==0) // if they've typed the name of a validator class.
+							{
+								if(isset($this->validatorLocations[$validation])){
+									$validator = $this->loadValidator($validation);
+									$valid = $validator->validate($form->values[$key]);
+									if($valid == FALSE){
+										$form->errors[$key]=$value['#errormessage']; 
+										$bool = false;
+									}
+								}
+								else {
+									global $agave;
+									$agave->death("Error during validation: The form has declared a nonexistant validator class or invalid regexp for validation");
+								}
+							}
+						}
+					}
+					else{
+						$validation = $validations;
+						if(preg_match("/^\/.*\/$/",$validation)!=0){ // if they've typed in a regexp to check on
+							if(preg_match($validation, $form->values[$key])==0){
+								$form->errors[$key]=$value['#errormessage']; 
+								$bool = false;
+							}
+						}
+						elseif(preg_match("/^\/.*\/$/",$validation)==0) // if they've typed the name of a validator class.
+						{
+							if(isset($this->validatorLocations[$validation])){
+								$validator = $this->loadValidator($validation);
+								$valid = $validator->validate($form->values[$key]);
+								if($valid == FALSE){
+									$form->errors[$key]=$value['#errormessage']; 
+									$bool = false;
+								}
+							}
+							else {
+								global $agave;
+								$agave->death("Error during validation: The form has declared a nonexistant validator class or invalid regexp for validation");
+							}
+						}
+					}
+				}
+				$this->validateFieldsArray($value, $bool, $form);
+			}
+		}
+	}
+	
+	public function saveForm($form) { //TODO: Make saveform do more complicated automated saving?
+		foreach($this->alterers as $classname => $arr) { // call possible alterers' save functions to save altered stuff that the form may not know about
+			if($arr['targetform'] == $form->id){
+				include_once($arr['location']);
+				$alterer = new $classname;
+				$alterer->save($form);
+			}
+		}
+		if(isset($form->metadata)){ // If you set $form->metadata, then fm2 will perform this rudimentary db save:
+			foreach($form->metadata as $elementname => $metaarray) {
+				$query = "REPLACE INTO `".$metaarray['table']."` (`".$metaarray['column']."`) VALUES ('".$form->values[$elementname]."')";
+			}
+		}
+		$form->values = $this->cleanup($form->values);
+		return $form;
+	}
+	
+	public function cleanup($values) {
+		foreach($values as $key=>$value) {
+			$key = mysql_real_escape_string($key);
+			$value = mysql_real_escape_string($value);
+		}
+		return $values;
+	}
+	
+	/**
+	 * Methods for rendering HTML forms
+	 */
+	
+	public function renderForm($form) {
+		$html = "";
+		$html .= $this->startForm($form->action,$form->method, isset($form->cssID) ? $form->cssID : null, isset($form->includesFiles) ? $form->includesFiles : null);
+		$html .= $this->renderFieldsArray($form->fields, $form);
+		$html .= $this->endForm(isset($form->submitValue) ? $form->submitValue : "SUBMIT",isset($form->cancel) ? $form->cancel : null,isset($form->onClick) ? $form->onClick : null);
+		return $html;
+	}
+	
+	private function renderFieldsArray($array, $form) {
+		$html = '<div class="fieldstreelevel">'; //In here go whatever tags needed for child elements
+		$props = array();
+		$children = array();
+		if(is_array($array)){
+			foreach($array as $key=>$value) {
+				if($this->isProp($key)) {
+					$props[$this->stripPound($key)]=$value; // Not sure if should be doing this... TODO: Rewrite field classes and fm2 to use pounds in property names so that we won't have to strip pounds.
+				}
+				else {
+					$children[] = $value;
+				}
+			}
+		}
+		if(!empty($props)){
+			if(isset($form->values[$props['name']])){
+				$props['default']=$form->values[$props['name']]; // Insert previously entered values.
+			} 
+			if(isset($form->errors[$props['name']])){
+				$props['error']=$form->errors[$props['name']];
+			}
+			$html .= $this->generateElement($props);
+		}
+		if(!empty($children)){
+			foreach($children as $child){
+				$html .= $this->renderFieldsArray($child, $form);
+			}
+		}
+		$html .= '</div>';
+		return $html;
+	}
+	
+	private function isProp($key) {
+		if(!(strpos($key,"#")===FALSE)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	
+	private function stripPound($key) {
+		return substr($key,1);
+	}
+	
+	/**
+	 * Methods for real html generation
+	 */
+	
+	public function generateElement($element) {
+		$class = $element['type'];
+		$field = $this->loadField($class);
+		return $this->wrap($field->edit($element), $element);
+	}
+	
+	private function wrap($content=null, $element=null) {
+		if($content && $element) {
+			$html = '';
+			if(isset($element['preHTML'])) $html .= $element['preHTML'];
+			$html .= "<div class='fm-element-wrapper field-edit-wrapper field-".$element['type']."-edit-wrapper'>";
+			$html .= $this->label($element);
+			$html .= $content;
+			$html .= isset($element['error']) ? "<div class='fm-error-text'>".$element['error']."</div>" : "";
+			$html .= isset($element['help']) ? "<div class='fm-help-text'>".$element['help']."</div>" : "";
+			$html .= "</div>";
+			if(isset($element['postHTML'])) $html .= $element['postHTML'];
+			return $html;
+		}
+		else return NULL;		
+	}
+	
+	protected function label($element) {
+		$html='';
+		$required = (isset($element['required'])) ? " <span class='fm-required-mark'>*</span> " : "";
+		if(isset($element['label'])) {
+			$html .= "<div class='fm-element-title'>$required<label>".$element['label']."</label></div>";
+			return $html;
+		}
+		else return NULL;
+	}
+	
+	public function startForm($action, $method, $cssID=null, $includesFiles=null)  {
+		$files = ($includesFiles) ? "enctype='multipart/form-data'" : '';
+		$method = ($includesFiles) ? "post" : $method;
+		$id = (isset($cssID)) ? "id='".$cssID."'" : '';
+		$html = "<form action=\"".$action."\" method=\"".$method."\" $id $files>";
+		return $html;
+	}
+	
+	public function endForm($value="Submit", $cancel=NULL, $onclick=NULL) {
+		$cancelLink = ($cancel != TRUE) ? $cancel : $_SESSION['previousLocation'];
+		$cancel = ($cancel) ? " or <a class='fm-button cancel-button' href='".$cancelLink."'>cancel</a>" : NULL;
+		$html = "<input class='fm-button' type='submit' value='".$value."' onclick='".$onclick."' />$cancel</form>";
+		return $html;
+	}
+	
+} //endFieldManager2 class

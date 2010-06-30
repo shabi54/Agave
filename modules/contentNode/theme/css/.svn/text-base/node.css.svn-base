@@ -1,0 +1,39 @@
+.node-wrapper {
+	margin: 5px;
+	padding: 5px;
+}
+
+.node-body {
+	text-align: justify;	
+}
+
+
+.node-fields-wrapper {
+}
+
+.node-field {
+	margin-top: 5px;
+	padding-top: 5px;
+	margin-bottom: 5px;
+	padding-bottom: 5px;
+}
+
+.node-field-title {
+	border-bottom: 1px solid #444;
+	font-size: 24px;
+	font-weight: bold;
+}
+
+div.field-label > span {
+	font-weight: bold;
+}
+
+.node-field-value {
+
+}
+
+.node-edit-button {
+	float: right;
+	padding: 8px;
+	background: url(../images/editButton.png) no-repeat;
+}

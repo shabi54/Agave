@@ -1,0 +1,15 @@
+<?php
+function user_save_profile($args=NULL) {
+	global $agave;
+	$user = $agave->load('user');
+	
+	//get data submitted from forms
+	$agave->addFormData($_POST['saveData'], $_POST['metaData']);
+	$agave->saveOrder(NULL, 'userKey');
+
+	//run the save
+	$id = $agave->save();
+	
+	//redirect user to content that was just created/edited
+	$agave->redirect("user/profile/".$id);
+}

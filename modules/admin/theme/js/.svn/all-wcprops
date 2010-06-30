@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/agave/!svn/ver/106/trunk/modules/admin/theme/js
+END
+debug.js
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/agave/!svn/ver/102/trunk/modules/admin/theme/js/debug.js
+END
+schema-manager.js
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/agave/!svn/ver/82/trunk/modules/admin/theme/js/schema-manager.js
+END
+admin-drop-down.js
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/agave/!svn/ver/106/trunk/modules/admin/theme/js/admin-drop-down.js
+END

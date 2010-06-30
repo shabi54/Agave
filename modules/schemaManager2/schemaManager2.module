@@ -1,0 +1,3 @@
+<?php
+$objects = array();
+$objects['schemaManager2'] = 'schemaManager2.object';

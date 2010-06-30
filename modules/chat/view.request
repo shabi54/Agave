@@ -1,0 +1,4 @@
+<?php
+	//check other users mapped to this session, message them when new person arrives IF they are not already there
+	//TODO: how do I know whether or not they're already in chat?
+?>

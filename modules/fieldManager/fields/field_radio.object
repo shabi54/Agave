@@ -1,0 +1,135 @@
+<?php
+final class field_radio extends genericField implements fieldInterface {
+	
+	public function __construct() {
+		global $agave;
+		$this->agave = $agave;
+	}
+	public function __destruct() {}
+	
+	
+	public function format($values, $metaData) {
+		$values = serialize($values);
+		$values = $this->agave->invoke('field_radio_format', $values);
+		return $values;
+	}
+	
+	public function unformat($values) {
+		$values = unserialize($values);
+		$values = $this->agave->invoke('field_radio_unformat', $values);
+		return $values;
+	}
+
+	public function edit($element) {
+		$attributes = implode(" ", $this->generateAttributes($element));
+		if(isset($element['layout']['type'])) {
+			switch($element['layout']['type']) {
+				case 'horizontal' : $html = $this->returnHorizontal($element, $attributes); break;
+				case 'vertical' : $html = $this->returnVertical($element, $attributes); break;
+				case 'grid' : $html = $this->returnGrid($element, $attributes); break;
+			}
+		}
+		else $html = $this->returnVertical($element, $attributes);
+		return $html;
+	}
+
+	private function returnHorizontal($element, $attributes) {
+		$html = '';
+		foreach($element['values'] as $key=>$value) {
+			$html .= $this->generateRadio($element, $attributes, $key, $value);
+		}
+		return $html;
+	}
+
+	private function returnVertical($element, $attributes) {
+		$html = '';
+		foreach($element['values'] as $key=>$value) {
+			$html .= $this->generateRadio($element, $attributes, $key, $value)."<br />";
+		}
+		return $html;
+	}
+
+	private function returnGrid($element, $attributes) {
+		$width = isset($element['layout']['width']) ? $element['layout']['width'] : 3;
+				
+		$i=0;
+		$html = "<table></tbody>";
+		foreach($element['values'] as $key=>$value) {
+			if($i == 0) $html .= "<tr>";
+			$html .= "<td>".$this->generateRadio($element, $attributes, $key, $value)."</td>";
+			if($i >= ($width-1)) {
+				$html .= "</tr>";
+				$i = 0;
+			}
+			else $i++;
+		}		
+		$html .= "</tbody></table>";
+		
+		return $html;
+	}
+
+	private function generateRadio($element, $attributes, $key=NULL, $value=NULL) {
+		if(!is_string($key)) $key = $value;	//TODO what to do about difference between keyed and numeric arrays?
+		$checked = ($value == $element['default']) ? "checked='checked'" : "";
+		$label = isset($element['nolabel']) ? "" : "<span class='fm-checkbox-label'>".$key."</span>";
+		$name = $this->generateName($element);
+		$html = "<input type='radio' name='".$name."' value='".$value."' $attributes $checked />$label";
+		return $html;		
+	}
+		
+	public function display($values, $settings) {
+		return $values;
+	}
+	
+	public function validate($values, $md) {
+		
+	}
+
+	public function returnSettingsForm($settings) {
+		$elements = array();
+		$elements[] = array(
+			'name'=>'values',
+			'type'=>'text',
+			'label'=>'Values',
+			'help'=>"Enter a comma delimited string, such as 'A, B, C' or 'A:1, B:2' for keyed arrays.",
+			'size'=>60,
+			'default'=>(isset($settings['values'])) ? implode(", ", $settings['values']) : NULL
+		);
+		$elements[] = array(
+			'name'=>'layout',
+			'type'=>'radio',
+			'layout'=>array('type'=>'horizontal'),
+			'label'=>'Form Layout',
+			'values'=>array('horizontal','vertical','grid'),
+			'default'=>(isset($settings['layout']['type'])) ? $settings['layout']['type'] : 'horizontal'
+		);
+		$elements[] = array(
+			'name'=>'gridwidth',
+			'type'=>'text',
+			'label'=>'Grid width',
+			'help'=>'This only affects the grid layout. Default is 3.',
+			'size'=>2,
+			'maxlength'=>2,
+			'default'=>(isset($settings['layout']['width'])) ? $settings['layout']['width'] : '3'
+		);
+		$elements[] = array(
+			'name'=>'nolabel',
+			'type'=>'checkbox',
+			'label'=>'Hide labels',
+			'values'=>array('nolabel'),
+			'default'=>(isset($settings['nolabel'])) ? array('nolabel') : NULL
+		);
+		return $elements;
+	}
+
+	public function saveSettingsFields($data) {
+		$settings = array();
+		$settings['values'] = explode(",", $data['values']);
+		$settings['layout']['type'] = $data['layout'];
+		$settings['layout']['width'] = $data['gridwidth'];
+		$settings['nolabel'] = (isset($data['nolabel'])) ? TRUE : NULL;
+		return $settings;
+	}
+	
+}
+?>

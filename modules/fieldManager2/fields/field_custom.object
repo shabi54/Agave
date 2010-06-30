@@ -1,0 +1,22 @@
+<?php
+final class field_text implements field {
+	
+	public function __construct() {}
+	public function __destruct() {}
+	
+	
+	public function save($values, $md){
+	
+	}
+	public function edit($row){
+	
+	}
+	public function display($row){
+	
+	}
+	public function validate($values, $md){
+	
+	}
+	
+}
+?>

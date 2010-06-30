@@ -1,0 +1,64 @@
+<?php
+class transcode_plugin_ffmpeg{
+	
+	public function __construct() {	}
+	
+	//$input is full file object.
+	public function execute($settings, $input, $presetname){ // TODO: Crop video/audio segments and provide thumbnails!!!
+		
+		global $agave;
+		$fileman = $agave->load('fileManager');
+		
+		$time = time();
+		$shellscript = "#!/bin/sh
+"."exec 2>&1"./*Put in if you want to see a WHOLE LOT of debug output for ffmpeg*/"
+cd ".$fileman->realpath("tmp://")."
+ffmpeg -i ".$fileman->realpath("tmp://")."/".$input->filename;
+		
+		if(isset($settings['codec'])){
+			$shellscript .= " -vcodec ".$settings['codec'];
+		}
+		if(isset($settings['vpre'])){
+			$shellscript .= " -vpre ".$settings['vpre'];
+		}
+		if(isset($settings['format'])){
+			($settings['format']=="mkv") ? $shellscript .= " -f matroska" : $shellscript .= " -f ".$settings['format'];
+		}
+		if(isset($settings['bitrate'])){
+			$shellscript .= " -b ".$settings['bitrate'];
+		}
+		if(isset($settings['size'])){
+			$shellscript .= " -s ".$settings['size'];
+		}
+		if(isset($settings['framerate'])){
+			$shellscript .= " -r ".$settings['framerate'];
+		}
+		if(isset($settings['audiofreq'])){
+			$shellscript .= " -ar ".$settings['audiofreq'];
+		}
+		if(isset($settings['audiobitrate'])){
+			$shellscript .= " -ab ".$settings['audiobitrate'];
+		}
+		if(isset($settings['audiocodec'])){
+			$shellscript .= " -acodec ".$settings['audiocodec'];
+		}
+		if(isset($settings['apre'])){
+			$shellscript .= " -apre ".$settings['apre'];
+		}
+		$shellscript .= " "."transcoder_output_".$time.".".$settings['format'];
+		
+		passthru($shellscript);
+		
+		$trans = $agave->load('transcoder');
+		$filename = "transcoder_output_".$time.".".$settings['format'];
+		$parentKey = $input->fileKey;
+		$newfile = $trans->save_result($filename, $parentKey, $time, $presetname);
+		
+		$newfiles = array();
+		
+		$newfiles[] = $newfile;
+		
+		return $newfiles;
+		
+	}
+}

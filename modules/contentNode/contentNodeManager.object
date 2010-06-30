@@ -1,0 +1,18 @@
+<?php
+class contentNodeManager {
+	public function __construct() {}
+	public function __destruct() {}
+	
+	public function addContentType($machine_name, $label, $description) {
+		
+	}
+	
+	public function removeContentType($machine_name) {
+		
+	}
+	
+	public function returnContentNodesBasic($keys) {
+		
+	}
+	
+}

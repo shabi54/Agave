@@ -1,0 +1,87 @@
+<?php
+final class field_multiselect extends genericField implements fieldInterface {
+	
+	public function __construct() {
+		global $agave;
+		$this->agave = $agave;
+	}
+	
+	public function __destruct() {
+	
+	}
+	
+	public function format($values, $fieldName) {
+		return $values[$fieldName];
+	}
+	
+	public function unformat($values) {
+		return $values[$fieldName];
+	}
+
+	public function edit($element) {
+		$attributes = implode(" ", $this->generateAttributes($element));
+		$html = "<select multiple='multiple' name='".$this->generateName($element)."[]' $attributes >";
+			if(isset($element['values'][0])) {
+				$values = $element['values'];
+				$defaults = $element['default'];
+				foreach($values as $value) {
+					if($defaults) $selected = in_array($value, $defaults) ? "selected='selected'" : NULL;
+					else $selected=NULL;
+					$html .= "<option value='".$value."' $selected >".$value."</option>";
+				}
+			}
+			else {
+				$values = $element['values'];
+				$defaults = $element['default'];
+				foreach($values as $key=>$value) {
+					$selected = in_array($value, $defaults) ? "selected='selected'" : "";
+					$html .= "<option value='".$value."' $selected >".$key."</option>";
+				}
+			}
+		$html .= "</select>";
+		return $html;	
+	}
+	
+	public function display($values, $settings) {
+		return implode(", ", $values);
+	}
+	
+	public function validate($values, $metaData) {
+		return TRUE;
+	}
+	public function returnSettingsForm($settings) {
+		$elements = array();
+		
+		$elements[] = array(
+			'name'=>'values',
+			'type'=>'text',
+			'label'=>'Values',
+			'help'=>"Enter a comma delimited string, such as 'A, B, C' or 'A:1, B:2' for keyed arrays.",
+			'size'=>60,
+			'default'=>(isset($settings['values'])) ? implode(", ", $settings['values']) : NULL
+		);
+		
+		//size: text, multiselect
+		$elements[] = array(
+			'name'=>'size',
+			'type'=>'text',
+			'label'=>'Size',
+			'size'=>4,
+			'maxlength'=>4,
+			'default'=>(isset($settings['size'])) ? $settings['size'] : NULL
+		);
+		
+		return $elements;
+	}
+
+	public function saveSettingsFields($data) {
+		$settings = array();
+		
+		$settings['values'] = explode(",", $data['values']);
+		$settings['size'] = $data['size'];
+
+		return $settings;
+	}
+	
+}
+?>

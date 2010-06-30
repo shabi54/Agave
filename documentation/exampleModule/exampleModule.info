@@ -1,0 +1,99 @@
+<?php
+//TODO: consider combining .module and .info... objects and extensions could just as easily be defined here
+
+/**
+ * Module meta data - run during install/uninstall
+ */
+
+function exampleModule_info_meta() {
+	return array(
+		'name'=>'My Example Module', //name of module in modules interfaces
+		'machine-name'=>'exampleModule', //name of directory in the modules folder
+		'description'=>'Provides a general framework for page-level content and support for multiple content types.', //... a description, say something about what this thing does
+		'group'=>'Core', //the category in which you module will appear on modules page, if 
+		'version'=>'.1', //the current version of your module, increment this any time you make changes to db in your module
+		'agave-version'=>'1', //what version of agave is required for this module to work?
+		'dependencies'=>array('user','schemaManager'), //what other modules does this module rely on?
+	);
+}
+
+function exampleModule_info_actions() {
+	$actions = array();
+	//$actions[] = array('name','action','description','function','file','enabled?');
+	
+	return $actions;
+}
+
+function exampleModule_info_cron() {
+	$jobs = array();
+//	$jobs[] = array('name','description','function','interval','enabled?');
+	
+	return $jobs;
+}
+
+function exampleModule_info_menu() {
+	$menus = array();
+//	$menus[] = array('name','label','description');
+	
+	return $menus;
+}
+
+function exampleModule_info_menu_items() {
+	$items = array();
+	//$items[] = array('menu','path','weight','desc','href','visible?','expanded?','access');
+	
+	return $items;
+}
+
+function exampleModule_info_messages() {
+	$msgs = array();
+//	$msgs[] = array('type','handle','message');
+	
+	return $msgs;
+
+}
+
+function exampleModule_info_panels() {
+	$panels = array();
+//	$panels[] = array('name','title','content','query','template','func','region','include','exclude','access','weight','enabled?');
+	
+	return $panels;
+}
+
+function exampleModule_info_system_uri() {
+	$uris = array();
+//	$uris[] = array('dest','alias','access','function','file','panels','actions','fast_route');
+	
+	return $uris;
+}
+
+function exampleModule_info_system_variables() {
+	$vars = array();
+//	$vars[] = array('key','PHP value');
+	
+	return $vars;
+	
+}
+
+function exampleModule_info_user_access() {
+	$args = array();
+//	$args[] = array('action','label','desc','default');
+	
+	return $args;
+	
+}
+
+/**
+	Update/modification hooks
+*/
+function exampleModule_info_update() {
+	//any special processing that should occur whenever update.php is run
+}
+
+function exampleModule_info_install() {
+	//anything special to run after installation
+}
+
+function exampleModule_info_uninstall() {
+	//anything special to run before uninstall
+}

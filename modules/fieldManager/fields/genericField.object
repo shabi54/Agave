@@ -1,0 +1,67 @@
+<?php
+class genericField {
+	
+	public function __construct() {
+		global $agave;
+		$this->agave = $agave;
+	}
+	
+	protected function generateName($element, $id1=NULL, $id2=NULL) {
+		if(isset($element['metaData'])) {
+			$id1 = ($id1) ? "[$id1]" : '';
+			$id2 = ($id2) ? "[$id2]" : '';
+			$name = $element['name'];
+			$block = $element['blockNum'];
+			
+			$name = "saveData[".$block."][".$name."]".$id1.$id2;
+		}
+		else {
+			$name = $element['name'];
+		}
+		return $name;
+	}
+
+	protected function generateAttributes(&$element) {
+		//TODO rewrite this - return nulls for things that aren't set use $stuff = (condition) ? this : that;
+		$attributes = array();
+		$classes='';
+		$title = '';
+		$onchange = '';
+		$cols = '';
+		$rows = '';
+		$size = '';
+		$disabled = '';
+		
+		if(isset($element['class'])) $classes .= $element['class'];
+		if(isset($element['collapsed'])) $classes .= " fm-collapsed";
+		if(isset($element['collapsible'])) $classes .= " fm-collapsible";
+		if(isset($element['addable']) && $element['type'] != 'fieldset') $classes .= " fm-addable";
+		if(isset($element['required'])) $classes .= " fm-required";
+		if(isset($element['validation'])) $classes .= " ".$element['validation'];
+		$classes .= " fm-".$element['type'];
+
+		$classes = "class='$classes'";		
+		if(isset($element['cols'])) $cols = "cols='".$element['cols']."'";
+		if(isset($element['rows'])) $rows = "rows='".$element['rows']."'";
+		if(isset($element['size'])) $size = "size='".$element['size']."'";
+		if(isset($element['onchange'])) $onchange = "onchange='".$element['onchange']."'";
+		if(isset($element['disabled'])) $disabled = "disabled='disabled'";
+		if(isset($element['description'])) $title = "title='".htmlentities($element['description'], ENT_QUOTES, 'UTF-8')."'";
+		$id = isset($element['id']) ? "id='".$element['id']."'" : '';
+		$maxlength = isset($element['maxlength']) ? "maxlength='".$element['maxlength']."'" : '';
+		
+		$attributes['id'] = $id;
+		$attributes['classes'] = $classes;
+		$attributes['title'] = $title;
+		$attributes['onchange'] = $onchange;
+		$attributes['cols'] = $cols;
+		$attributes['rows'] = $rows;
+		$attributes['size'] = $size;
+		$attributes['disabled'] = $disabled;
+		$attributes['maxlength'] = $maxlength;
+		
+		return $attributes;	
+	}
+
+}
+?>

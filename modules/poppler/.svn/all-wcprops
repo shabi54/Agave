@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 45
+/svn/agave/!svn/ver/224/trunk/modules/poppler
+END
+poppler.module
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/agave/!svn/ver/193/trunk/modules/poppler/poppler.module
+END
+transcode_plugin_poppler.object
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/agave/!svn/ver/224/trunk/modules/poppler/transcode_plugin_poppler.object
+END

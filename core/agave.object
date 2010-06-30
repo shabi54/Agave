@@ -1,0 +1,551 @@
+<?php
+class agave extends olddb {
+	
+	//TODO: organize properties by what is set during bootstrap, and what is set internally
+	public $destination = FALSE;
+	public $current_location = FALSE;
+	public $saveInfo = FALSE; //saveInfo and metaInfo should hopefully become deprecated w/ fieldManager2
+	public $metaInfo = FALSE;
+	public $uri = FALSE;
+	public $module_env = array();
+	private $caches = FALSE;
+	public $actionsLoaded = FALSE;
+	private $modulesLoaded = FALSE;
+	public $debug = FALSE;
+	public $settings = FALSE;
+	public $cache = TRUE; //set to false before loading other objects to force them to update their caches
+	public $installed = TRUE;
+	
+	public function __construct() {	}
+	
+	public function modulePath($module) {
+		return $this->settings['module_data'][$module]['path'];
+	}
+
+	public function cache($item, $data=FALSE, $module=FALSE, $expires=0) {
+		if(!$data) return $this->getCache($item);
+		else $this->setCache($item, $data, $module, $expires);
+	}
+		
+	private function getCache($item) {
+		if(!$this->cache) return FALSE;
+		if(isset($this->caches[$item])) return $this->caches[$item];
+		else {
+			$query = "SELECT `data`,`expires` FROM `cache` WHERE `item`='$item'";
+			$cache = $this->doSQLQuery($query, 2);
+			if(!$cache) $this->caches[$item] = FALSE;
+			else $this->caches[$item] = ($cache['expires'] != 0 && (time() > $cache['expires'])) ? FALSE : unserialize($cache['data']);
+			return $this->caches[$item];
+		}
+	}
+	
+	private function setCache($item, $data, $module, $expires=0) {
+		if($this->installed) {
+			$time = time();
+			$data = mysql_real_escape_string(serialize($data));
+			$query = "DELETE FROM `cache` WHERE `item`='$item'";
+			$this->doSQLQuery($query, 0);
+			
+			$query = "INSERT INTO `cache` (`item`,`data`,`created`,`expires`, `module`)
+						VALUES('$item','".$data."','$time','$expires','$module')";
+			$this->doSQLQuery($query);
+		}
+	}
+	
+	public function rebuildCaches($cache=NULL) {
+		//TODO: implement rebuilding specific caches
+		$this->cache = FALSE;
+		$this->loadSettings();
+		$this->loadModules();
+	}
+	
+	public function death($input, $return=FALSE) {
+		if(!$return) {
+			if(is_array($input) || is_object($input)) die("<pre>".print_r($input, TRUE)."</pre>");
+			else die(var_dump($input));
+		}
+		else {
+			if(is_array($input) || is_object($input)) return "<pre>".print_r($input, TRUE)."</pre>";
+			else return var_dump($input);			
+		}
+	}
+	
+	public function setting($key, $value=NULL, $save=FALSE) {
+		if(!$value) return isset($this->settings[$key]) ? $this->settings[$key] : NULL;
+		else if(!$save) $this->settings[$key] = $value;
+		else if($save) {
+			//... load admin module to save setting?
+		}
+	}
+	
+	public function t($string) {
+		//TODO: figure out how to handle interface translations
+		if($this->setting('lang') && $this->setting('lang') != 'en') {
+			$string = " i18n ";
+		}
+		return $string;
+	}
+	
+	public function message($type=null, $handle=NULL, $message=NULL, $userKey=NULL, $time_start=NULL, $time_expire=NULL) {
+		if(!$userKey) {
+			if(!isset($_SESSION['messages']['types'][$type])) $_SESSION['messages']['types'][$type] = array();
+			if($handle) $_SESSION['messages']['handles'][] = $handle;
+			if($message) $_SESSION['messages']['types'][$type][] = $message;
+		}
+		else if($userKey && $this->setting('user-messaging')) {
+			//TODO maybe optimize these queries so that all user messages are written once during cleanup
+			$query = "INSERT INTO `messages` (type,message,userKey,time_start,time_expire,time_added)
+						VALUES('$type','".mysql_real_escape_string($message)."','$userKey','$time_start','$time_expire','".time()."')";
+			$this->doSQLQuery($query);
+		}
+	}
+
+	public function getMessages() {
+		//TODO: completely redo - organize by type; unpack user messages IF ENABLED here as well
+		$html = NULL;
+		//unpack normal page-level messages
+		//$this->death($_SESSION);
+		if(isset($_SESSION['messages'])) {
+			$errorMessages = array();
+			if(isset($_SESSION['messages']['handles'])) {
+				$query = "SELECT * FROM `messages` WHERE `handle` IN('".implode("','", $_SESSION['messages']['handles'])."')";
+				$items = $this->doSQLQuery($query, 3);
+				if($items) foreach($items as $item) $errorMessages[$item['type']][] = "<li>".$item['message']."</li>";
+			}
+			if(!empty($_SESSION['messages']['types'])) {
+				foreach($_SESSION['messages']['types'] as $type=>$messages) foreach($messages as $message) $errorMessages[$type][] = "<li>".$message."</li>";
+				foreach($errorMessages as $type=>$messages) $html .= "<ul id='agave-messages-$type' class='agave-messages'>".implode("\n", $messages)."</ul>";
+			}			
+			unset($_SESSION['messages']);
+		}
+
+		//unpack user-specific messages - stick in $agave->js
+		//TODO - make into separate function $agave->getUserMessages($userKey, $types);
+		if($this->setting('user-messaging')) {
+			$user = $this->load('user');
+			$themer = $this->load('themer');
+			//TODO: access checks on message types?
+			//$types = (isset($_POST['messageTypes'])) ? "AND `type` IN('".implode("','", $_POST['messageTypes'])."')": NULL;
+			$types = NULL;
+			
+			$query = "SELECT * FROM `messages` WHERE `userKey`='$user->userKey' $types ORDER BY `time_added` DESC";
+			$messages = $this->doSQLQuery($query, 3);
+			
+			//look for user messages
+			$items = array();
+			if($messages) foreach($messages as $message) {
+				//TODO: scan time_start/expire
+				$item = array();
+				$item['message'] = $message['message'];
+				$item['messageKey'] = $message['messageKey'];
+				$item['type'] = $message['type'];
+				$item['time'] = ($message['time_added']) ? date("D g:i A", $message['time_added']) : NULL;
+				$items[] = $item;
+			}
+			
+			$themer->js['user']['userMessages'] = $items;
+		}
+		
+		return ($html) ? $html : NULL;
+	}
+
+	public function redirect($path=NULL) {
+		//if($path==TRUE) $path=$this->current_location;
+		if(isset($path)) $path = $this->base_url.$path;
+		else {
+			$url = explode("?", $this->base_url); //get rid of blank ?dest=
+			$path = $url[0];
+		}
+		$this->cleanup();
+		header("Location: ".$path);
+		exit;
+	}
+
+	public function debug($message, $function=null, $arguments=null, $line=NULL, $file=NULL, $filter=NULL) {
+		/*
+		 * $args = func_get_args();
+		 * $agave->debug($message, __METHOD__, $args, __LINE__, __FILE__, $this->debugFilter);
+		 * or
+		 * $agave->debug($message, __METHOD__);
+		 * */
+		if ($this->setting('debug')) {
+			$item = array();
+			$item['message'] = $message;
+			$item['function'] = $function;
+			$item['args'] = $arguments;
+			$item['file'] = $file;
+			$item['line'] = $line;
+			$_SESSION['debug'][] = $item;
+			//TODO: organize by URL
+ 		}
+	}
+
+	public function getDebug() {
+		//TODO: organize by URL
+		if($this->setting('debug')) {
+			$categories = array();
+			$filter = ($this->setting('debug-filter')) ? explode(",", $this->setting('debug-filter')) : NULL;
+			if(isset($_SESSION['debug'])) {
+				foreach($_SESSION['debug'] as $item) {
+					//check for filter
+					$process = TRUE;
+					if($this->setting('debug-filter') && !in_array($item['function'], $filter)) $process = FALSE;
+					$func = explode("::", $item['function']);
+					if(!isset($func[1])) $item['function'] = $func[0];
+					else {
+						$item['class'] = $func[0];
+						$item['function'] = $func[1];
+					}
+					if(isset($item['filter']) && !in_array($item['function'], $item['filter'])) $process = FALSE;
+									
+					//organize by class, then by function
+					if($process) {
+						$item['class'] = (isset($item['class'])) ? $item['class']." Object" : "Request File";
+						$item['args'] = $this->processDebugArgs($item['args']);
+						if(!isset($categories[$item['class']][$item['function']])) $categories[$item['class']][$item['function']] = array();
+						$categories[$item['class']][$item['function']][] = $item;
+					}
+				}
+				$t = $this->load('themer');
+				$themevars['categories'] = $categories;				
+				unset($_SESSION['debug']);
+				return $t->theme("admin","debug", $themevars);
+			}
+		}
+		
+		else return NULL;
+	}
+	
+	private function processDebugArgs($args) {
+		$new = array();
+		foreach($args as $arg) {
+			if($arg==NULL) $arg = "<em>NULL</em>";
+			if(is_array($arg)) $arg = var_export($arg, TRUE);
+			if(is_object($arg)) $arg = "PHP OBJECT (".get_class($arg).")";
+			$new[] = $arg;
+		}
+		return $new;
+	}
+
+	public function log($type, $event, $userKey=NULL) {
+		//TODO: add current path field to track errors by url
+		$type = mysql_real_escape_string($type);
+		$event = mysql_real_escape_string($event);
+		if(!isset($_SESSION['logs'])) $_SESSION['logs'] = array();
+		$item = array();
+		$item['type'] = $type;
+		$item['event'] = $event; 
+		$item['time'] = time();
+		$item['userKey'] = $userKey;
+		$item['location'] = $this->current_location;
+		$_SESSION['logs'][] = $item;
+	}
+	
+	public function writeLogs() {
+		if(isset($_SESSION['logs'])) {
+			$u = $this->load('user');
+			if(!$u->isAnon) { //don't log anything for anonymous users - waste of db storage
+				$events = array();
+				foreach($_SESSION['logs'] as $item) {
+					if(!isset($item['userKey'])) $item['userKey'] = $u->userKey;
+					$events[] = "('".$item['type']."','".$item['event']."','".$item['time']."','".$item['userKey']."','".$item['location']."')";
+				}
+				$values = implode(", ", $events);
+				$query = "INSERT INTO `logs` (`type`,`event`,`time`,`userKey`,`location`) VALUES $values";
+				$this->doSQLQuery($query);
+			}
+			unset($_SESSION['logs']);
+		}
+	}
+	
+	public function registerARGV($vars=null){
+		$this->ARGV = array();
+		$valueList = array();
+		if($vars) {
+			foreach($vars as $var) {
+				$value = null;
+				$value = (!empty($_GET[$var])) ? $_GET[$var] : null;
+				if (!$value) $value = (!empty($_POST[$var])) ? $_POST[$var] : null;
+				array_push($valueList, $value);
+			}//foreach ($vars as $var)
+		}
+		$this->ARGV = array_combine($vars, $valueList);
+		return $this->ARGV;
+	}
+	
+	public function loadModules() {
+		if($this->module_env = $this->cache('agave_module_env')) $this->modulesLoaded = TRUE; 
+		else {
+			foreach($this->setting('enabled_modules') as $module) {
+				$modulePath = $this->modulePath($module);
+				$file = $modulePath.$module.".module";
+				if(file_exists($file)) {
+					include($file); 
+					if(isset($extensions)) foreach($extensions as $extension) {
+						//TODO: Change this, include each file, add $extensions together, 1 foreach after all included
+						$data['file'] = $modulePath.$extension['location'];
+						$data['data'] = $extension['data'];
+						$this->module_env['extensions'][$extension['module']][$extension['type']][] = $data;
+						unset($data); 
+					}
+					if(isset($objects)) foreach($objects as $object=>$location) $this->module_env['objects'][$object] = $modulePath.$location;
+					//TODO: Maybe one day add another section in .module file for object oriented libraries instead of generic functions?
+				}
+
+				if(isset($extensions)) unset($extensions);
+				if(isset($objects)) unset($objects);
+			}
+
+			$this->cache('agave_module_env', $this->module_env, 'admin');
+			$this->modulesLoaded = TRUE;
+		}
+	}
+	
+	//TODO: rewrite actions so that files are not loaded automatically, load as necessary
+	//make code for actions object oriented, actions have configurations to manage
+	//TODO: implement cache
+	public function loadActions() {
+		$query = "SELECT * FROM `actions` WHERE `active`='1'";
+		$actions = $this->doSQLQuery($query, 3);
+		$this->actions = array();
+		if($actions) {
+			foreach($actions as $action) {
+				$this->actions[$action['action']][] = $action['name'];
+			}
+		}
+		unset($actions);
+		
+		//TODO: remove the following foreach loop, don't include these files by default, wait till they are necessary in the "invoke" method
+		foreach($this->setting('enabled_modules') as $module) {
+			if (file_exists($file = $this->modulePath($module)."$module.actions")) include_once($file);
+		}
+		$this->actionsLoaded = TRUE;
+	}
+	
+	public function invoke($action, &$data=null) {
+		//if actions have been loaded, call functions that correspond to the invoked action
+		static $i = 1;
+		//echo "$i - $action<br />";
+		if($this->actionsLoaded) {
+			if(isset($this->actions[$action])) {
+				foreach($this->actions[$action] as $func) {
+					if(function_exists($func)) $data = call_user_func_array($func, array($data));
+					else {
+						//TODO: implement file loading on actions
+						//include_once(necessary file)
+						//$data = call_user_func_array($func, $array($data));
+					}
+				}
+			}
+		}
+		$i++;
+		return $data;
+	}
+	
+	public function inc($module, $file) {
+		$location = $this->modules[$module];
+		$file = $this->modulePath($module).$file;
+		include_once($file);
+	}
+	
+	public function load($object, $local=FALSE) {
+		//look for already existing objects first, and return if found
+		if(isset($GLOBALS['objects'][$object]) && !$local) return $GLOBALS['objects'][$object];
+		if(class_exists($object) && $local==TRUE) return new $object;
+		
+		//include object file if it hasn't been included yet
+		// - first look in site for module, if it's not there, look in global space
+		else {
+			//return local dependency, or global - instantiate it if it's not there
+			if($local) return new $object;
+			else {
+				$GLOBALS['objects'][$object] = new $object;
+				return $GLOBALS['objects'][$object];
+			}
+		}
+	}
+	
+	//TODO: optimize this, make sure it's handling caching correctly, right now settings.php changes aren't active until cache is refreshed
+	public function loadSettings() {
+		if($this->settings = $this->cache('agave_settings')) $this->settingsLoaded = TRUE; //TODO: what a terrible way to write this...
+		else {
+			global $settings;
+			$this->settings = $settings;
+			$query = "SELECT * FROM `system_variables`";
+			$sqlData = $this->doSQLQuery($query, 3);
+			if ($sqlData) {
+				foreach ($sqlData as $row) {
+					//all settings can be overridden in code from your sites settings.php			
+					if(!isset($this->settings[$row['key']])) $this->settings[$row['key']] = unserialize($row['value']);
+				}
+				unset($sqlData);
+				$this->cache('agave_settings', $this->settings, 'admin');
+				$this->settingsLoaded=TRUE;
+			}
+		}
+	}
+	
+	public function encrypt($input) {
+		if (isset($this->settings['SALT'])) return trim(strtr(base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $this->settings['SALT'], $input, MCRYPT_MODE_ECB, mcrypt_create_iv(mcrypt_get_iv_size(MCRYPT_RIJNDAEL_128, MCRYPT_MODE_ECB), MCRYPT_RAND))),'+/=', '-_~'));
+		else return strtr(base64_encode($input), '+/=', '-_~');  
+	}
+	
+	public function decrypt($input) {
+		if(isset($this->settings['SALT'])) return trim(mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $this->settings['SALT'], base64_decode(strtr($input, '-_~', '+/=')), MCRYPT_MODE_ECB, mcrypt_create_iv(mcrypt_get_iv_size(MCRYPT_RIJNDAEL_128, MCRYPT_MODE_ECB), MCRYPT_RAND)));
+		else return base64_decode(strtr($input, '-_~', '+/='));
+	}
+	
+	/*BEGIN auto-save functions*/
+	public function addTableData($table, $data, $block=NULL) {
+		$block = ($block) ? $block : 0;
+		foreach($data as $field=>$value) {
+			$this->saveInfo['tables'][$block][$table][$field]['value'] = $value;
+		}
+	}
+	
+	public function addFormData($saveData, $metaData) {
+		$this->saveInfo['saveData'] = $saveData;
+		$this->saveInfo['metaData'] = $metaData;
+	}
+
+	public function saveOrder($tables=NULL, $name=NULL) {
+		$this->saveOrder = $tables;
+		$this->saveKey = $name;
+	}
+
+//TODO: reorganize tables by saveOrder
+	public function save() {
+		$this->organizeSaveData();
+
+		//if($agave->settings('secure_forms')) check POST and GET, compare with $_SESSION, if no match, set error and redirect
+
+		$ids = array();
+		if(isset($this->saveInfo['metaData'])) $count = count($this->saveInfo['metaData']);
+		else if(isset($this->saveInfo['tables'])) $count = count($this->saveInfo['tables']);
+
+		for($block=0; $block<$count; $block++) {
+			if(isset($this->saveInfo['tables'][$block])) $id = $this->runTableQueries($this->saveInfo['tables'][$block]);
+			if(isset($this->saveInfo['metaData'][$block])) $this->runFieldQueries($this->saveInfo['saveData'][$block], $this->saveInfo['metaData'][$block], $id);
+			$ids[] = $id;
+		}
+
+		//unset all save info
+		if(isset($this->saveInfo['saveData'])) unset($this->saveInfo['saveData']);
+		if(isset($this->saveInfo['metaData'])) unset($this->saveInfo['metaData']);
+		if(isset($this->saveInfo['tables'])) unset($this->saveInfo['tables']);
+		if(isset($this->saveOrder)) unset($this->saveOrder);
+		if(isset($this->saveKey)) unset($this->saveKey);
+
+		//TODO: set save cookie to 0
+		
+		//save ran successfully - so wipe saved post info from session
+		if(isset($_SESSION['previousPost'])) unset($_SESSION['previousPost']);
+		
+		//if only 1 id was set/updated, just return a scalar, otherwise return array of all ids created/updated
+		return (count($ids) == 1) ? $ids[0] : $ids;
+	}
+
+	private function organizeSaveData() {
+		if(isset($this->saveInfo['metaData'])) {
+			for($i=0; $i<count($this->saveInfo['metaData']); $i++) {
+				foreach($this->saveInfo['metaData'][$i] as $field=>$values) {
+	
+					//unpack metadata
+					$md = json_decode($this->decrypt($this->saveInfo['metaData'][$i][$field]));
+					$this->saveInfo['metaData'][$i][$field] = $md;
+					
+					//validate metadata, could have been tampered with
+					if(!is_object($md)) {
+						$this->message('error', "INVALID_METADATA");
+						$this->redirect($_GET['rd']); //TODO get rid of $_GET[rd]?
+					}
+					
+					//move to table section if necessary
+					if(isset($md->table)) {
+						$this->saveInfo['tables'][$i][$md->table][$md->field]['value'] = $this->saveInfo['saveData'][$i][$field];
+						$this->saveInfo['tables'][$i][$md->table][$md->field]['metaData'] = $md;
+						unset($this->saveInfo['saveData'][$i][$field]);
+						unset($this->saveInfo['metaData'][$i][$field]);
+					}
+				}
+			}
+		}
+	}
+
+	private function runTableQueries($tables=NULL) {
+		$id = null;
+		
+		if(isset($tables) && isset($this->saveOrder)) {
+			//TODO: reorganize tables based on $this->saveOrder
+		}
+		if($tables) {
+			$first = TRUE;
+			foreach($tables as $table=>$data) {
+				$fields = array();
+				$values = array();
+				$duplicates = array();
+				foreach($data as $field=>$fieldData) {
+					if(isset($this->saveKey) && $field==$this->saveKey) $fieldData['value'] = ($fieldData['value']) ? $fieldData['value'] : $id;
+					if(isset($this->saveKey) && $field==$this->saveKey && $first) $id = $fieldData['value'];
+					if(is_string($fieldData['value'])) $value = mysql_real_escape_string($fieldData['value']);
+					//check for files to be saved, have fieldManager return the fileKey if so
+					if(isset($fieldData['metaData']) && $fieldData['metaData']->type == 'file') {
+						$fm = $this->load('fieldManager');
+						$fieldData['value'] = $fm->format($fieldData['value'], $fieldData['metaData']);
+					}
+					$fields[] = $field;
+					$values[] = $fieldData['value'];
+					$duplicates[] = "`".$field."`=VALUES(`".$field."`)";
+				}
+				$fields = implode("`, `", $fields);
+				$values = implode("', '", $values);
+				$duplicates = implode(", ", $duplicates);
+				$query = "INSERT INTO `".$table."` (`".$fields."`) VALUES('".$values."') ON DUPLICATE KEY UPDATE ".$duplicates;
+				$this->doSQLQuery($query);
+				$id = ($id) ? $id : mysql_insert_id();
+				$first = FALSE;
+			}
+		}
+
+		return $id;
+	}
+
+	private function runFieldQueries($saveData, $metaData, $id=null) {
+		$fm = $this->load('fieldManager');
+
+		foreach($metaData as $field=>$md) {
+			$values = (!empty($saveData[$field])) ? $saveData[$field]: NULL;
+			$id = (isset($md->matchKeyValue)) ? $md->matchKeyValue : $id;
+			$valueKey = (isset($md->valueKey)) ? $md->valueKey : NULL;
+
+			$values = ($values) ? mysql_real_escape_string($fm->format($values, $md)) : NULL;
+			
+			//only add a row if there is a real value, else delete the row that was there.  We only store real values
+			if(isset($values)) {
+				$query = "INSERT INTO `".$md->stem."_values` (valueKey, nodeKey, ".$md->matchKeyName.", value) 
+							VALUES('$valueKey','$md->nodeKey','$id','".$values."') 
+							ON DUPLICATE KEY UPDATE 
+							nodeKey=VALUES(`nodeKey`), 
+							".$md->matchKeyName."=VALUES(`".$md->matchKeyName."`), 
+							value=VALUES(`value`)";
+				$this->doSQLQuery($query);
+			}
+			else if(isset($md->valueKey)){
+				$query = "DELETE FROM `".$md->stem."_values` WHERE `valueKey`='".$md->valueKey."'";
+				$this->doSQLQuery($query);
+			}
+		}
+	}
+	/*END auto-save functions*/
+
+	public function stop($content=null) {
+		$this->cleanup();
+		exit($content);
+	}
+	
+	public function cleanup() {
+		//TODO: write user messages
+		$this->writeLogs();
+		session_write_close();		
+	}
+}

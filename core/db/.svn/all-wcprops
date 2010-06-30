@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 37
+/svn/agave/!svn/ver/254/trunk/core/db
+END
+olddb.object
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/agave/!svn/ver/254/trunk/core/db/olddb.object
+END
+query.object
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/agave/!svn/ver/250/trunk/core/db/query.object
+END

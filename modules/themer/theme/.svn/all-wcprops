@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/agave/!svn/ver/251/trunk/modules/themer/theme
+END
+admin-menus.tpl.php
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/agave/!svn/ver/251/trunk/modules/themer/theme/admin-menus.tpl.php
+END
+panel.tpl.php
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/agave/!svn/ver/115/trunk/modules/themer/theme/panel.tpl.php
+END
+admin-panels-blocks.tpl.php
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/agave/!svn/ver/251/trunk/modules/themer/theme/admin-panels-blocks.tpl.php
+END
+admin-panels.tpl.php
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/agave/!svn/ver/251/trunk/modules/themer/theme/admin-panels.tpl.php
+END
+admin-menu-items.tpl.php
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/agave/!svn/ver/251/trunk/modules/themer/theme/admin-menu-items.tpl.php
+END

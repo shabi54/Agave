@@ -1,0 +1,44 @@
+<?php
+class contentNode {
+	private $properties;
+	public $contentNodeKey;
+	public $fields;
+	
+	public function __construct() {
+		global $agave;
+		$this->agave = $agave;
+	}
+
+	public function build($id) {
+		$this->contentNodeKey = $id;
+		$this->matchKeyValue = $id;
+		
+		//get properties from node table first
+		$query = "SELECT * FROM `contentNode` WHERE `contentNodeKey`='$id'";
+		$sqlData = $this->agave->doSQLQuery($query, 2);
+		if($sqlData) {
+			foreach($sqlData as $key=>$value) {
+				if($value) $this->$key = $value;
+			}
+			unset($sqlData);
+		}
+		else return FALSE;
+		
+		if(!isset($this->published)) $this->published = FALSE;
+
+		//get nodeKeys
+		$matchFields = array( array('contentNode_type'=>$this->type) );
+		$this->buildFields($matchFields);
+		
+		return TRUE;
+	}
+	
+	public function buildFields($matchFields=NULL) {
+		$this->fields = $this->agave->load('schemaManager');
+		$this->fields->stem = "contentNode";
+		$this->fields->matchKeyName = "contentNodeKey";
+		$this->fields->matchKeyValue = $this->contentNodeKey;
+		$this->fields->matchFields = ($matchFields) ? $matchFields : array( array('contentNode_type' => $this->type) );
+		$this->fields->populate();
+	}
+}

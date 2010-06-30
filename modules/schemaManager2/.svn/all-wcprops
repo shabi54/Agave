@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/agave/!svn/ver/234/trunk/modules/schemaManager2
+END
+admin.request
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/agave/!svn/ver/169/trunk/modules/schemaManager2/admin.request
+END
+schemaManager2.module
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/agave/!svn/ver/169/trunk/modules/schemaManager2/schemaManager2.module
+END
+schemaManager2.object
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/agave/!svn/ver/165/trunk/modules/schemaManager2/schemaManager2.object
+END
+schemaManager2.info
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/agave/!svn/ver/207/trunk/modules/schemaManager2/schemaManager2.info
+END

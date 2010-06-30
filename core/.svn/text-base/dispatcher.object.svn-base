@@ -1,0 +1,91 @@
+<?php
+final class dispatcher {	
+	public function __construct() {}
+	public function __destruct() {}
+	
+	public function analyzeRequest($dest) {
+		//if the requested URI contains digits, strip them out and replace with wildcard %, and store the arguments
+		//example: www.russnet.org/page/4/edit/29 would turn into www.russnet.org/page/%/edit/%
+		//and "4" and "29" would be passed to the file as arguements.
+		//in addition, the entire url array is passed along
+		global $agave;
+
+		$uri = array();
+		$uri['absoluteDest'] = $dest;
+		$dest = explode("/", $dest);
+		$all = $dest;
+		$variables = array();
+		for($i=0; $i<count($dest); $i++) {
+			if(is_numeric($dest[$i])) { //if(preg_match("/\d/", $dest[$i])) {
+				$variables[] = $dest[$i];
+				$dest[$i] = "%";
+			}
+		}
+				
+		$uri['args'] = ($variables) ? $variables : array();
+		$uri['args']['all'] = $all;
+		$uri['parsedDest'] = implode("/", $dest);
+
+		return $uri;
+	}
+	
+	public function route($uri) {
+		global $agave;
+		if($uri['actions'] && !$agave->actionsLoaded) $agave->loadActions();
+		$this->loadRequest($uri);
+		$agave->invoke('execute_request', $uri); //TODO allow URIargs to modified or not?
+		$func = (!empty($uri['function'])) ? $uri['function'] : 'executeRequest'; //TODO: REMOVE potential for calling generic executeRequest function
+		if(!function_exists($func)) {
+			$agave->message('error', NULL, "Callback function for the requested URL could not be found.");
+			agave_error_page('404');
+		}
+
+		return call_user_func_array($func, array($uri['args']));
+	}
+	
+	private function loadRequest($uri) {
+		global $agave;
+		$module = $uri['module'];
+		$requestfile = $uri['file'];
+		
+		$file = $agave->modulePath($module).$requestfile.".request";
+		if(file_exists($file)) include_once($file);
+		else if($agave->status > BOOTSTRAP_FAST_ROUTE) {
+			$agave->message('error', NULL, "Agave could not find the request file for ".$uri['parsedDest']);
+			agave_error_page(404);
+		}
+		else die("Fast route file not found.");
+	}
+	
+	public function resolveRequest($dest) {
+		global $agave;
+		
+		//analyze destination and query
+		$resolvedURI = $this->analyzeRequest($dest);
+		$absoluteURI = $resolvedURI['absoluteDest'];
+		$parsedURI = $resolvedURI['parsedDest'];
+		$query = "SELECT * FROM `system_uri` WHERE `alias`='$absoluteURI' OR `dest`='$absoluteURI' OR `dest`='$parsedURI'";
+		$result = $agave->doSQLQuery($query, 3);
+
+		//loop through to make sure we've selected the correct row if there's more than one
+		if(count($result) > 1) {
+			//TODO: maybe change this?  As of now, aliased URLS overwrite absolute destinations, meaning 'home' will overwrite content/1 if home is an alias to content/1
+			foreach($result as $row) {
+				if(isset($row['alias']) && $dest == $row['alias']) {$chosen = $row; break;}
+				else if($row['dest'] == $dest) {$chosen = $row; break;}
+			}
+		}
+		else $chosen = $result[0];
+
+		//if this request has, or is, an alias, re-analyze based on the destination
+		if(!empty($chosen['alias'])) $resolvedURI = $this->analyzeRequest($chosen['dest']);
+		
+		//set 404 param if this request was invalid
+		$resolvedURI['validRequest'] = ($result) ? TRUE : FALSE; 
+		
+		//combine all request related variables and return
+		$resolvedURI = array_merge((array)$chosen, (array)$resolvedURI);
+		return $resolvedURI;
+	}
+
+}

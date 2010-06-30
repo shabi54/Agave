@@ -1,0 +1,22 @@
+<?php
+function user_view_user_files($args=null) {
+	global $agave;
+	$user = $agave->load('user');
+	$t = $agave->load('themer');
+	$fm = $agave->load('fileManager');
+	
+	//get all files belonging to user
+	$query = "SELECT `fileKey` FROM `files` where `userKey`='$user->userKey'";
+	$keys = $agave->doSQLQuery($query, 1);
+	
+	//$agave->death($keys);
+	
+	//return files
+	if($keys) $files = $fm->returnFiles($keys);
+		
+	//compile output
+	$themevars['files'] = ($keys) ? $files : NULL;
+	$t->page['title'] = "Files uploaded by $user->firstName";
+	$t->output = $t->theme('fileManager','user-files',$themevars);
+	$t->output = $t->theme('user','user');
+}

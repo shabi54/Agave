@@ -1,0 +1,236 @@
+<?php
+function admin_view_access_grid($args=null) {
+	global $agave;
+	$t = $agave->load("themer");
+	$fm = $agave->load("fieldManager");
+		
+	//build checkbox grid	
+	$form = $fm->startForm($agave->base_url."admin/access/update", "post");
+	$form .= returnAccessCheckboxes();
+	$form .= "<input type='hidden' name='checkboxes' value='checkboxes' />";
+	$form .= $fm->endForm("Save Changes");
+
+	//send output to themer
+	$themevars['form'] = $form;
+	$t->output = $t->theme('admin','admin-access', $themevars);
+	$t->output = $t->theme('admin', 'admin');
+}
+
+function admin_save_access_grid() {
+	global $agave;
+	if(isset($_POST['checkboxes'])) {
+		//save access checkbox grid	
+		$query = "UPDATE `user_access_map` SET `value`='0' WHERE `userKey` IS NULL";
+		$agave->doSQLQuery($query);
+		$query = "SELECT * FROM `user_access_map`";
+		$data = $agave->doSQLQuery($query, 3);
+		$actions = array();
+		foreach($data as $datum) {
+			$actions[$datum['user_type']."_".$datum['action']] = $datum;
+		}	
+		foreach($_POST['access_args'] as $arg) {
+			if(isset($actions[$arg])) {
+				$query = "UPDATE `user_access_map` SET `value`='1' WHERE `action`='".$actions[$arg]['action']."' AND `user_type`='".$actions[$arg]['user_type']."'";
+				$agave->doSQLQuery($query);
+			}
+		}
+	}
+	$agave->redirect("admin/access");
+}
+
+function viewProperties($args=null) {
+	global $agave;
+	$t = $agave->load('themer');
+	$query = "SELECT * FROM `user_access` ORDER BY `module`";
+	$properties = $agave->doSQLQuery($query, 3);
+	
+	$themevars['properties'] = $properties;
+	$t->page['title'] = "Manage Access Properties";
+	$t->output = $t->theme('admin','admin-manage-access', $themevars);
+	$t->output = $t->theme('admin', 'admin');
+}
+
+function saveProperty($args=null) {
+	global $agave;
+	$admin = $agave->load("admin");
+
+	//save new access argument if posted
+	if(empty($_POST['aKey'])) {
+		$admin->addAccessArgument(
+			mysql_real_escape_string($_POST['action']),
+			mysql_real_escape_string($_POST['label']),
+			mysql_real_escape_string($_POST['desc']),
+			mysql_real_escape_string($_POST['default']),
+			mysql_real_escape_string($_POST['module'])
+		);
+	}
+
+	//otherwise just update existing entry
+	else {
+		if(!empty($_POST)) foreach($_POST as $key=>$value) $$key = mysql_real_escape_string($value);
+		$query = "UPDATE `user_access` SET `label`='".$label."',`default`='".$default."',`desc`='".$desc."', `module`='".$module."' WHERE `aKey`='".$aKey."'";
+		$agave->doSQLQuery($query);
+	}
+	
+	$agave->redirect("admin/access");
+}
+
+function editProperty($args=null) {
+	global $agave;
+	$fm = $agave->load('fieldManager');
+	$t = $agave->load('themer');
+	$id = (isset($args[0])) ? $args[0] : NULL;
+	
+	//interface to add new access argument
+	$submit = ($id) ? "Save Changes" : "Add Access Property";
+	$form = $fm->startForm($agave->base_url."admin/access/save", "post");
+	$form .= $fm->generateElements(returnPropertyForm($id));
+	$form .= $fm->endForm($submit, TRUE);
+	
+	$title = ($id) ? "Edit Access Property $id" : "Add Access Property";
+	$t->page['title'] = $title;
+	$t->output = "<h2>$title</h2>".$form;
+	$t->output = $t->theme('admin', 'admin');
+}
+
+function delete($args=null) {
+	global $agave;
+	$id = (isset($args[0])) ? $args[0] : NULL;
+	$query = "SELECT * FROM `user_access` WHERE `aKey`='$id'";
+	$sql = $agave->doSQLQuery($query, 2);
+	if(!$sql) agave_error_page("404");
+	
+	if(!isset($_POST['confirm']) || $_POST['confirm'] != 'true') confirmDelete($sql);
+	else {
+		$admin = $agave->load('admin');
+		$admin->removeAccessArgument($sql['action']);
+		$agave->message('general', NULL, "Removed access property.");
+		$agave->redirect("admin/access");
+	}
+}
+
+function confirmDelete($sql=null) {
+	global $agave;
+	$t = $agave->load('themer');
+	$fm = $agave->load('fieldManager');
+	
+	$elements[] = array(
+		'preHTML'=>"<p>Are you sure you want to delete the access property <b>".$sql['action']."</b>? Once you press delete, all information related to this access property will be removed, and this action cannot be undone.</p>",
+		'type'=>'hidden',
+		'name'=>'confirm',
+		'value'=>'true'
+	);
+	
+	$form = $fm->startForm($agave->base_url."admin/access/delete/".$sql['aKey'], "post");
+	$form .= $fm->generateElements($elements);
+	$form .= $fm->endForm("Delete URL", TRUE);
+	
+	$t->output = "<h2>Confirm Delete</h2>".$form;
+	$t->theme('admin', 'admin');
+}
+
+function returnAccessCheckboxes() {
+	global $agave;
+	$fm = $agave->load('fieldManager');
+
+	//query for user_types and access arguments	
+	$query = "SELECT * FROM `user_types`";
+	$user_types = $agave->doSQLQuery($query, 3);
+	$query = "SELECT * FROM `user_access` ORDER BY `module` ASC";
+	$actions = $agave->doSQLQuery($query, 3);
+	$query = "SELECT * FROM `user_access_map`";
+	$data = $agave->doSQLQuery($query, 3);
+	$currentVals = array();
+	foreach($data as $datum) {
+		$currentVals[$datum['user_type']."_".$datum['action']] = $datum;
+	}
+
+	//build crazy access table
+	$content = "<table></tbody>";
+	$content .= "<tr><th></th>";
+	foreach($user_types as $level) $content .= "<th>".$level['label']."</th>";
+	for($i=0; $i<count($actions); $i++) {
+		if(!isset($actions[$i-1]['module']) || $actions[$i]['module'] != $actions[$i-1]['module']){
+			$content .= "<tr class='access-module-header'><th colspan='".(count($user_types)+1)."'>".$actions[$i]['module']." Module</th></tr>";
+		}
+		$zebra = ($i%2==0) ? "class='table-zebra'" : ""; 
+		$content .= "<tr $zebra><td>".$actions[$i]['label']."</td>";
+		for($j=0; $j<count($user_types); $j++) {
+			$name = $user_types[$j]['name']."_".$actions[$i]['action'];
+			$default = ($currentVals[$name]['value']=='1') ? array($user_types[$j]['name']."_".$actions[$i]['action']) : NULL;
+			$element = array(
+				'name'=>'access_args',
+				'type'=>'checkbox',
+				'nolabel'=>TRUE,
+				'title'=>$actions[$i]['desc'],
+				'values'=>array($user_types[$j]['name']."_".$actions[$i]['action']),
+				'default'=>$default
+			);
+			$content .= "<td class='admin-access-cell'>".$fm->generateElement($element)."</td>";
+			unset($name);
+			unset($default);
+		}
+		$content .= "</tr>";
+	}
+	$content .= "</tbody></table>";
+
+	return $content;
+}
+
+function returnPropertyForm($id=null) {
+	global $agave;
+	if($id) {
+		$query = "SELECT * FROM `user_access` WHERE `aKey`='$id'";
+		$item = $agave->doSQLQuery($query, 2);
+	}
+	
+	$elements = array();
+	$elements[] = array(
+		'name'=>'action',
+		'label'=>'Action:',
+		'type'=>'text',
+		'disabled'=> ($id) ? TRUE : NULL,
+		'default'=> ($id) ? $item['action'] : NULL,
+		'help'=>"Example: edit_content"
+	);
+	$elements[] = array(
+		'name'=>'label',
+		'label'=>'Label:',
+		'type'=>'text',
+		'default'=> ($id) ? $item['label'] : NULL,
+		'help'=>'Example: Edit Content'
+	);
+	$elements[] = array(
+		'name'=>'desc',
+		'label'=>'Description:',
+		'type'=>'textarea',
+		'default'=> ($id) ? $item['desc'] : NULL,
+		'cols'=>'20',
+		'rows'=>'10'
+	);
+	$elements[] = array(
+		'name'=>'default',
+		'label'=>'Default:',
+		'default'=> ($id) ? $item['default'] : NULL,
+		'type'=>'text',
+		'help'=>'1 or 0',
+		'size'=>'1',
+		'maxlength'=>'1'
+	);
+	$elements[] = array(
+		'name'=>'module',
+		'label'=>'Module:',
+		'default'=> ($id) ? $item['module'] : NULL,
+		'type'=>'text',
+		'help'=>'Example: contentNode'
+	);
+	$elements[] = array(
+		'name'=>'aKey',
+		'type'=>'hidden',
+		'value'=> ($id) ? $item['aKey'] : NULL
+	);
+
+	return $elements;
+}
+
+?>

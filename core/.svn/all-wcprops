@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 34
+/svn/agave/!svn/ver/259/trunk/core
+END
+user.object
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/svn/agave/!svn/ver/229/trunk/core/user.object
+END
+bootstrap.inc
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/agave/!svn/ver/259/trunk/core/bootstrap.inc
+END
+agave.object
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/agave/!svn/ver/259/trunk/core/agave.object
+END
+session.object
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/agave/!svn/ver/257/trunk/core/session.object
+END
+dispatcher.object
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/agave/!svn/ver/229/trunk/core/dispatcher.object
+END

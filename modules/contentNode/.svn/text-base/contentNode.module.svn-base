@@ -1,0 +1,11 @@
+<?php
+$extensions = array();
+$extensions[] = array(
+	'module'=>'fieldManager2',
+	'type'=>'form',
+	'location'=>'node_edit.request',
+	'data'=>array('name'=>'contentNode_edit','func'=>'contentNode_return_edit_form'),
+);
+
+$objects = array();
+$objects['contentNode'] = 'contentNode.object';

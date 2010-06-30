@@ -1,0 +1,142 @@
+<?php
+//TODO: consider combining .module and .info... objects and extensions could just as easily be defined here
+
+/**
+ * Module meta data - run during install/uninstall
+ */
+
+function contentNode_info_meta() {
+	return array(
+		'name'=>'Content Node',
+		'machine-name'=>'contentNode',
+		'description'=>'Provides a general framework for page-level content and support for multiple content types.',
+		'group'=>'Basic Content',
+		'version'=>'.1',
+		'agave-version'=>'1',
+		'dependencies'=>array('user','schemaManager'),
+	);
+}
+
+function contentNode_info_menu_items() {
+	$items = array();
+//	$items[] = array('menu','weight','label','desc','href','visible?','expanded?','access');
+	$items[] = array('Admin','/Content',0,'Manage the content on your site.','admin/content',1,1,'administer_content');
+	$items[] = array('Admin','/Content/Content Types',0,'Manage the types of content on your site.','admin/content/types',1,1,'administer_content');
+	$items[] = array('User','/My Content',0,'Manage the content you have created.','user/content',1,1,NULL);
+	$items[] = array('User','/Create Content',0,'Create content on this site.','content/create',1,1,NULL);
+	
+	return $items;
+}
+
+function contentNode_info_system_uri() {
+	$uris = array();
+//	$uris[] = array('dest','alias','access','function','file','panels','actions','fast_route');
+	
+	$uris[] = array('admin/content',NULL,'administer_content','listContent','admin','1','1','0');
+	$uris[] = array('admin/content/types',NULL,'administer_content','viewTypes','admin','1','1','0');
+	$uris[] = array('admin/content/types/save',NULL,'administer_content','saveType','admin','1','1','0');
+	$uris[] = array('admin/content/types/add',NULL,'administer_content','editType','admin','1','1','0');
+	$uris[] = array('admin/content/types/delete/%',NULL,'administer_content','deleteType','admin','1','1','0');
+	$uris[] = array('admin/content/types/edit/%',NULL,'administer_content','editType','admin','1','1','0');
+	$uris[] = array('content/%',NULL,NULL,'viewContentNode','node_view','1','1','0');
+	$uris[] = array('content/%/edit',NULL,NULL,'editContentNode','node_edit','1','1','0');
+	$uris[] = array('content/%/delete',NULL,NULL,'deleteContentNode','node_delete','1','1','0');
+	$uris[] = array('content/create',NULL,NULL,'createContentNode','node_create','1','1','0');
+	$uris[] = array('content/save',NULL,NULL,'saveContentNode','node_save','1','1','0');
+	$uris[] = array('content/save/%',NULL,NULL,'saveContentNode','node_save','1','1','0');
+	$uris[] = array('user/content',NULL,NULL,'userContentNode','user','1','1','0');
+	
+	return $uris;
+}
+
+function contentNode_info_user_access() {
+	$args = array();
+//	$args[] = array('action','label','desc','default');
+	
+	$args[] = array('view_content','View Any Content','Allows users to view ANY content item.','0');
+	$args[] = array('create_content','Create Any Content','Allows users to create ANY types of content.','0');
+	$args[] = array('edit_content','Edit Any Content','Allows users to edit ANY content item.','0');
+	$args[] = array('delete_content','Delete Any Content','Allows users to delete ANY content item.','0');
+	$args[] = array('administer_content','Administer Content','Allows users priviledges to manipulate any content item, and types of content.','0');
+		
+	return $args;
+	
+}
+
+/**
+	Update/modification hooks
+*/
+
+function contentNode_info_update() {
+	//You gotta write code man, sucks... but hey... use the admin object heavily
+}
+
+function contentNode_info_install() {
+	global $agave;
+	
+	$query = "SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO'";
+	$agave->doSQLQuery($query, 0);
+			
+	$query = "CREATE TABLE IF NOT EXISTS `contentNode` (
+			  `contentNodeKey` int(11) NOT NULL auto_increment,
+			  `type` text NOT NULL,
+			  `time_created` int(11) NOT NULL,
+			  `time_modified` int(11) NOT NULL,
+			  `userKey` int(11) NOT NULL,
+			  `published` tinyint(1) NOT NULL default '0',
+			  UNIQUE KEY `nodeID` (`contentNodeKey`)
+			) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;";
+	$agave->doSQLQuery($query, 0);
+			
+	$query = "CREATE TABLE IF NOT EXISTS `contentNode_schema` (
+			  `nodeKey` int(11) NOT NULL auto_increment,
+			  `contentNode_type` varchar(255) collate utf8_unicode_ci NOT NULL,
+			  `keyName` varchar(60) collate utf8_unicode_ci NOT NULL,
+			  `type` varchar(60) collate utf8_unicode_ci default NULL,
+			  `label` varchar(255) collate utf8_unicode_ci default NULL,
+			  `help` varchar(2000) collate utf8_unicode_ci default NULL,
+			  `showLabel` tinyint(1) NOT NULL default '1',
+			  `weight` int(4) default NULL,
+			  `access` varchar(60) collate utf8_unicode_ci default NULL,
+			  `settings` text collate utf8_unicode_ci NOT NULL,
+			  PRIMARY KEY  (`nodeKey`),
+			  KEY `elementKey` (`settings`(255))
+			) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;";
+	$agave->doSQLQuery($query, 0);
+			
+	$query = "CREATE TABLE IF NOT EXISTS `contentNode_types` (
+			  `typeKey` int(11) NOT NULL auto_increment,
+			  `name` varchar(60) character set utf8 collate utf8_unicode_ci NOT NULL,
+			  `label` varchar(255) character set utf8 collate utf8_unicode_ci NOT NULL,
+			  `desc` text character set utf8 collate utf8_unicode_ci NOT NULL,
+			  PRIMARY KEY  (`typeKey`)
+			) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;";
+	$agave->doSQLQuery($query, 0);
+			
+	$query = "CREATE TABLE IF NOT EXISTS `contentNode_values` (
+			  `valueKey` int(11) NOT NULL auto_increment,
+			  `contentNodeKey` int(11) NOT NULL,
+			  `nodeKey` int(20) NOT NULL,
+			  `value` text NOT NULL,
+			  PRIMARY KEY  (`valueKey`),
+			  KEY `codeKey` (`nodeKey`),
+			  KEY `parentKey` (`contentNodeKey`)
+			) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;";
+	$agave->doSQLQuery($query, 0);
+			
+	$query = "ALTER TABLE `contentNode_values`
+			  ADD CONSTRAINT `contentnode_values_ibfk_1` FOREIGN KEY (`contentNodeKey`) REFERENCES `contentnode` (`contentNodeKey`),
+			  ADD CONSTRAINT `contentnode_values_ibfk_2` FOREIGN KEY (`nodeKey`) REFERENCES `contentnode_schema` (`nodeKey`);";
+	$agave->doSQLQuery($query, 0);
+	
+	//TODO: add content type for page
+}
+
+function contentNode_info_uninstall() {
+	global $agave;
+	$admin = $agave->load('admin');
+	$query = "DROP TABLE `contentNode_values`, `contentNode_schema`, `contentNode_types`, `contentNode`";
+	$admin->uninstallMenuItems('contentNode-autogen');
+	$admin->uninstallUserAccess('contentNode-autogen');
+	$agave->doSQLQuery($query, 0);
+}

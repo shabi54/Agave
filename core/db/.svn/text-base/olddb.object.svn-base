@@ -1,0 +1,92 @@
+<?php
+class olddb {
+	public function __construct() {}
+	public function __destruct() {}
+
+	public function disconnect() {}
+
+	public function connect($db_info) {
+		$this->db_info = $db_info;
+		//set database properties needed for establishing connection
+		$login = $db_info['default']["username"];
+		$pass = $db_info['default']["password"];
+		$database = $db_info['default']["database"];
+		$host = $db_info['default']["host"];
+
+		//establish connection with database, or print error messages
+		$this->dbcnx = mysql_connect($host, $login, $pass, true);		
+		if (!$this->dbcnx) die("MYSQL could not establish connection w/ given credentials.");
+		
+		//select the db we're operating on, or print error message
+		if (! @mysql_select_db($database) ) die("Could not select the specified database.");
+
+		mysql_query("SET NAMES 'utf8'", $this->dbcnx);
+	}
+	//THIS IS DEPRECATED AND SPECIFIC TO MYSQL - DO NOT USE - HERE FOR BACKWARDS COMPATIBILITY
+	function doSQLQuery($queryText,$dataFormat=null,$debug=null) {
+		//general query function on databased selected in this->connect();
+		// ARGUMENTS:
+		// $queryText: A fully formed SQL query
+		// $dataFormat: determines what type of data structure in which to return the results of SELECT queries
+		// 	 0 = scalar variable-- use only when expecting single instances of a single field 
+		// 	 1 = array-- use when expecting multiple instances of single field 
+		// 	 2 = a hash of values-- use when expecting a single instance of multiple fields
+		// 	 3 = array of hashes-- use when expecting multiple instances of multiple fields (serves as default when no value is passed)
+		// $debug: pass a value of 1 to turn on debug messages
+
+		//die if there is no active connection on this dbID
+	
+		//as matter of course, set names to utf8 to avoid putting crap in the database
+		mysql_query("SET NAMES 'utf8'", $this->dbcnx);
+	
+		$queryVals = null;
+		// error checking, get rid of any beginning whitespace
+		$queryText = preg_replace("/^\s+(\w+\W*\w*)/" , "$1", $queryText );
+		if ($debug) echo ("$queryText<BR>");
+		$sqlQuery = mysql_query($queryText,$this->dbcnx);
+		if (!$sqlQuery) {
+			$html = "<h2>Database Error</h2><p>".mysql_error()."</p>";
+			die($html);
+		}
+		// parse out the first word of query -- SELECT/REPLACE/UPDATE/INSERT
+		$pieces = explode(" ", $queryText);		
+		if ($debug) echo ("<-----------[RESULTS]-----------><BR>");
+		if(strtoupper($pieces[0]) == "SELECT" || strtoupper($pieces[0]) == "SHOW") {
+			$innerArrayIndex = 0;
+			$outerArrayIndex = 0;
+			while ($row = mysql_fetch_assoc($sqlQuery)) {
+				while (list($key,$value) = each ($row)) {
+					if ($dataFormat == 0) { // return a scalar value
+						$queryVals = "$value";
+						if ($debug) echo ("\$queryVals = '$value';<BR>");
+					}
+					if ($dataFormat == 1) { // return an array of values-- can be used with `list()`
+						$queryVals[$innerArrayIndex] = "$value";
+						if ($debug) echo ("\$queryVals[$innerArrayIndex] = '$value';<BR>");
+						$innerArrayIndex++; //(used in single array)
+					}
+					if ($dataFormat == 2) { // build a hash of values
+						$queryVals[$key] = "$value";
+						if ($debug) echo ("\$queryVals[$key] = '$value';<BR>");
+					}
+					if (!isset($dataFormat) || $dataFormat == 3) { // build array of hashes (default format)
+						$queryVals[$outerArrayIndex][$key] = "$value";
+						if ($debug) echo ("\$queryVals[$outerArrayIndex][$key] = '$value';<BR>");
+					}
+				}
+				$outerArrayIndex++; // increment after all fields have been processed in each row (used in array of hashes)
+			}
+			if ($debug && $queryVals == null) echo ("<FONT COLOR=RED><EM>QUERY RETURNED NO RESULTS</EM></FONT><BR>");	
+		}
+		
+		else if(strtoupper($pieces[0]) == "UPDATE" || strtoupper($pieces[0]) == "INSERT" || strtoupper($pieces[0]) == "REPLACE") {
+			// return the number of affected rows for updates and inserts
+			$queryVals = mysql_affected_rows();
+			if ($debug) echo ("mysql_affected_rows() = '".mysql_affected_rows()."';<BR>");
+		}
+		
+		if ($debug) echo ("<-----------[/RESULTS]-----------><BR>");
+		return $queryVals;
+	} // /doSQLQuery()
+	
+}

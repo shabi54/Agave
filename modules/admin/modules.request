@@ -1,0 +1,151 @@
+<?php
+function viewModules() {
+	global $agave;
+	$agave->rebuildCaches();
+	$t = $agave->load("themer");
+	$admin = $agave->load("admin");
+		
+	$modules = array();
+	$modules['Global'] = getModuleData('global');
+	$modules['Local'] = getModuleData('local');	
+	
+	$themevars['modules'] = $modules;
+	$t->output = $t->theme('admin','admin-modules', $themevars);
+	$t->output = $t->theme('admin', 'admin');
+}
+
+function getModuleData($loc) {
+	global $agave;
+	$admin = $agave->load('admin');
+	
+	//determine base directory and module location
+	switch ($loc) {
+		case 'global' : {
+			$dir = 'modules';
+			$location = MODULE_LOCATION_GLOBAL;
+			break;
+		}
+		case 'local' : {
+			$dir = $agave->site_dir.'modules';
+			$location = MODULE_LOCATION_LOCAL;
+			break;
+		}
+	}
+
+	//read dir for all module directories
+	$modules = array();
+	$items = scandir($dir);
+	if($items) foreach($items as $item) if(substr($item, 0, 1) != '.') $modules[] = $item;
+	
+	//include .module files
+	$globals = array();
+	foreach($modules as $module) if(file_exists($file=$dir."/".$module."/$module.info")) include($file);
+	
+	//get data from _info_meta hook if it exists
+	$moduleData = array();
+	foreach($modules as $module) if(function_exists($module."_info_meta")) $moduleData[] = call_user_func($module."_info_meta");
+	
+	//re-organize moduleData for theme processing
+	$categories = array();
+	foreach($moduleData as $module) {
+		if(!isset($module['group'])) $module['group'] = "Unassigned";
+		$module['location'] = $location;
+		$module['enabled'] = (in_array($module['machine-name'], $agave->setting('enabled_modules'))) ? TRUE : FALSE;
+		$module['installed'] = (in_array($module['machine-name'], $agave->setting('installed_modules'))) ? TRUE : FALSE;
+		
+		//figure out if module is out-of-date
+		$versions = $agave->setting('module_versions');
+		$oldVersion = (isset($versions[$module['machine-name']])) ? $versions[$module['machine-name']] : FALSE;
+		$module['outdated'] = ($oldVersion && $oldVersion != $module['version']) ? TRUE : FALSE;
+		
+		//figure out status of dependencies
+		$dependencies = array();
+		if($module['dependencies']) foreach($module['dependencies'] as $item) $dependencies[] = (in_array($item, $agave->setting('enabled_modules'))) ? "<span class='dependency-enabled'>$item</span>" : "<span class='dependency-disabled'>$item</span>";
+		$module['dependencies'] = $dependencies;
+		
+		//log module_path
+		$paths = $agave->setting('module_paths');
+		$path = ($location == MODULE_LOCATION_GLOBAL) ? "modules/".$module['machine-name']."/" : $agave->site_dir."modules/".$module['machine-name']."/";
+		$paths[$module['machine-name']] = $path;
+		$admin->saveSetting('module_paths', $paths);
+		
+		//figure out which actions are available to perform on given module, build urls to them
+		$actions = array();
+		if($module['installed']) {
+			if($module['outdated']) {
+				$actions[] = array(
+					'name'=>'UPDATE!!',
+					'href'=>$agave->base_url."admin/modules/actions&module=".$module['machine-name']."&action=update",
+				);
+			}
+			else {
+				if($module['enabled']) {
+					$actions[] = array(
+						'name'=>'Disable',
+						'href'=>$agave->base_url."admin/modules/actions&module=".$module['machine-name']."&action=disable",
+					);
+				}
+				else {
+					$actions[] = array(
+						'name'=>'Enable',
+						'href'=>$agave->base_url."admin/modules/actions&module=".$module['machine-name']."&action=enable",
+					);
+				}
+			}
+			$actions[] = array(
+				'name'=>'Uninstall',
+				'href'=>$agave->base_url."admin/modules/actions&module=".$module['machine-name']."&action=uninstall",
+			);
+		}
+		else {
+			$actions[] = array(
+				'name'=>'Install',
+				'href'=>$agave->base_url."admin/modules/actions&module=".$module['machine-name']."&action=install",
+			);			
+		}
+		$module['actions'] = $actions;
+		$categories[$module['group']][] = $module;
+	}
+	
+	return $categories;
+}
+
+function modulePerformAction($args=null) {
+	global $agave;
+	$agave->rebuildCaches();
+	
+	$module = (isset($_GET['module'])) ? $_GET['module'] : FALSE;
+	$action = (isset($_GET['action'])) ? $_GET['action'] : FALSE;
+	if(!$module || !$action) agave_error_page('404');
+
+	if(!confirmed()) confirmAction($module, $action);
+	else {
+		global $agave;
+		$admin = $agave->load('admin');
+
+		switch($action) {
+			case 'uninstall' : $admin->uninstallModule($module); break;
+			case 'install' : $admin->installModule($module); break;
+			case 'disable' : $admin->disableModule($module); break;
+			case 'enable' : $admin->enableModule($module); break;
+			case 'update' : $admin->updateModule($module); break;
+		}
+		
+		$agave->message('message', NULL, "Action <em>$action</em> performed on module <em>$module</em>.");
+		$agave->redirect("admin/modules");
+	}
+}
+
+function confirmAction($module, $action) {
+	global $agave;
+	$t = $agave->load('themer');
+	$confirm = "<a href='".$agave->base_url."admin/modules/actions&module=$module&action=$action&confirmed=true' class='fm-button'>$action</a>";
+	$cancel = "<a href='".$agave->base_url."admin/modules"."' class='fm-button'>cancel</a>";
+	$t->page['title'] = "Confirm $action for $module";
+	$t->output = "<h2>Confirm ".ucfirst($action)."</h2><p>Are you sure you want to <b>$action</b> the <em><b>$module</b></em> module?  This could have terribly devestating effects to your site's database, thus your job.  Seriously, you may want to pray about this first.</p><p>$confirm or $cancel</p>";
+	$t->theme('admin','admin');
+}
+
+function confirmed() {
+	return (!isset($_GET['confirmed']) || $_GET['confirmed']!='true') ? FALSE : TRUE;
+}

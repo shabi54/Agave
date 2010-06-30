@@ -1,0 +1,20 @@
+<?php
+function logout() {
+	global $agave;
+	$agave->rebuildCaches();
+	$session = $agave->load('session');
+	$query = "SELECT `userKey` FROM `sessions` WHERE `sessionID`='".session_id()."'";
+	$userKey = $agave->doSQLQuery($query, 0);
+	if ($userKey) {
+		//die($userKey);
+		$agave->invoke("user_logout", $userKey);		
+		$agave->log('user_logout', "User $userKey logged out.", $userKey);
+		$session->end();
+		if(isset($_COOKIE[session_name()])) setcookie($_COOKIE[session_name()], "", time()-42000);
+		$agave->redirect();
+	}
+	else {
+		$session->end();
+		$agave->redirect();
+	}
+}

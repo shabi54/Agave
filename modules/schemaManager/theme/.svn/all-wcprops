@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/agave/!svn/ver/234/trunk/modules/schemaManager/theme
+END
+admin-schema-tables.tpl.php
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/agave/!svn/ver/166/trunk/modules/schemaManager/theme/admin-schema-tables.tpl.php
+END
+admin-schema-types.tpl.php
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/agave/!svn/ver/166/trunk/modules/schemaManager/theme/admin-schema-types.tpl.php
+END
+admin-schema-fields.tpl.php
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/agave/!svn/ver/234/trunk/modules/schemaManager/theme/admin-schema-fields.tpl.php
+END

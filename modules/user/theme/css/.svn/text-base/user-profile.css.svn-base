@@ -1,0 +1,24 @@
+#editProfile {
+	float: right;
+	padding: 8px;
+	background-image: url(../images/editButton.png);
+	background-repeat: no-repeat;
+}
+.user-block {
+	margin: 5px;
+	background-color: #F0E3CA;
+	padding: 20px;
+	float: left;
+	max-width: 400px;
+	min-width: 400px;
+}
+
+/*START USER PREFS*/
+.field-label span {
+	font-weight: bold;
+}
+
+#user-content .fm-fieldset {
+	float: left;
+}
+/*END USER PREFS*/

@@ -1,0 +1,102 @@
+<?php
+//TODO: consider combining .module and .info... objects and extensions could just as easily be defined here
+
+/**
+ * Module meta data - run during install/uninstall
+ */
+
+function transcoder_info_meta() {
+	return array(
+		'name'=>'Transcoder',
+		'machine-name'=>'transcoder',
+		'description'=>'Provides an object for managing transcoding plugins, and an interface for creating transcoding presets.',
+		'group'=>'Transcoding',
+		'version'=>'.1',
+		'agave-version'=>'1',
+		'dependencies'=>array('fileManager'),
+	);
+}
+
+function transcoder_info_actions() {
+	$actions = array();
+	//$actions[] = array('name','action','description','function','file','enabled?');
+	
+	return $actions;
+}
+
+function transcoder_info_cron() {
+	$jobs = array();
+//	$jobs[] = array('name','description','function','interval','enabled?');
+	
+	return $jobs;
+}
+
+function transcoder_info_menu() {
+	$menus = array();
+//	$menus[] = array('name','label','description');
+//	$menus[] = array('name','label','description');
+//	$menus[] = array('name','label','description');
+//	$menus[] = array('name','label','description');
+	
+	return $menus;
+}
+
+function transcoder_info_menu_items() {
+	$items = array();
+//	$items[] = array('menu','weight','label','desc','href','visible?','expanded?','access');
+	
+	return $items;
+}
+
+function transcoder_info_messages() {
+	$msgs = array();
+//	$msgs[] = array('type','handle','message');
+	
+	return $msgs;
+
+}
+
+function transcoder_info_panels() {
+	$panels = array();
+//	$panels[] = array('name','title','content','query','template','func','region','include','exclude','access','weight','enabled?');
+	
+	return $panels;
+}
+
+function transcoder_info_system_uri() {
+	$uris = array();
+//	$uris[] = array('dest','alias','access','function','file','panels','actions','fast_route');
+	
+	return $uris;
+}
+
+function transcoder_info_system_variables() {
+	$vars = array();
+//	$vars[] = array('key','PHP value');
+	
+	return $vars;
+	
+}
+
+function transcoder_info_user_access() {
+	$args = array();
+//	$args[] = array('action','label','desc','default');
+			
+	return $args;
+	
+}
+
+/**
+	Update/modification hooks
+*/
+function transcoder_info_update() {
+	//any special processing that should occur whenever update.php is run
+}
+
+function transcoder_info_install() {
+	//anything special to run after installation
+}
+
+function transcoder_info_uninstall() {
+	//anything special to run before uninstall
+}

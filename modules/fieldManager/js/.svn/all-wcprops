@@ -1,0 +1,47 @@
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/agave/!svn/ver/156/trunk/modules/fieldManager/js
+END
+fm-text.js
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/agave/!svn/ver/77/trunk/modules/fieldManager/js/fm-text.js
+END
+fm-hotswap.js
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/agave/!svn/ver/92/trunk/modules/fieldManager/js/fm-hotswap.js
+END
+fm-collapsible.js
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/agave/!svn/ver/88/trunk/modules/fieldManager/js/fm-collapsible.js
+END
+fm-autosuggest.js
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/agave/!svn/ver/92/trunk/modules/fieldManager/js/fm-autosuggest.js
+END
+fm-validation.js
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/agave/!svn/ver/92/trunk/modules/fieldManager/js/fm-validation.js
+END
+fm-addable.js
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/agave/!svn/ver/92/trunk/modules/fieldManager/js/fm-addable.js
+END
+fm-filefield.js
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/agave/!svn/ver/156/trunk/modules/fieldManager/js/fm-filefield.js
+END

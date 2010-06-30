@@ -1,0 +1,8 @@
+<?php
+$extensions=array();
+$extensions[] = array(
+	'module'=>'transcoder',
+	'type'=>'plugin',
+	'location'=>"transcode_plugin_imagemagick.object",
+	'data'=>array('name'=>'imagemagick')
+);

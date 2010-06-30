@@ -1,0 +1,242 @@
+<?php
+//TODO: consider combining .module and .info... objects and extensions could just as easily be defined here
+
+/**
+ * Module meta data - run during install/uninstall
+ */
+
+function user_info_meta() {
+	return array(
+		'name'=>'User',
+		'machine-name'=>'user',
+		'description'=>'Provides interfaces and objects for managing users in Agave. Note that the actual user.object is in the /core directory.  Also provides flexible access system for user privilege management.',
+		'group'=>'Core',
+		'version'=>'.1',
+		'agave-version'=>'1',
+		'dependencies'=>array(),
+	);
+}
+
+function user_info_actions() {
+	$actions = array();
+	//$actions[] = array('name','action','description','function','file','enabled?');
+	
+	return $actions;
+}
+
+function user_info_cron() {
+	$jobs = array();
+//	$jobs[] = array('name','description','function','interval','enabled?');
+	
+	return $jobs;
+}
+
+function user_info_menu() {
+	$menus = array();
+	$menus[] = array('User','Links pertininent to a particular user.');
+
+	
+	return $menus;
+}
+
+function user_info_menu_items() {
+	$items[] = array('User','/Logout',0,'Log out of your account.','user/logout',1,1,NULL);
+	$items[] = array('User','/Profile',0,'Log out of your account.','user/profile',1,1,NULL);
+	$items[] = array('Admin','/Users',0,'Log out of your account.','admin/users',1,1,'administer_users');
+	$items[] = array('Admin','/Users/User Types',0,'Log out of your account.','admin/users/types',1,1,'administer_users');
+	$items[] = array('Admin','/Users/User Permissions',0,'Log out of your account.','admin/access',1,1,'administer_users');
+	
+	return $items;
+}
+
+function user_info_messages() {
+	$msgs = array();
+//	$msgs[] = array('type','handle','message');
+	
+	return $msgs;
+}
+
+function user_info_panels() {
+	$panels = array();
+//	$panels[] = array('name','title','content','query','template','func','region','include','exclude','access','weight','enabled?');
+	$panels[] = array('user-login','User Login',NULL,NULL,NULL,'user_panel_login','right',NULL,NULL,NULL,NULL,1);
+	
+	return $panels;
+}
+
+function user_info_system_uri() {
+	$uris = array();
+	$uris[] = array('admin/access',NULL,'administer_users','admin_view_access_grid','access',0,1,0);
+	$uris[] = array('admin/access/add',NULL,'administer_users','editProperty','access',0,1,0);
+	$uris[] = array('admin/access/delete/%',NULL,'administer_users','delete','access',0,1,0);
+	$uris[] = array('admin/access/edit/%',NULL,'administer_users','editProperty','access',0,1,0);
+	$uris[] = array('admin/access/manage',NULL,'administer_users','viewProperties','access',0,1,0);
+	$uris[] = array('admin/access/save',NULL,'administer_users','saveProperty','access',0,1,0);
+	$uris[] = array('admin/access/update',NULL,'administer_users','update','access',0,1,0);
+	$uris[] = array('admin/users',NULL,'administer_users','browseUsers','admin',0,1,0);
+	$uris[] = array('admin/users/%/drop-access/%',NULL,'administer_users','dropPrivilege','admin',0,1,0);
+	$uris[] = array('admin/users/add',NULL,'administer_users','addUser','admin',0,1,0);
+	$uris[] = array('admin/users/delete/%',NULL,'administer_users','deleteUser','admin',0,1,0);
+	$uris[] = array('admin/users/manage/%',NULL,'administer_users','manageUser','admin',0,1,0);
+	$uris[] = array('admin/users/manage/save/%',NULL,'administer_users','saveUser','admin',0,1,0);
+	$uris[] = array('admin/users/message/%',NULL,'administer_users','messageUser','admin',0,1,0);
+	$uris[] = array('admin/users/types',NULL,'administer_users','viewTypes','admin',0,1,0);
+	$uris[] = array('admin/users/types/add',NULL,'administer_users','editType','admin',0,1,0);
+	$uris[] = array('admin/users/types/delete/%',NULL,'administer_users','deleteType','admin',0,1,0);
+	$uris[] = array('admin/users/types/edit/%',NULL,'administer_users','editType','admin',0,1,0);
+	$uris[] = array('admin/users/types/save',NULL,'administer_users','saveType','admin',0,1,0);
+	$uris[] = array('user/checkin',NULL,NULL,'checkin','checkin',0,0,1);
+	$uris[] = array('user/login',NULL,NULL,'login','login',0,1,0);
+	$uris[] = array('user/logout',NULL,NULL,'logout','logout',0,1,0);
+	$uris[] = array('user/profile',NULL,NULL,'user_view_profile','profile-view',0,1,0);
+	$uris[] = array('user/profile/%',NULL,NULL,'user_view_profile','profile-view',0,1,0);
+	$uris[] = array('user/profile/edit',NULL,NULL,'user_edit_profile','profile-edit',0,1,0);
+	$uris[] = array('user/profile/edit/%',NULL,NULL,'user_edit_profile','profile-edit',0,1,0);
+	$uris[] = array('user/profile/save',NULL,NULL,'user_save_profile','profile-save',0,1,0);
+	$uris[] = array('user/profile/save/%',NULL,NULL,'user_save_profile','profile-save',0,1,0);
+	$uris[] = array('user/register',NULL,NULL,'register','register',0,1,0);
+	
+	return $uris;
+}
+
+function user_info_system_variables() {
+	$vars = array();
+//	$vars[] = array('key','PHP value');
+	
+	return $vars;
+	
+}
+
+function user_info_user_access() {
+	$args = array();
+	$args[] = array('administer_users','Administer Users','Allows user complete access to edit/change user information.','0');
+			
+	return $args;
+}
+
+/**
+	Update/modification hooks
+*/
+function user_info_update() {
+	//any special processing that should occur whenever update.php is run
+}
+
+function user_info_install() {
+	
+	global $agave;
+	$query = "CREATE TABLE IF NOT EXISTS `users` (
+	  `userKey` int(11) NOT NULL auto_increment,
+	  `firstName` text collate utf8_unicode_ci NOT NULL,
+	  `lastName` text collate utf8_unicode_ci NOT NULL,
+	  `login` varchar(32) character set utf8 default NULL,
+	  `password` varchar(64) character set utf8 default NULL,
+	  `email` text collate utf8_unicode_ci NOT NULL,
+	  `date_added` bigint(20) NOT NULL,
+	  PRIMARY KEY  (`userKey`)
+	) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;";
+	$agave->doSQLQuery($query, 0);
+
+	//users map
+	$query = "CREATE TABLE IF NOT EXISTS `users_map` (
+	  `mapKey` int(11) NOT NULL auto_increment,
+	  `userKey` int(11) NOT NULL default '0',
+	  `groupKey` int(11) default NULL,
+	  `clientKey` int(11) default NULL,
+	  `user_type` varchar(60) collate utf8_unicode_ci default NULL,
+	  PRIMARY KEY  (`mapKey`),
+	  KEY `par_ind_2` (`userKey`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;";
+	$agave->doSQLQuery($query, 0);
+
+	//user access
+	$query = "CREATE TABLE IF NOT EXISTS `user_access` (
+	  `aKey` int(11) NOT NULL auto_increment,
+	  `action` text character set utf8 NOT NULL,
+	  `label` text character set utf8 NOT NULL,
+	  `desc` text character set utf8 NOT NULL,
+	  `default` tinyint(1) NOT NULL,
+	  `module` text character set utf8 NOT NULL,
+	  PRIMARY KEY  (`aKey`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;";
+	$agave->doSQLQuery($query, 0);
+
+	//user access map
+	$query = "CREATE TABLE IF NOT EXISTS `user_access_map` (
+	  `mKey` int(11) NOT NULL auto_increment,
+	  `action` text character set latin1 NOT NULL,
+	  `user_type` varchar(60) collate utf8_unicode_ci default NULL,
+	  `userKey` int(11) default NULL,
+	  `value` tinyint(1) NOT NULL,
+	  PRIMARY KEY  (`mKey`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;";
+	$agave->doSQLQuery($query, 0);
+
+	//user schema
+	$query = "CREATE TABLE IF NOT EXISTS `user_schema` (
+	  `nodeKey` int(11) NOT NULL auto_increment,
+	  `contextKey` tinyint(4) NOT NULL,
+	  `contextName` tinytext collate utf8_unicode_ci NOT NULL,
+	  `user_type` varchar(255) collate utf8_unicode_ci NOT NULL,
+	  `keyName` varchar(60) collate utf8_unicode_ci NOT NULL,
+	  `type` varchar(60) collate utf8_unicode_ci NOT NULL,
+	  `label` varchar(255) character set utf8 default NULL,
+	  `help` varchar(2000) character set utf8 default NULL,
+	  `showLabel` tinyint(1) NOT NULL default '1',
+	  `weight` int(4) default NULL,
+	  `access` varchar(60) collate utf8_unicode_ci default NULL,
+	  `settings` text collate utf8_unicode_ci,
+	  PRIMARY KEY  (`nodeKey`),
+	  KEY `contextKey` (`contextKey`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;";
+	$agave->doSQLQuery($query, 0);
+
+	//user types
+	$query = "CREATE TABLE IF NOT EXISTS `user_types` (
+	  `typeKey` int(11) NOT NULL auto_increment,
+	  `label` varchar(255) collate utf8_unicode_ci default NULL,
+	  `name` varchar(60) collate utf8_unicode_ci NOT NULL,
+	  `desc` text collate utf8_unicode_ci,
+	  `timeout` int(11) default NULL,
+	  PRIMARY KEY  (`typeKey`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;";
+	$agave->doSQLQuery($query, 0);
+
+	//user values
+	$query = "CREATE TABLE IF NOT EXISTS `user_values` (
+	  `valueKey` int(11) NOT NULL auto_increment,
+	  `userKey` int(11) NOT NULL,
+	  `nodeKey` int(11) NOT NULL,
+	  `value` tinytext collate utf8_unicode_ci NOT NULL,
+	  PRIMARY KEY  (`valueKey`),
+	  KEY `userKey` (`userKey`),
+	  KEY `prefKey` (`nodeKey`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;";
+	$agave->doSQLQuery($query, 0);
+
+	//sessions
+	$query = "CREATE TABLE IF NOT EXISTS `sessions` (
+	  `id` int(11) NOT NULL auto_increment,
+	  `userKey` int(11) NOT NULL,
+	  `sessionID` varchar(64) character set utf8 NOT NULL,
+	  `time_refreshed` bigint(20) NOT NULL,
+	  `time_created` bigint(20) NOT NULL,
+	  `data` text character set utf8 NOT NULL,
+	  PRIMARY KEY  (`id`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;";
+	$agave->doSQLQuery($query, 0);
+
+	//user schema key constraints
+	$query = "ALTER TABLE `user_values`
+	  ADD CONSTRAINT `user_values_ibfk_1` FOREIGN KEY (`userKey`) REFERENCES `users` (`userKey`) ON DELETE CASCADE ON UPDATE CASCADE,
+	  ADD CONSTRAINT `user_values_ibfk_2` FOREIGN KEY (`nodeKey`) REFERENCES `user_schema` (`nodeKey`);";
+	$agave->doSQLQuery($query, 0);
+
+	$admin = $agave->load('admin');
+	$admin->addUserType('anon','Anonymous','Users who have not logged into your site.');
+	$admin->addUserType('authenticated','Authenticated','Users who have logged into your site.');
+
+}
+
+function user_info_uninstall() {
+	//anything special to run before uninstall
+}

@@ -1,0 +1,25 @@
+<?php
+/**
+ * Drupal temporary (temporary://) stream wrapper class.
+ *
+ * Provides support for storing temporarily accessible files with the Drupal
+ * file interface.
+ *
+ * Extends DrupalPublicStreamWrapper.
+ */
+class stream_wrapper_tmp extends agaveLocalStreamWrapper {
+  /**
+   * Implements abstract public function getDirectoryPath()
+   */
+	public function getDirectoryPath() {
+		global $agave;
+		$path = sys_get_temp_dir();
+		return $path;
+	}
+   /**
+   * Overrides getExternalUrl().
+   */
+	public function getExternalUrl() {
+		return FALSE; //tmp files should not have a url, they are not downloadable
+	}
+}

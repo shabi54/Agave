@@ -1,0 +1,232 @@
+<?php
+class schemaManager {
+	private $debugFilter = NULL; //array('get_node_keys','unpackElement');
+
+	public function __construct() {	}
+
+	public function get_node_keys($stem, $matchFields) {
+		global $agave;
+		$args = func_get_args();
+		$query = "SELECT DISTINCT s.`nodeKey` FROM `". $stem . "_schema` s WHERE ";
+		$and = '';
+		foreach ($matchFields as $matchField) {
+			while (list($key,$value) = each ($matchField)) {
+				$query .= $and . "s.`" .$key . "` LIKE '%" .$value . "%' ";
+			}
+			$and = "AND ";
+		}
+		$nodeKeys = $agave->doSQLQuery($query, 1);
+		$this->nodeKeys = $nodeKeys;
+		$agave->debug("Returning nodeKeys", __METHOD__, $args, __LINE__, __FILE__, $this->debugFilter);
+		return $nodeKeys;
+	}
+	
+	public function get_form_elements($stem=NULL, $schemata=NULL, $matchKey=NULL, $block=NULL, $parent=NULL) {
+		global $agave;
+		$nodeKeys = '';
+		$comma = '';
+		foreach($schemata as $schema) {
+			$nodeKeys .= $comma.implode(",", $schema);
+			$comma = ",";
+		}
+
+		$query = "SELECT s.*, v.`value`, v.`valueKey` FROM `".$stem."_schema` s
+				LEFT JOIN `".$stem."_values` v ON ( s.`nodeKey` = v.`nodeKey` AND v.`".$stem."Key` = '".$matchKey."' )
+				WHERE s.`nodeKey` IN(".$nodeKeys.")
+		";
+		$results = $agave->doSQLQuery($query, 3);
+
+		//return unserialized elements, add necessary data
+		$unpacked = array();
+		foreach($results as $result) {
+			$unpacked[] = $this->unpackElement($result, $block, $parent, $stem, $stem."Key", $matchKey);
+		}
+		unset($results);
+		return $unpacked;
+	}
+
+	public function get_schema_values($stem, $matchKey, $schemata) {
+		global $agave;
+		if($schemata) {
+			$nodeKeys = '';
+			$comma = '';
+			foreach($schemata as $schema) {
+				$nodeKeys .= $comma.implode(",", $schema);
+				$comma = ",";
+			}
+			
+			if($nodeKeys) {
+				$query = "SELECT DISTINCT s.*, v.`value`	 FROM `".$stem."_schema` s
+					INNER JOIN `".$stem."_values` v ON s.`nodeKey` = v.`nodeKey`
+					WHERE v.`".$stem."Key`='". $matchKey."'
+					AND v.`nodeKey` IN(".$nodeKeys.")";
+				$sqlData = $agave->doSQLQuery($query, 3);
+	
+				//TODO change this to return whole schema row - need that data in the object
+				//TODO - in object, check for files, if files load them and build on returned key(s)
+				$values = array();
+				if($sqlData) {
+					foreach($sqlData as $item) {
+						$values[$item['keyName']] = $item['value'];
+					}
+				}
+				unset($sqlData);
+				
+				return $values;
+			}
+		}
+	}
+
+	private function unpackElement($row, $block=NULL, $parent=NULL, $stem=NULL, $matchKeyName=NULL, $matchKeyValue=NULL) {
+		global $agave;
+		$element = array();
+				
+		//unpack settings field
+		$row['settings'] = unserialize($row['settings']);
+		if($row['settings']) {
+			foreach($row['settings'] as $key=>$value) {
+				$element[$key] = $value;
+			}
+		}
+	
+		//add metaData - TODO: don't bother adding unnecessary data in here
+		$element['metaData']['name'] = $row['keyName'];
+		$element['metaData']['type'] = $row['type'];
+		$element['metaData']['stem'] = $stem;
+		$element['metaData']['nodeKey'] = $row['nodeKey'];
+		$element['metaData']['matchKeyName'] = $matchKeyName;
+		$element['metaData']['matchKeyValue'] = $matchKeyValue;
+		if(isset($row['settings']['db'])) $element['metaData']['db'] = $row['settings']['db'];
+		if(isset($row['valueKey'])) $element['metaData']['valueKey'] = $row['valueKey'];
+
+		//add properties from schema table
+		$element['type'] = $row['type'];
+		$element['name'] = $row['keyName'];
+		$element['label'] = $row['label'];
+		$element['weight'] = $row['weight'];
+		$element['access'] = $row['access'];
+		$element['help'] = $row['help'];
+		
+		//take into account parent fieldsets from driver
+		if($parent) {
+			$name = explode("/", $element['name']);
+			array_unshift($name, $parent);
+			$element['name'] = implode("/", $name);
+		}
+		if($block) $element['blockNum'] = $block;
+		
+		//add default value if present
+		if(isset($row['value'])) {
+			$fm = $agave->load('fieldManager');
+			$element['default'] = $fm->unformat($row['type'], $row['value']);	
+		}
+	
+		return $element;
+	}
+
+//TODO: consider moving following functions out into new object for others to extend
+
+	//utility function for objects that extend schemaManager
+	public function returnNodeKeys($key) {
+		global $agave;
+		$query = "SELECT DISTINCT s.`nodeKey` FROM `". $this->stem . "_schema` s WHERE `".$this->matchKeyName."`='$key'";
+		$keys = $agave->doSQLQuery($query, 1);
+
+		return ($keys) ? $keys : NULL;
+	}
+	
+	public function buildSchema() {
+		global $agave;
+		$args = func_get_args();
+		//$agave->death($this->nodeKeys);
+		if($this->nodeKeys) {
+			$query = "SELECT DISTINCT s.*, v.`value` , v.`valueKey` 
+				FROM `".$this->stem."_schema` s 
+				LEFT OUTER JOIN `".$this->stem."_values` v 
+				ON (s.`nodeKey` = v.`nodeKey` AND v.`".$this->matchKeyName."`='".$this->matchKeyValue."')
+				WHERE s.`nodeKey` IN(".implode(",",$this->nodeKeys).")";
+			$result = $agave->doSQLQuery($query, 3);
+
+			if($result) {
+				$organized = array();
+				$this->schemaList = array();
+				foreach($result as $row) {
+					if(!$row['weight']) $row['weight'] = 0;
+					$hash = 50000 + $row['weight'];
+					$id = $hash."_".$row['keyName']."_".$row['nodeKey'];
+					$organized[$id] = $row;
+					$this->schemaList[$row['keyName']] = $id;
+				}
+			}
+			unset($result);
+			ksort($organized);
+	
+			$agave->debug("Returning schema for object", __METHOD__, $args, __LINE__, __FILE__, $this->debugFilter);
+			$this->schema = $organized;
+		}
+		else {
+			$agave->debug("No schema to return for object (no nodekeys to process)", __METHOD__, $args, __LINE__, __FILE__, $this->debugFilter);
+			$this->schema = FALSE;
+		}
+	}
+
+	public function populate() {
+		if(!isset($this->nodeKeys)) $this->get_node_keys($this->stem, $this->matchFields);
+		$this->buildSchema();
+		$this->buildValues();
+	}
+
+	//utility function for objects that extend schemaManager	
+	public function buildValues() {
+		global $agave;
+		if($this->schema) {
+			$fieldManager = $agave->load('fieldManager');
+			foreach ($this->schema as $row) {
+				if(!empty($row['value'])) {
+					if(!isset($data)) $data = new stdClass;
+					$data->$row['keyName'] = $fieldManager->unformat($row['type'], $row['value']);
+				}
+			}
+			$this->values = (isset($data)) ? $data : FALSE;
+		}
+		else $this->values = FALSE;
+	}
+
+	//utility function for objects that extend schemaManager
+	public function returnElements($block=NULL, $parent=NULL, $elements=NULL) {
+		//return unserialized elements, add necessary data
+		$unpacked = ($elements) ? $elements : array();
+		if($this->schema) {
+			foreach($this->schema as $row) {
+				$unpacked[] = $this->unpackElement($row, $block, $parent, $this->stem, $this->matchKeyName, $this->matchKeyValue);
+			}
+		}
+		return (empty($unpacked)) ? NULL : $unpacked;
+	}
+	
+	public function returnElement($field, $block=NULL, $parent=NULL) {
+		return $this->unpackElement($this->returnSchemaRow($field), $block, $parent, $this->stem, $this->matchKeyName, $this->matchKeyValue);
+	}
+	
+	public function returnSchemaRow($keyname) {
+		return $this->schema[$this->schemaList[$keyname]];
+	}
+	
+	public function displayField($keyname) {
+		global $agave;
+		$fm = $agave->load('fieldManager');
+		if(isset($this->values->$keyname)) return $fm->display($this->values->$keyname, $this->returnSchemaRow($keyname));
+	}
+	
+	public function displaySchema($matchfield=NULL) {
+		//TODO take into account multiple schemata because of multiple matchfields ??
+		$html = NULL;
+		if($this->schema) {
+			foreach($this->schema as $row) {
+				$html .= $this->displayField($row['keyName']);
+			}
+		}
+		return ($html) ? $html : NULL;
+	}
+
+} //end of class

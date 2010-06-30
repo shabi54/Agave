@@ -1,0 +1,86 @@
+<?php
+//TODO: consider combining .module and .info... objects and extensions could just as easily be defined here
+
+/**
+ * Module meta data - run during install/uninstall
+ */
+
+function fileManager_info_meta() {
+	return array(
+		'name'=>'File Manager', //name of module in modules interfaces
+		'machine-name'=>'fileManager', //name of directory in the modules folder
+		'description'=>'Provides an object for managing files, and provides stream wrapper support for abstracting physical file systems.',
+		'group'=>'Core', //the category in which you module will appear on modules page, if 
+		'version'=>'.1', //the current version of your module, increment this any time you make changes to db in your module
+		'agave-version'=>'1', //what version of agave is required for this module to work?
+		'dependencies'=>array('user','schemaManager'), //what other modules does this module rely on?
+	);
+}
+
+function fileManager_info_cron() {
+	$jobs = array();
+//	$jobs[] = array('name','description','function','interval','enabled?');
+	
+	return $jobs;
+}
+
+function fileManager_info_menu_items() {
+	$items = array();
+	$items[] = array('Admin','/Files',0,'View files on your site.','admin/files',1,1,'administer_files');
+	$items[] = array('User','/Files',0,'View files uploaded by you.','user/files',1,1,NULL);
+	
+	return $items;
+}
+
+function fileManager_info_system_uri() {
+	$uris = array();
+	$uris[] = array('admin/files/%',NULL,'administer_files','viewFile','file',0,1,0);
+	$uris[] = array('admin/files',NULL,'administer_files','browseFiles','file',0,1,0);
+	$uris[] = array('admin/files/%/edit',NULL,'administer_files','editFile','file',0,1,0);
+	$uris[] = array('admin/files/save',NULL,'administer_files','saveFile','file',0,1,0);
+	$uris[] = array('admin/files/upload',NULL,'administer_files','editFile','file',0,1,0);
+	$uris[] = array('user/files',NULL,NULL,'user_view_user_files','user',0,1,0);
+	
+	return $uris;
+}
+
+function fileManager_info_user_access() {
+	$args = array();
+	$args[] = array('administer_files','Administer files','Allows user manage files table.','0');
+			
+	return $args;
+}
+
+/**
+	Update/modification hooks
+*/
+function fileManager_info_update() {
+	//any special processing that should occur whenever update.php is run
+}
+
+function fileManager_info_install() {
+	global $agave;
+	$query = "CREATE TABLE IF NOT EXISTS `files` (
+	  `fileKey` int(11) NOT NULL auto_increment,
+	  `parentKey` int(11) default NULL,
+	  `preset` varchar(24) character set utf8 default NULL,
+	  `userKey` int(11) NOT NULL,
+	  `filename` text character set utf8,
+	  `extension` varchar(8) character set utf8 NOT NULL,
+	  `path` text character set utf8 NOT NULL,
+	  `uri` text character set utf8,
+	  `mime` text character set utf8 NOT NULL,
+	  `size` bigint(20) NOT NULL,
+	  `data` text character set utf8,
+	  `time_modified` bigint(20) NOT NULL,
+	  `time_created` bigint(20) NOT NULL,
+	  `status` int(1) NOT NULL default '0',
+	  PRIMARY KEY  (`fileKey`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;";
+	$agave->doSQLQuery($query, 0);
+	
+}
+
+function fileManager_info_uninstall() {
+	//anything special to run before uninstall
+}

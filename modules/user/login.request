@@ -1,0 +1,76 @@
+<?php
+function login() {
+	global $agave;
+			
+	if($_POST) processLogin();
+	else buildPage();
+}
+
+function buildPage() {
+	global $agave;
+	$user = $agave->load('user');
+	$themer = $agave->load('themer');
+	$fm = $agave->load('fieldManager');	
+	
+	$formElements = array();
+	$formElements[] = array(
+		'type'=>'text',
+		'label'=>'Login: ',
+		'name'=>'login'
+	);
+	$formElements[] = array(
+		'type'=>'password',
+		'label'=>'Password: ',
+		'name'=>'password'
+	);
+
+	$form = $fm->startForm($agave->base_url."user/login&rd=".$agave->destination, "POST");
+	$form .= $fm->generateElements($formElements);
+	$form .= $fm->endForm("Login");
+	
+	$themer->page['title'] = "User Login";
+	$themer->output = "<h2>User login</h2>".$form;
+}
+
+function processLogin() {
+	global $agave;
+	$user = $agave->load('user');
+	$session = $agave->load('session');
+	
+	$login = $_POST['login'];
+	$password = md5($_POST['password']);
+
+	$userKey = $session->getUserKey($login, $password);
+	
+	unset($_SESSION['previousPost']); //make sure user's posted name and passwords are not saved in any session data
+	
+	//redirect if no match on login/password
+	if (!$userKey) {
+		$agave->message('error', 'INVALID_LOGIN');
+		$agave->redirect();
+	}
+
+	//if we have a valid user, start sessions and log in database, then redirect back to index
+	else if ($userKey) {
+		$query = "SELECT `userKey` FROM `sessions` WHERE `sessionID`='".session_id()."'";
+		$result = $agave->doSQLQuery($query,0);
+		if (!$result) {
+			$sessionID = $session->returnValidSessionID();
+			$session->addSession($sessionID, $userKey, $_SESSION);
+			$agave->log('user_login', "User $userKey logged in.", $userKey);
+			$agave->invoke("user_login", $userKey);
+			
+			//TESTING
+			$u = $agave->load('user', TRUE);
+			$u->build($userKey);
+			$agave->message('general', NULL, "$u->firstName $u->lastName just logged in!!", 1);
+			//END TESTING
+						
+			$agave->redirect();
+		}
+		else if($result) {
+			$agave->message('error', "ALREADY_LOGGED_IN");
+			$agave->redirect();
+		}
+	}
+}

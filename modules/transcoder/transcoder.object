@@ -1,0 +1,84 @@
+<?php
+final class transcoder {
+	private $plugins = false;
+	
+	public function __construct() {
+		global $agave;
+		$this->agave = $agave;
+		$this->registerPlugins();
+	}
+	
+	public function __destruct() {}
+	
+	private function registerPlugins() {
+		if(!empty($this->agave->module_env['extensions']['transcoder']['plugin'])) {
+			foreach($this->agave->module_env['extensions']['transcoder']['plugin'] as $plugin) {
+				$this->plugins[$plugin['data']['name']] = $plugin['file']; 
+			}
+		}
+	}
+	
+	private function loadPlugin($name) {
+		if(isset($this->instances[$name])) return $this->instances[$name];
+		$plugin = 'transcode_plugin_'.$name;
+		$file = $this->plugins[$name];
+		include($file);
+		$this->instances[$name] = new $plugin;
+		return $this->loadPlugin($name);
+	}
+	
+	public function returnSettingsForm($plugin, $data) {
+		$plugin = $this->loadPlugin($plugin);
+		return $plugin->returnSettingsForm($data);
+	}
+	
+	private function loadPreset($preset) {
+		if(isset($this->presetData[$preset])) return $this->presetData[$preset];
+		$query = "SELECT * FROM `transcoding_presets` WHERE `name`='$preset'";
+		$this->presetData[$preset] = $this->agave->doSQLQuery($query, 2);
+		return $this->loadPreset($preset);
+	}
+
+	//execute can either receive a settings array, or the name of a preset to look up in the database
+	public function execute($settings, $input=NULL) { // Returns an array full of file objects.
+		if(!is_array($settings)) {
+			$preset = $this->loadPreset($settings);
+			$settings = unserialize($preset['settings']);
+			$plugin = $preset['plugin'];
+			$allowedtypes = $preset['acceptedExtensions'];
+			$presetname = $preset['name'];
+		}
+		else {
+			$plugin = $settings['plugin'];
+			$allowedtypes = NULL;
+			$presetname = 'nopreset';
+		}
+		$plugin = $this->loadPlugin($plugin);
+		if(isset($allowedtypes)){
+			if(!strpos($allowedtypes,$input->extension)){
+				agave_error_page("415","<b>Error:  Files with the extension ".$input->extension." are not supported by the chosen transcoding preset. Please go back and try again.</b>");
+			}
+		}
+		return $plugin->execute($settings, $input, $presetname);
+	}	
+	
+	public function save_result($filename, $parentKey, $time, $presetname){
+		$fileman = $this->agave->load('fileManager');
+		$user = $this->agave->load('user');
+		$newfile = new stdClass;
+		$newfile->filename = $filename;
+		$newfile->uri = "tmp://".$newfile->filename;
+		$newfile->size = $fileman->return_filesize($fileman->realpath($newfile->uri));
+		$newfile->mime = $fileman->return_mime($fileman->realpath($newfile->uri));
+		$newfile->status = FILE_STATUS_TMP;
+		$newfile->extension = $fileman->return_extension($newfile->uri);
+		$newfile->time_created = $time;
+		$newfile->time_modified = $time;
+		$newfile->userKey = $user->userKey;
+		$newfile->status = FILE_STATUS_SAVED;
+		$newfile->parentKey = $parentKey;
+		$newfile->preset = $presetname;
+		$newfile = $fileman->save_file($newfile);
+		return $newfile;
+	}
+}

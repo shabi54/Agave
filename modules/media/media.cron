@@ -1,0 +1,40 @@
+<?php
+function media_cron_transcode() {
+	global $agave;
+	
+	//get jobs
+	$query = "SELECT * FROM `media_transcoding_queue` WHERE `status`='queued'";
+	$jobs = $agave->doSQLQuery($query, 3);
+	$jobKeys = array();
+	foreach($jobs as $job) $jobKeys[] = $job['id'];
+	
+	//if we have transcoding jobs to run, do them, otherwise... don't do anything
+	if($jobs) {
+		//update selected jobs as 'waiting'
+		$query = "UPDATE `media_transcoding_queue` SET `status`='waiting' WHERE `id` IN('".implode("','", $jobKeys)."')";
+		$agave->doSQLQuery($query);
+	
+		//run the transcoding jobs, notify owner of media when complete
+		include_once("modules/media/transcoding.inc");
+		foreach($jobs as $job) {
+			$media = $agave->load('media', TRUE);
+			if(!$media->build($job['mediaKey'])) media_transcode_failed($job);
+			else {
+				$status = media_transcode($job, $media);
+				$media->update();
+				$query = "UPDATE `media_transcoding_queue` SET `status`='$status' WHERE `id`='".$job['id']."'";
+				$agave->doSQLQuery($query);
+			}
+		}
+	}
+}
+
+function media_cron_updateSOLR() {
+	//select keys where time_modified > cron_last_run for modified objects, build objects...
+	//use object to generate SOLR document, add to array of SOLR docs,
+	//batch commit changes
+	global $agave;
+	$query = "SELECT `mediaKey` FROM `media` WHERE `status`='updated'";
+	$mediaKeys = $agave->doSQLQuery($query, 1);
+	//if any objects were marked for deletion, remove values from `schema_values`, and remove from `media`
+}

@@ -1,0 +1,3 @@
+<?php
+$objects = array();
+$objects['dbTree'] = 'dbTree.object';

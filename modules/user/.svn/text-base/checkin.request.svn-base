@@ -1,0 +1,49 @@
+<?php
+function checkin($args=null) {
+	if(isset($_POST['messageKey'])) deleteMessage($_POST['messageKey']);
+	if(isset($_POST['deleteAll'])) deleteAll($_POST['userKey']);
+	getUserMessages();
+}
+
+function getUserMessages() {
+	global $agave;
+	$userKey = (isset($_POST['userKey'])) ? $_POST['userKey'] : NULL;		
+	$types = (isset($_POST['messageTypes'])) ? "AND `type` IN('".implode("','", $_POST['messageTypes'])."')": NULL;
+	
+	$query = "SELECT * FROM `messages` WHERE `userKey`='$userKey' $types ORDER BY `time_added` DESC";
+	$messages = $agave->doSQLQuery($query, 3);
+
+	//look for user messages
+	$items = array();
+	if($messages) foreach($messages as $message) {
+		//TODO: scan time_start / _expire
+		$item = array();
+		$item['message'] = $message['message'];
+		$item['messageKey'] = $message['messageKey'];
+		$item['type'] = $message['type'];
+		$item['time'] = date("D g:i A", $message['time_added']);
+		$items[] = $item;
+	}
+
+	$items = (!empty($items)) ? json_encode($items) : NULL;
+	
+	//throw output
+	die($items);
+}
+
+function deleteMessage($key) {
+	global $agave;
+	//TODO: check for array of keys for the "delete all" button
+	//$keys = explode(",", $key);
+		
+	$query = "DELETE FROM `messages` WHERE `messageKey`='$key'";
+	$agave->doSQLQuery($query);
+	exit;
+}
+
+function deleteAll($userKey) {
+	global $agave;
+	$query = "DELETE FROM `messages` WHERE `userKey`='$userKey'";
+	$agave->doSQLQuery($query);
+	exit;
+}

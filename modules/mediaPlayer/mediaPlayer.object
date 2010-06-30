@@ -1,0 +1,15 @@
+<?php
+final class mediaPlayer {
+	public function __construct() {}
+	public function __destruct() {}
+	
+	public function display($plugin, $settings=null) {
+		$player = $this->load($plugin);
+		return $player->display($settings);
+	}
+	
+	private function loadPlugin($plugin) {
+		//search for proper plugin object
+	}
+}
+?>

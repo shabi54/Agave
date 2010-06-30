@@ -1,0 +1,99 @@
+<?php
+function user_edit_profile($args=NULL) {
+	global $agave;
+	$t = $agave->load('themer');
+	$user = $agave->load('user');
+	$fm = $agave->load('fieldManager');
+	$user->buildPrefs();
+	//determine userKey on which we will be editing
+	$userKey = (isset($args[0])) ? $args[0] : $user->userKey;
+	//access checks
+	if($user->isAnon) {
+		$agave->message('error', "ACCESS_DENIED");
+		$agave->redirect();
+	}
+	$user->access('edit-profile', FALSE);
+	if($user->userKey==$userKey) $user->access('edit-profile', TRUE);
+	if(!$user->access('edit-profile')) {
+		$agave->message('error', "ACCESS_DENIED");
+		$agave->redirect();		
+	}
+
+	//get user data for profile
+	$targetUser = $agave->load('user', TRUE);
+	if(!$targetUser->build($userKey)) {
+		$agave->message('error', "DESTINATION_UNKNOWN");
+		$agave->redirect();
+	}
+	$targetUser->buildPrefs();
+		
+	//assemble form elements
+	$elements = array();
+	$elements[] = array(
+		'type'=>'fieldset',
+		'name'=>'general',
+		'label'=>'General',
+		'weight'=>-50
+	);
+	$elements[] = array(
+		'type'=>'text',
+		'name'=>'general/fname',
+		'label'=>'First Name',
+		'default'=>$targetUser->firstName,
+		'metaData'=>array(
+			'table'=>'users',
+			'field'=>'firstName'
+		)
+	);
+	$elements[] = array(
+		'type'=>'text',
+		'name'=>'general/lname',
+		'label'=>'Last Name',
+		'default'=>$targetUser->lastName,
+		'metaData'=>array(
+			'table'=>'users',
+			'field'=>'lastName'
+		)
+	);
+	$elements[] = array(
+		'type'=>'text',
+		'name'=>'general/email',
+		'label'=>'Email',
+		'weight'=>50,
+		'default'=>$targetUser->email,
+		'metaData'=>array(
+			'table'=>'users',
+			'field'=>'email'
+		)
+	);
+	$elements[] = array(
+		'type'=>'hidden',
+		'name'=>'general/ukey',
+		'value'=>$targetUser->userKey,
+		'metaData'=>array(
+			'table'=>'users',
+			'field'=>'userKey'
+		)
+	);
+
+	if(isset($targetUser->prefs->schema)) {
+		$elements[] = array(
+			'type'=>'fieldset',
+			'name'=>'prefs',
+			'label'=>'Prefs',
+			'weight'=>50
+		);
+		$elements = $targetUser->prefs->returnElements(NULL, 'prefs', $elements);
+	}
+	
+	//generate form
+	$form = $fm->startForm($agave->base_url."user/profile/save/$targetUser->userKey", "post");
+	$form .= $fm->generateElements($elements);
+	$form .= $fm->endForm("Save", $agave->base_url."user/profile/$targetUser->userKey");
+	
+	//theme output
+	$t->page['title'] = "Editing $targetUser->firstName's profile";
+	$t->output = $form;
+	$t->output = $t->theme('user','user');
+}
+?>

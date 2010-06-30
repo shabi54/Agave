@@ -1,0 +1,78 @@
+.fm-element-wrapper {
+	margin: 3px;
+	padding: 3px;
+}
+
+.field-hidden-edit-wrapper {
+	margin: 0;
+	padding: 0;
+}
+
+.fm-fieldset {
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+
+.fm-add-field, .fm-remove-field {
+	text-decoration: none;
+	padding-top: 8px;
+	padding-bottom: 8px;
+	padding-right: 15px;
+	margin-left: 5px;
+}
+
+.fm-add-field {
+	background: url(../images/fm-add.png) no-repeat;
+	background-position: center center;
+}
+
+.fm-remove-field {
+	background: url(../images/fm-remove.png) no-repeat;
+	background-position: center center;
+}
+
+.fm-element-title > label {
+	font-weight: bold;
+}
+
+.fm-fieldset-closed {
+	border-bottom: none;
+	border-right: none;
+	border-left: none;
+}
+
+.fm-fieldset-legend {
+	-color: #FF5500;
+	font-weight: normal;
+}
+
+.fm-collapsible > .fm-fieldset-legend:hover {
+	cursor: pointer;
+	font-weight: bold;
+}
+
+.fm-required-mark {
+	color: #FF0000;
+}
+
+.fm-checkbox-label {
+	margin: 2px;
+}
+
+.fm-radio-label {
+	margin: 2px;
+}
+
+.fm-multiselect {
+	scroll: none;
+}
+
+.fm-help-text {
+	font-size: 10px;
+	margin: 2px;
+}
+
+.fm-file-wrapper {
+	background-color: #F5EECC;
+	padding: 3px;
+}

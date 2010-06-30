@@ -1,0 +1,9 @@
+<?php
+
+$objects = array();
+$objects['myCoolClass'] = 'myCoolClass.object';
+
+$extensions = array();
+$extensions[] = array(
+
+);

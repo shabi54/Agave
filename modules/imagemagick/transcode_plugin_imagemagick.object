@@ -1,0 +1,98 @@
+<?php
+class transcode_plugin_imagemagick{//TODO: Have imagemagick handle pdf>>images instead of poppler, because it is bad at that
+	
+	public function __construct() {	}
+	
+	public function execute($settings, $input, $presetname){//$input is full file object, $settings is array of settings.
+		
+		global $agave;
+		$fileman = $agave->load('fileManager');
+		$time = time();
+		
+		
+		$shellscript = "#!/bin/sh
+"./*"exec 2>&1".*/"
+cd ".$fileman->realpath("tmp://")."
+convert ".$fileman->realpath("tmp://")."/".$input->filename;
+		
+		if(isset($settings['resize'])){ //Needs a percentage with the % intact eg -resize 200%
+			$shellscript .= " -resize ".$settings['resize'];
+		}
+		if(isset($settings['compress'])){ //Choices are: None, BZip, Fax, Group4, JPEG, JPEG2000, Lossless, LZW, RLE or Zip.
+			$shellscript .= " -compess ".$settings['compress'];
+		}
+		if(isset($settings['quality'])){ // JPEG,MPEG: 0-100 // MIFF: 0-10 // MNG,PNG: 0-100
+			$shellscript .= " -quality ".$settings['quality'];
+		}
+		//$shellscript .= ' -verbose -debug "All"'; //Put this in if you want to see a WHOLE LOT of debug info for imagemagick
+		$shellscript .= " "."transcoder_output_".$time.".".$settings['format'];
+		
+		passthru($shellscript);
+		
+		$trans = $agave->load('transcoder');
+		
+		if($input->extension == 'gif'){ //Handles animated gif output (many files)
+			$count = $this->animated_gif_count_frames($input->server_path);
+			if($count>1){ 
+				$k=0;
+				while($k<$count){
+					$filenames[] = "transcoder_output_".$time."-".$k.".".$settings['format']; 
+					$k+=1;
+				}
+				$newfiles = array();
+				foreach($filenames as $filename){
+					$parentKey = $input->fileKey;
+					$newfiles[] = $trans->save_result($filename, $parentKey, $time, $presetname);
+				}
+			}
+			else{
+				$filename = "transcoder_output_".$time.".".$settings['format'];
+				$parentKey = $input->fileKey;
+				$newfile = $trans->save_result($filename, $parentKey, $time, $presetname);
+				$newfiles = array();
+				$newfiles[] = $newfile;
+			}
+		}
+		else{
+			$filename = "transcoder_output_".$time.".".$settings['format'];
+			$parentKey = $input->fileKey;
+			$newfile = $trans->save_result($filename, $parentKey, $time, $presetname);
+			$newfiles = array();
+			$newfiles[] = $newfile;
+		}
+		return $newfiles;
+	}
+	
+	private function animated_gif_count_frames($filename)
+	{
+		$filecontents=file_get_contents($filename);
+		$str_loc=0;
+		$count=0;
+		while($count < 256){ // don't think we're gonna run into animated gifs with more that 256 frames, but this is still a lame loop
+			$where1=strpos($filecontents,"\x00\x21\xF9\x04",$str_loc);
+			if($where1 === FALSE){
+				break;
+			}
+			else{
+				$str_loc=$where1+1;
+				$where2=strpos($filecontents,"\x00\x2C",$str_loc);
+				if($where2 === FALSE){
+					break;
+				}
+				else{
+					if($where1+8 == $where2){
+						$count++;
+					}
+					$str_loc=$where2+1;
+				}
+			}
+		}
+		return $count;
+	}
+	
+	private function pdf_count_pages($filename)
+	{
+		
+	}
+	
+}

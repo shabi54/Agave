@@ -1,0 +1,5 @@
+<?php
+$objects = array();
+$objects['fieldManager'] = 'fieldManager.object';
+$objects['genericField'] = 'fields/genericField.object';
+$objects['fieldInterface'] = 'fields/fieldInterface.object';

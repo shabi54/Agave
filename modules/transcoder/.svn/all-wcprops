@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/agave/!svn/ver/228/trunk/modules/transcoder
+END
+testalterer.object
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/agave/!svn/ver/227/trunk/modules/transcoder/testalterer.object
+END
+transcoder.module
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/agave/!svn/ver/227/trunk/modules/transcoder/transcoder.module
+END
+transcoder.install
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/agave/!svn/ver/21/trunk/modules/transcoder/transcoder.install
+END
+transcoder.object
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/agave/!svn/ver/225/trunk/modules/transcoder/transcoder.object
+END
+ffmpeg.request
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/agave/!svn/ver/152/trunk/modules/transcoder/ffmpeg.request
+END
+testTranscoder.request
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/agave/!svn/ver/196/trunk/modules/transcoder/testTranscoder.request
+END
+presets.request
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/agave/!svn/ver/228/trunk/modules/transcoder/presets.request
+END
+transcoder.info
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/agave/!svn/ver/213/trunk/modules/transcoder/transcoder.info
+END

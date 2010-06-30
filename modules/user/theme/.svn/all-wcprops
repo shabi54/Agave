@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/agave/!svn/ver/253/trunk/modules/user/theme
+END
+user-profile.tpl.php
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/agave/!svn/ver/253/trunk/modules/user/theme/user-profile.tpl.php
+END
+user.tpl.php
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/agave/!svn/ver/234/trunk/modules/user/theme/user.tpl.php
+END
+register.tpl.php
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/agave/!svn/ver/88/trunk/modules/user/theme/register.tpl.php
+END
+admin-user-types.tpl.php
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/agave/!svn/ver/253/trunk/modules/user/theme/admin-user-types.tpl.php
+END
+admin-users.tpl.php
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/agave/!svn/ver/253/trunk/modules/user/theme/admin-users.tpl.php
+END
+admin-manage-user.tpl.php
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/svn/agave/!svn/ver/112/trunk/modules/user/theme/admin-manage-user.tpl.php
+END

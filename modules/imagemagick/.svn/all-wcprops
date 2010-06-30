@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/agave/!svn/ver/224/trunk/modules/imagemagick
+END
+imagemagick.module
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/agave/!svn/ver/187/trunk/modules/imagemagick/imagemagick.module
+END
+transcode_plugin_imagemagick.object
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/agave/!svn/ver/224/trunk/modules/imagemagick/transcode_plugin_imagemagick.object
+END

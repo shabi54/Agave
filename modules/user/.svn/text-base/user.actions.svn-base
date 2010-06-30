@@ -1,0 +1,17 @@
+<?php
+
+function user_extend_user_login_wipeSessions(&$data) {
+	global $agave;
+	$userKey = $data;
+	$query = "DELETE FROM `sessions` WHERE `userKey`='$userKey' AND `sessionID` != '".session_id()."'";
+	$agave->doSQLQuery($query);
+}
+
+function user_extend_user_logout_wipeSessions(&$data) {
+	global $agave;
+	$userKey = $data;
+	$query = "DELETE FROM `sessions` WHERE `userKey`='$userKey'";
+	$agave->doSQLQuery($query);
+}
+
+?>

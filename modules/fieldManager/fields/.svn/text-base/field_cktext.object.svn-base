@@ -1,0 +1,100 @@
+<?php
+final class field_cktext extends genericField implements fieldInterface {
+	
+	public function __construct() {
+		global $agave;
+		$this->agave = $agave;
+	}
+	
+	public function __destruct() { }
+	
+	public function format($values, $metaData) {
+		$values = serialize($values);
+		$values = $this->agave->invoke('field_cktext_format', $values);
+		return $values;
+	}
+	
+	public function unformat($values) {
+		$values = unserialize($values);
+		$values = $this->agave->invoke('field_cktext_unformat', $values);
+		return $values;
+	}
+	
+	public function edit($element) {
+		$user = $this->agave->load('user');
+		
+		//TODO add array handling
+		$attributes = $this->generateAttributes($element);
+		$attributes = $this->agave->invoke('field_cktext_edit', $attributes);
+		$attributes = implode(" ", $attributes);		
+		$name = $this->generateName($element);
+		
+		//no need to unformat the value, was done when the element was generated
+		$value = (isset($element['default'])) ? "value='".$element['default']."'" : "";
+
+		//TODO make aware of CKeditor profiles based on user_type
+
+		//add necessary javascript
+		$t = $this->agave->load('themer');
+		$t->addJS(NULL,NULL,NULL,"vendor/ckeditor/ckeditor.js");
+		$t->addJS(NULL,NULL,"
+			window.onload = function() {
+					CKEDITOR.replace( '".$name."' );
+			}
+		");
+		
+		$default = (isset($element['default'])) ? $element['default'] : NULL;
+		$html = "<textarea name='".$name."' $attributes'>".$default."</textarea>";
+		
+		
+		return $html;		
+	}
+	
+	public function display($values, $settings) {
+		if(is_array($values)) foreach($values as $value) $value = "<p>".$value."</p>";
+		return (is_array($values)) ? implode("\n\n", $values) : $values;
+	}
+	
+	public function validate($values, $md) {
+		
+	}
+	public function returnSettingsForm($settings) {
+		$elements = array();
+		//maxlength
+		$elements[] = array(
+			'name'=>'maxlength',
+			'type'=>'text',
+			'label'=>'Max characters:',
+			'size'=>5,
+			'maxlength'=>5,
+			'default'=>(isset($settings['maxlength'])) ? $settings['maxlength'] : NULL
+		);
+		//cols: textarea
+		$elements[] = array(
+			'name'=>'cols',
+			'type'=>'text',
+			'label'=>'Cols:',
+			'size'=>4,
+			'maxlength'=>4,
+			'default'=>(isset($settings['cols'])) ? $settings['cols'] : NULL
+		);
+		//rows: textarea
+		$elements[] = array(
+			'name'=>'rows',
+			'type'=>'text',
+			'label'=>'Rows:',
+			'size'=>4,
+			'maxlength'=>4,
+			'default'=>(isset($settings['rows'])) ? $settings['rows'] : NULL
+		);
+		
+		return $elements;
+	}
+
+	public function saveSettingsFields($data) {
+		$settings = array();
+		$settings = $data;
+		return $settings;
+	}
+
+} 

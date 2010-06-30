@@ -1,0 +1,39 @@
+<?php
+/**
+ * Module meta data - run during install/uninstall
+ */
+
+function schemaManager_info_meta() {
+	return array(
+		'name'=>'Schema Manager', //name of module in modules interfaces
+		'machine-name'=>'schemaManager', //name of directory in the modules folder
+		'description'=>'Provides an object for managing dynamic data fields in the database. Displaying the data, and managing necessary form elements for changing the data.',
+		'group'=>'Core', //the category in which you module will appear on modules page, if 
+		'version'=>'.1', //the current version of your module, increment this any time you make changes to db in your module
+		'agave-version'=>'1', //what version of agave is required for this module to work?
+		'dependencies'=>array('user'), //what other modules does this module rely on?
+	);
+}
+
+function schemaManager_info_system_uri() {
+	$uris = array();
+//	$uris[] = array('dest','alias','access','function','file','panels','actions','fast_route');
+	$uris[] = array('admin/schemata',NULL,'administer_schemata','sm_dostuff','admin','0','1','0');
+	
+	return $uris;
+}
+
+function schemaManager_info_menu_items() {
+	$items = array();
+	$items[] = array('Admin','/Schemata',0,'Manage dynamic fields for any entity that uses them.','admin/schemata',1,1,'administer_schemata');
+	
+	return $items;
+}
+
+function schemaManager_info_user_access() {
+	$args = array();
+	$args[] = array('administer_schemata','Administer Schemata','Permits user to manage dynamic fields for any entity that uses them.','0');
+	
+	return $args;
+	
+}

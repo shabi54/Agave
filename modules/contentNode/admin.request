@@ -1,0 +1,240 @@
+<?php
+function listContent() {
+	global $agave;
+	$user = $agave->load("user");
+	$themer = $agave->load("themer");
+	
+	//select necessary nodes for list
+	$query = "SELECT `contentNodeKey` FROM `contentNode`";
+	$data = $agave->doSQLQuery($query, 1);
+
+	//build out the nodes for the list	
+	$nodes = array();
+	if($data) foreach($data as $key) {
+		$node = $agave->load("contentNode", TRUE);
+		$node->build($key);
+		$nodes[] = $node;
+		unset($node);
+	}
+		
+	//send data to themer
+	$themevars = array(
+		'nodes'=>$nodes,
+		'user'=>$user
+	);
+	$themer->output = $themer->theme('contentNode','admin-content', $themevars);
+	$themer->output = $themer->theme('admin', 'admin');
+}
+
+function viewTypes() {
+	global $agave;
+	$t = $agave->load('themer');
+	
+	$query = "SELECT * FROM `contentNode_types`";
+	$types = $agave->doSQLQuery($query, 3);
+	
+	$themevars['types'] = $types;
+	$t->page['title'] = "Manage Content Types";
+	$t->output = $t->theme('contentNode','admin-content-types', $themevars);
+	$t->output = $t->theme('admin','admin');
+}
+
+function editType($args=NULL) {
+	global $agave;
+	$t = $agave->load('themer');
+	$fm = $agave->load('fieldManager');
+	$id = (isset($args[0])) ? $args[0] : NULL;
+	
+	$elements = returnEditTypeForm($id);
+	
+	$form = $fm->startForm($agave->base_url."admin/content/types/save", "post");
+	$form .= $fm->generateElements($elements);
+	$form .= $fm->endForm("Save", TRUE);
+	
+	$title = ($id) ? "Edit Content Type" : "Add Content Type";
+	$t->page['title'] = $title;
+	$t->output = "<h2>$title</h2>".$form;
+	$t->output = $t->theme('admin', 'admin');
+}
+
+function saveType($args=NULL) {
+	//save type - if it's a new type, prefill schema with title/body fields
+	global $agave;
+
+	//if this is a new type, check to make sure posted name does not already exist
+	if(isset($_POST['saveData'][0]['name'])) {
+		$name = $_POST['saveData'][0]['name'];
+		$query = "SELECT * FROM `contentNode_types` WHERE `name`='$name'";
+		$sql = $agave->doSQLQuery($query, 3);
+		if($sql) {
+			$agave->message('error', NULL, "That internal name already exists, please choose another!");
+			$agave->redirect("admin/content/types/add");
+		}
+	}
+
+	//run the save
+	$agave->addFormData($_POST['saveData'], $_POST['metaData']);
+	$agave->saveOrder(NULL, "typeKey");
+	$id = $agave->save();
+
+	//if this is new, put in access checks, urls, and prefill schema with default title, body fields
+	if(isset($name)) {
+		$query = "SELECT * FROM `contentNode_types` WHERE `typeKey`='$id'";
+		$type = $agave->doSQLQuery($query, 2);
+		$admin = $agave->load('admin');
+
+		//add access checks for new content type
+		$admin->addAccessArgument('view_content_'.$type['name'],'View '.$type['label'], "Allows users to view this type of content.", 0, 'contentNode-autogen');
+		$admin->addAccessArgument('create_content_'.$type['name'],'Create '.$type['label'], "Allows users to create this type of content.", 0, 'contentNode-autogen');
+		$admin->addAccessArgument('edit_content_'.$type['name'],'Edit '.$type['label'], "Allows users to edit this type of content.", 0, 'contentNode-autogen');
+		$admin->addAccessArgument('delete_content_'.$type['name'],'Delete '.$type['label'], "Allows users to delete this type of content.", 0, 'contentNode-autogen');
+		
+		//add URL for creating new item of given type
+		$url = "content/create/".$type['name'];
+		$access = 'create_content_'.$type['name'];
+		$module = 'contentNode';
+		$file = 'node_edit';
+		$function = 'editContentNode';
+
+		$admin->addSystemURI($url, NULL, $access, $module, $function, $file, 1, 1, 0);
+
+		//prefill schema for this type with default title and body fields
+		$query = "INSERT INTO `contentNode_schema` (`contentNode_type`, `keyName`, `type`, `label`, `showLabel`,`weight`) 
+					VALUES ('".$type['name']."','title','text','Title:','0','0')";
+		$agave->doSQLQuery($query);
+		$query = "INSERT INTO `contentNode_schema` (`contentNode_type`, `keyName`, `type`, `label`, `showLabel`,`weight`) 
+					VALUES ('".$type['name']."','body','cktext','Body:','0','1')";
+		$agave->doSQLQuery($query);
+	}
+	
+	$agave->message('general', NULL, "Saved content type $id");
+	$agave->redirect("admin/content/types");
+}
+
+function deleteType($args=null) {
+	global $agave;
+	$id = $args[0];
+	if(!isset($_POST['confirm']) || $_POST['confirm'] != "true") confirmDeleteType($id);
+	else {
+		$admin = $agave->load('admin');
+		$query = "SELECT * FROM `contentNode_types` WHERE `typeKey`='$id'";
+		$type = $agave->doSQLQuery($query, 2);
+
+		//remove URL for creation of this type		
+		$url = "content/create/".$type['name'];
+		$query = "DELETE FROM `system_uri` WHERE `dest`='$url'";
+		$agave->doSQLQuery($query);
+		
+		//remove access checks
+		$admin->removeAccessArgument('view_content_'.$type['name']);
+		$admin->removeAccessArgument('create_content_'.$type['name']);
+		$admin->removeAccessArgument('edit_content_'.$type['name']);
+		$admin->removeAccessArgument('delete_content_'.$type['name']);
+
+		//get contentNodeKeys for items of type $type['name']
+		$query = "SELECT `contentNodeKey` FROM `contentNode` WHERE `type`='".$type['name']."'";
+		$keys = $agave->doSQLQuery($query, 1);
+		
+		//remove from contentNode_values
+		if($keys) {
+			$query = "DELETE FROM `contentNode_values` WHERE `contentNodeKey` IN(".implode(",", $keys).")";
+			$agave->doSQLQuery($query);
+		}
+		//remove from contentNode_schema where type==$type['name']
+		$query = "DELETE FROM `contentNode_schema` WHERE `contentNode_type`='".$type['name']."'";
+		$agave->doSQLQuery($query);
+		
+		//delete from contentNode table
+		$query = "DELETE FROM `contentNode` WHERE `type`='".$type['name']."'";
+		$agave->doSQLQuery($query);
+		
+		//finally delete row from types table
+		$query = "DELETE FROM `contentNode_types` WHERE `typeKey`='".$type['typeKey']."'";
+		$agave->doSQLQuery($query);
+		
+		$agave->message('general', NULL, "Deleted content type <em>".$type['label']."</em>");
+		$agave->redirect("admin/content/types");
+	}
+}
+
+function confirmDeleteType($id) {
+	global $agave;
+	$t = $agave->load('themer');
+	$fm = $agave->load('fieldManager');
+	
+	$query = "SELECT * FROM `contentNode_types` WHERE `typeKey`='$id'";
+	$type = $agave->doSQLQuery($query, 2);
+	
+	$elements[] = array(
+		'preHTML'=>"<p>Are you sure you want to delete the content type <b>".$type['label']."</b>? Once you press delete, all content of this type, as well as information related to this content type will be deleted.</p>",
+		'type'=>'hidden',
+		'name'=>'confirm',
+		'value'=>'true'
+	);
+	
+	$form = $fm->startForm($agave->base_url."admin/content/types/delete/$id", "post");
+	$form .= $fm->generateElements($elements);
+	$form .= $fm->endForm("Delete Type", TRUE);
+	
+	$t->page['title'] = "<h2>Confirm Delete</h2><p>Confirm delete for content type ".$type['label']."</p>";
+	$t->output = $form;
+	$t->output = $t->theme('admin', 'admin');
+}
+
+function returnEditTypeForm($id=null) {
+	global $agave;
+
+	$type = NULL;
+	if($id) {
+		$query = "SELECT * FROM `contentNode_types` WHERE `typeKey`='$id'";
+		$type = $agave->doSQLQuery($query, 2);
+	}
+	
+	$elements = array();
+	$elements[] = array(
+		'name'=>'name',
+		'label'=>'Name',
+		'type'=>'text',
+		'help'=>'This is an internal name used by Agave, it cannot be changed after creation.',
+		'default'=> ($type) ? $type['name'] : NULL,
+		'disabled'=> ($type) ? TRUE : NULL,
+		'metaData'=>array(
+			'table'=>'contentNode_types',
+			'field'=>'name'
+		)
+	);
+	$elements[] = array(
+		'name'=>'label',
+		'label'=>'Label',
+		'type'=>'text',
+		'help'=>'This is the label visible in the interface.',
+		'default'=> ($type) ? $type['label'] : NULL,
+		'metaData'=>array(
+			'table'=>'contentNode_types',
+			'field'=>'label'
+		)
+	);
+	$elements[] = array(
+		'name'=>'desc',
+		'label'=>'Description',
+		'type'=>'textarea',
+		'cols'=>40,
+		'rows'=>5,
+		'default'=> ($type) ? $type['desc'] : NULL,
+		'metaData'=>array(
+			'table'=>'contentNode_types',
+			'field'=>'desc'
+		)
+	);
+	$elements[] = array(
+		'name'=>'typeKey',
+		'type'=>'hidden',
+		'value'=> ($type) ? $type['typeKey'] : NULL,
+		'metaData'=>array(
+			'table'=>'contentNode_types',
+			'field'=>'typeKey'
+		)
+	);
+	
+	return $elements;
+}

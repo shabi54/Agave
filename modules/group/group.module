@@ -1,0 +1,3 @@
+<?php
+$objects = array();
+$objects['group'] = 'group.object';

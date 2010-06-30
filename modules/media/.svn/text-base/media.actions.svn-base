@@ -1,0 +1,9 @@
+<?php
+function media_extend_file_delete($fileKey) {
+	global $agave;
+	//check media_transcoding_queue
+	//check media_file_map
+	//remove mappings
+	//mark media as updated
+	$query = "";
+}

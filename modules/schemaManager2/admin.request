@@ -1,0 +1,260 @@
+<?php
+function sm_show_fields($args=null) {
+	global $agave;
+	$entity = !empty($_GET['entity']) ? $_GET['entity'] : FALSE;
+	$type = !empty($_GET['type']) ? $_GET['type'] : FALSE;
+	$admin = $agave->load('admin');
+	$user = $agave->load('user');
+	$t = $agave->load('themer');
+
+	if(!$type || !$entity) agave_error_page('404', "<h2>404</h2><p>No entity or entity type defined.</p>");
+	//TODO: implement access checks
+	//if($entity = 'group' && !$user->access('administer_groups')) agave_error_page('403');
+	//if($entity = 'coding' && !$user->access('administer_coding')) agave_error_page('403');
+	//if($entity = 'user' && !$user->access('administer_users')) agave_error_page('403');
+	//if($entity = 'contentNode' && !$user->access('administer_contentNode')) agave_error_page('403');
+	
+	$query = "SELECT * FROM `schema_fields` WHERE `entity`='$entity' AND `entity_type` LIKE '%$type%'";
+	$fields = $agave->doSQLQuery($query, 3);
+	
+	//check for shared fields
+	for($i=0; $i<count($fields); $i++) {
+		$fields[$i]['isShared'] = ($fields[$i]['entity_type'] == $type) ? FALSE : TRUE;
+	}
+	
+	$t->output = $t->theme('schemaManager2', 'sm2-fields', array('fields'=>$fields, 'entity'=>$entity, 'type'=>$type));
+	$t->output = $t->theme('admin','admin');
+}
+
+function sm_save_field($args=null) {
+	global $agave;
+	$fieldKey = (isset($args[0])) ? $args[0] : FALSE;
+	$new = ($fieldKey) ? TRUE : FALSE;
+	$agave->death($_POST);
+	//TODO: START HERE
+	if($new) {
+		$table = '';
+		
+		$admin = $agave->load('admin');
+		$admin->addField($table, $field);
+	}
+	//get entity
+	//get type
+
+	
+	//if newly created - redirect to field/%/settings
+	$m = ($fieldKey) ? "Saving $fieldKey" : "Saving new";
+	die($m);
+
+	$agave->message('general', NULL, "Saved information for field $fieldKey");
+	$redirect = ($new) ? "admin/sm2/field/%/settings" : "admin/sm2&entity=$entity&type=$type"; 
+}
+
+function sm_edit_field($args=null) {
+	global $agave;
+	$fieldKey = isset($args[0]) ? $args[0] : NULL;
+	$fm = $agave->load('fieldManager');
+	$t = $agave->load('themer');
+	$entity = !empty($_GET['entity']) ? $_GET['entity'] : FALSE;
+	$type = !empty($_GET['type']) ? $_GET['type'] : FALSE;
+	
+	//build form, if this is a new field, add sql form
+	$elements = array();
+	if(!$fieldKey) $elements = sm_return_sql_field_form();
+	$elements = sm_return_field_form($entity, $type, $elements, $fieldKey);
+	
+	$form = $fm->startForm($agave->base_url."admin/sm2/field/save/$fieldKey", "post");
+	$form .= $fm->generateElements($elements);
+	$form .= $fm->endForm("Save");
+	
+	$title = ($fieldKey) ? "Edit Field" : "Add Field";
+	$t->page['title'] = $title;
+	$t->output = "<h2>$title</h2>".$form;
+	$t->output = $t->theme('admin','admin');
+}
+
+function sm_delete_field($args=null) {
+	$fieldKey = $args[0];
+	
+}
+
+function sm_edit_field_settings($args=null) {
+	global $agave;
+	$fm = $agave->load('fieldManager');
+	$t = $agave->load('themer');
+
+	//load fieldData if pre-existing
+	$fieldKey = (isset($args[0])) ? $args[0] : NULL;
+	if($fieldKey) {
+		$query = "SELECT * FROM `schema_fields` WHERE `fiedlKey`='$fieldKey'";
+		$fieldData = $agave->doSQLQuery($query, 2);
+	} else $fieldData = NULL;
+	
+	$elements = ($fieldKey) ? sm_return_sql_field_form() : array();
+	$elements = sm_return_field_form($elements, $fieldData);
+	
+	$form = $fm->startForm($agave->base_url."sm2/field/save/$fieldKey", "post");
+	$form .= $fm->generateElements($elements);
+	$form .= $fm->endForm("Save");
+	
+	$t->page['title'] = "Edit field for $entity type '$type'";
+	$t->output = $t->theme('sm2', 'sm2-field-edit', array('form'=>$form));
+}
+
+function sm_save_field_settings($args=null) {
+	global $agave;
+	$fieldKey = (isset($args[0])) ? $args[0] : NULL;
+	if(!$fieldKey) {
+		//load admin to add new field to table
+	}
+}
+
+function sm_add_field($entity, $type, $field) {
+	global $agave;
+	die($_POST);
+}
+
+function sm_return_field_form($entity, $entity_type, $elements, $fieldKey=FALSE) {
+	global $agave;
+	if($fieldKey) {
+		$query = "SELECT * FROM `schema_fields` WHERE `fieldKey`='$fieldKey'";
+		$field = $agave->doSQLQuery($query, 2);
+	}
+	else $field = FALSE;
+	$fm = $agave->load('fieldManager');
+
+	$elements[] = array(
+		'name'=>'field_name',
+		'type'=>'text',
+		'label'=>'Name of field',
+		'size'=>20,
+		'weight'=>0,
+		'default'=> ($field) ? $field['field_name'] : NULL,
+		'disabled'=> ($field) ? TRUE : NULL
+	);
+	$elements[] = array(
+		'name'=>'widget_type',
+		'type'=>'select',
+		'label'=>'Form element',
+		'values'=> $fm->fields,
+		'default'=> ($field) ? $field['widget_type'] : 'text',
+		'weight'=>1
+	);
+	$elements[] = array(
+		'name'=>'field_label',
+		'type'=>'text',
+		'label'=>"Label",
+		'size'=>20,
+		'weight'=>2,
+		'default'=> ($field) ? $field['field_label'] : NULL
+	);
+	$label = ($field['show_label']) ? array('show') : NULL; //figure true/false for showlabel
+	$elements[] = array(
+		'name'=>'show_label',
+		'type'=>'checkbox',
+		'label'=>'Show label',
+		'values'=>array('show'),
+		'default'=>array('show'),
+		'nolabel'=>true,
+		'weight'=>3,
+		'default'=> ($field) ? $label : array('show')
+	);
+	$elements[] = array(
+		'name'=>'widget_help',
+		'type'=>'text',
+		'size'=>20,
+		'label'=>'Help text',
+		'default'=> ($field) ? $field['widget_help'] : NULL
+	);
+	$elements[] = array(
+		'name'=>'access',
+		'type'=>'text',
+		'label'=>"Access argument",
+		'size'=>20,
+		'weight'=>4,
+		'default'=> ($field) ? $field['access'] : NULL
+	);
+	$elements[] = array(
+		'name'=>'types',
+		'type'=>'text',
+		'label'=>"Types",
+		'help'=>'Enter a comma delimited string for the types this field should affect. TODO: change to checkboxes... note try avoid using this in general, though',
+		'size'=>20,
+		'weight'=>4,
+		'default'=> ($field) ? $field['entity_type'] : $entity_type
+	);
+
+	//add hidden elements for entity and entity_type
+	$elements[] = array(
+		'type'=>'hidden',
+		'name'=>'entity',
+		'value'=>$entity
+	);
+	$elements[] = array(
+		'type'=>'hidden',
+		'name'=>'entity_type',
+		'value'=>$entity_type
+	);
+	
+	return $elements;
+}
+
+function sm_return_field_settings_form() {
+	return array();
+}
+
+function sm_return_sql_field_form() {
+	$elements = array();
+	$elements[] = array(
+		'name'=>'sql',
+		'type'=>'fieldset',
+		'label'=>'SQL Info',
+		'weight'=>-30
+	);
+	$elements[] = array(
+		'name'=>'sql/sql_type',
+		'type'=>'select',
+		'values'=>array('CHAR','VARCHAR','TINYINT','INT','BIGINT','DOUBLE','TINYTEXT','TEXT','LONGTEXT'),
+		'label'=>'Data type',
+	);
+	$elements[] = array(
+		'name'=>'sql/sql_length',
+		'type'=>'text',
+		'label'=>'Length',
+		'help'=>'Note that this only applies to VARCHARs and INTs',
+	);
+	$elements[] = array(
+		'name'=>'sql/sql_default',
+		'type'=>'text',
+		'label'=>'Default value',
+		'help'=>"By default all schema fields are <em>null</em> in the database, but you can specify a different default here"
+	);
+
+	return $elements;
+}
+
+function sm_ajax_update_weight($args=null) {
+	global $agave;
+	$weightdata = $_GET['weightdata'];
+	
+}
+
+function sm_add_value_table($entity, $type) {
+	global $agave;
+	$admin = $agave->load('admin');
+	
+	$tables = array();
+	$tables["schema_values_".$entity."_".$type] = array(
+		'fields'=>array(
+			'valueKey' => array(
+				'type'=>'INT',
+				'length'=>11,
+				'is null'=>FALSE,
+				'auto inc'=>TRUE,
+			)
+		),
+		'primary key'=>array('valueKey')
+	);
+	
+	$admin->sql_createTables($tables);
+}

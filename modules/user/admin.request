@@ -1,0 +1,643 @@
+<?php
+function saveUser($args=null) {
+	global $agave;
+	$userKey = $_POST['userKey'];
+	if($_POST['mode']=='user_types') mapUserToTypes($userKey);
+	if($_POST['mode']=='user_access') saveUserAccess($userKey);
+}
+
+function mapUserToTypes($userKey) {
+	global $agave;
+
+	$query = "SELECT `name` FROM `user_types` WHERE `name`!='anon' AND `name`!='authenticated'";
+	$sql = $agave->doSQLQuery($query, 1);
+
+	//remove old user_types mappings for user
+	$query = "DELETE FROM `users_map` WHERE `userKey`='$userKey' AND `user_type` IN('".implode("','", $sql)."')";
+	$agave->doSQLQuery($query);
+
+	//add new user types mappings for user
+	if(isset($_POST['user_types'])) {
+		foreach($_POST['user_types'] as $type) {
+			$query = "INSERT INTO `users_map` (`userKey`,`user_type`) VALUES('$userKey','$type')";
+			$agave->doSQLQuery($query);
+		}
+	}
+
+	$agave->redirect("admin/users/manage/$userKey");
+}
+
+function saveUserAccess($userKey) {
+	global $agave;
+
+	$u = $agave->load('user', TRUE);
+	$u->buildAll($userKey);
+	
+	//get all user types, build access grid based on what users user_types allow
+	//loop through access grid - compare with post data, if different, insert new row
+	$query = "SELECT `action` FROM `user_access`";
+	$sql = $agave->doSQLQuery($query, 1);
+	$query = "SELECT `action`,`value` FROM `user_access_map` WHERE `user_type` IN('".implode("','", $u->user_types)."')";
+	$data = $agave->doSQLQuery($query, 3);
+	$userTypes = array();
+	foreach($data as $row) $userTypes[$row['action']] = $row['value'];
+	
+	if($sql) {
+		$new = array();
+		foreach($sql as $action) {
+			$posted = (in_array($action, $_POST['user_access'])) ? TRUE : FALSE;
+			if($u->access($action) != $posted) { 
+				$query = "DELETE FROM `user_access_map` WHERE `action`='".$action."' AND `userKey`='$u->userKey'";
+				$agave->doSQLQuery($query);
+				$query = "INSERT INTO `user_access_map` (`action`,`userKey`,`value`) VALUES('".$action."','".$u->userKey."','$posted')";
+				$agave->doSQLQuery($query);
+			}
+		}
+	}
+
+	$agave->redirect("admin/users/manage/$userKey");
+}
+
+function manageUser($args=NULL) {
+	global $agave;
+	$userKey = $args[0];
+	$t = $agave->load('themer');
+	$fm = $agave->load('fieldManager');
+	$u = $agave->load('user', TRUE);
+	$u->buildAll($userKey);
+	
+	//user_types selection form
+	$query = "SELECT * FROM `user_types`";
+	$sql = $agave->doSQLQuery($query, 3);
+	$values = array();
+	$default = array();
+	$elements = array();
+	if($sql) {
+		foreach($sql as $type) {
+			if($type['name'] != 'authenticated' && $type['name'] != 'anon') { //we don't allow 'authenticated' or anon to be changed, it's not mapped anywhere'
+				$values[$type['label']] = $type['name'];
+				if(in_array($type['name'], $u->user_types)) $default[] = $type['name'];
+			}
+		}
+	}
+	if(!empty($values)) {
+		$elements[] = array(
+			'type'=>'checkbox',
+			'name'=>'user_types',
+			'label'=>'User types',
+			'values'=>$values,
+			'default'=>$default,
+			'help'=>'You cannot change properties for User Types of "anon" and "authenticated" - these are assigned automatically by Agave.'
+		);
+		$elements[] = array(
+			'type'=>'hidden',
+			'name'=>'userKey',
+			'value'=>$u->userKey
+		);
+		$elements[] = array(
+			'type'=>'hidden',
+			'name'=>'mode',
+			'value'=>'user_types'
+		);
+		$form = $fm->startForm($agave->base_url."admin/users/manage/save/$userKey", 'post');
+		$form .= $fm->generateElements($elements);
+		$form .= $fm->endForm('Save Changes', TRUE);
+	}
+	else $form = "<p>Your site has no special user types to manage.</p>";
+
+	//access property checkboxes
+	$query = "SELECT * FROM `user_access`";
+	$sql = $agave->doSQLQuery($query, 3);
+	$values = array();
+	$default = array();
+	$elements = array();
+	if($sql) {
+		foreach($sql as $item) {
+			$values[$item['label']] = $item['action'];
+			if($u->access($item['action'])) $default[] = $item['action'];
+		}
+	}
+
+	$elements[] = array(
+		'type'=>'checkbox',
+		'name'=>'user_access',
+		'label'=>'User Access',
+		'values'=>$values,
+		'default'=>$default,
+		'layout'=>array(
+			'type'=>'grid',
+			'width'=>4
+		),
+		'help'=>"Use this grid to overwrite access properties assigned by user_types for $u->firstName"
+	);
+	$elements[] = array(
+		'type'=>'hidden',
+		'name'=>'userKey',
+		'value'=>$u->userKey
+	);
+	$elements[] = array(
+		'type'=>'hidden',
+		'name'=>'mode',
+		'value'=>'user_access'
+	);
+	$form2 = $fm->startForm($agave->base_url."admin/users/manage/save/$userKey", 'post');
+	$form2 .= $fm->generateElements($elements);
+	$form2 .= $fm->endForm('Save Changes', TRUE);
+	
+	//check for user-specific privileges
+	$query = "SELECT * FROM `user_access_map` WHERE `userKey`='$u->userKey'";
+	$sql = $agave->doSQLQuery($query, 3);
+	$user_specific_warning = ($sql) ? TRUE : FALSE;
+	$user_specific_privileges = ($sql) ? $sql : FALSE;
+	
+	$themevars = array(
+		'user_types_form'=>$form,
+		'access_form'=>$form2,
+		'user_specific_warning'=>$user_specific_warning,
+		'user_specific_privileges'=>$user_specific_privileges,
+		'user'=>$u
+	);
+	$t->output = $t->theme('user','admin-manage-user', $themevars);
+	$t->output = $t->theme('admin', 'admin');
+}
+
+function deleteUser($args=null) {
+	global $agave;
+	$userKey = $args[0];
+	if(!isset($_POST['confirm']) || $_POST['confirm'] != 'true') confirmDeleteUser($userKey);
+	else {
+		$query = "DELETE FROM `sessions` WHERE `userKey`='$userKey'";
+		$agave->doSQLQuery($query);
+		$query = "DELETE FROM `user_access_map` WHERE `userKey`='$userKey'";
+		$agave->doSQLQuery($query);
+		$query = "DELETE FROM `user_values` WHERE `userKey`='$userKey'";
+		$agave->doSQLQuery($query);
+		$query = "DELETE FROM `users_map` WHERE `userKey`='$userKey'";
+		$agave->doSQLQuery($query);
+		$query = "DELETE FROM `users` WHERE `userKey`='$userKey'";
+		$agave->doSQLQuery($query);
+		$agave->message('general', NULL, "User $userKey was deleted.");
+		$agave->redirect("admin/users");
+	}
+}
+
+function confirmDeleteUser($userKey) {
+	global $agave;
+	$t = $agave->load("themer");
+	$fm = $agave->load('fieldManager');
+	$u = $agave->load('user', TRUE);
+	$u->build($userKey);
+
+	$elements = array();
+	$elements[] = array(
+		'name'=>'confirm',
+		'type'=>'hidden',
+		'value'=>'true'
+	);
+	$form = $fm->startForm($agave->base_url."admin/users/delete/$u->userKey", 'post');
+	$form .= "<p>Are you sure you want to delete <b>$u->firstName $u->lastName</b> from your system?  This action cannot be undone!</p>";
+	$form .= $fm->generateElements($elements);
+	$form .= $fm->endForm("Delete User", TRUE);
+
+	$t->output = "<h2>Confirm Delete</h2>".$form;
+	$t->output = $t->theme('admin', 'admin');	
+}
+
+
+function confirmDeleteType($type) {
+	global $agave;
+	$t = $agave->load("themer");
+	$fm = $agave->load('fieldManager');
+	$elements = array();
+	$elements[] = array(
+		'name'=>'confirm',
+		'type'=>'hidden',
+		'value'=>'true'
+	);
+	$form = $fm->startForm($agave->base_url."admin/users/types/delete/".$type['typeKey'], 'post');
+	$form .= "<p>Are you sure you want to delete the user type <b>".$type['name']."</b>?  This action cannot be undone!</p>";
+	$form .= $fm->generateElements($elements);
+	$form .= $fm->endForm("Delete User Type", TRUE);
+	$t->output = $form;
+	$t->output = $t->theme('admin', 'admin');
+}
+
+function deleteType($args=null) {
+	global $agave;
+	$id = $args[0];
+	$query = "SELECT * FROM `user_types` WHERE `typeKey`='$id'";
+	$type = $agave->doSQLQuery($query, 2);
+
+	if(!isset($_POST['confirm']) || $_POST['confirm'] != 'true') confirmDeleteType($type);
+	else {
+		$admin = $agave->load("admin");
+		$admin->deleteUserType($type['name']);
+		$agave->redirect("admin/users/types");
+	}
+}
+
+function saveType($args=null) {
+	global $agave;
+	if(!empty($_POST['typeKey'])) {
+		$label = mysql_real_escape_string($_POST['label']);
+		$desc = mysql_real_escape_string($_POST['description']);
+		$typeKey = $_POST['typeKey'];
+		$query = "UPDATE `user_types` SET `label`='$label', `description`='$desc' WHERE `typeKey`='$typeKey'";
+		$agave->doSQLQuery($query);
+		$agave->message('general', NULL, "Saved User Type $typeKey");
+		$agave->redirect("admin/users/types");
+	}
+	else if(empty($_POST['typeKey'])) {
+		$post = $_POST;
+		$admin = $agave->load('admin');
+		$admin->addUserType($post['name'], $post['label'], $post['description']);
+		$agave->message('general', NULL, "Saved new user type.");
+		$agave->redirect("admin/users/types");
+	}
+}
+
+function editType($args=null) {
+	global $agave;
+	$t = $agave->load('themer');
+	$fm = $agave->load('fieldManager');
+	
+	$id = (isset($args[0])) ? $args[0] : NULL;
+	if($id) {
+		$query = "SELECT * FROM `user_types` WHERE `typeKey`='$id'";
+		$sql = $agave->doSQLQuery($query, 2);
+	}
+	$elements = array();
+	$elements[] = array(
+		'name'=>'name',
+		'type'=>'text',
+		'label'=>'Name',
+		'help'=>'lower case only, this is the name Agave uses internally to reference this user type - it cannot be changed afterwards',
+		'default'=> ($id) ? $sql['name'] : NULL,
+		'disabled'=> ($id) ? TRUE : NULL
+	);
+	$elements[] = array(
+		'name'=>'label',
+		'type'=>'text',
+		'label'=>'Label',
+		'help'=>'This name will show up in your interface for managing users and types',
+		'default'=>($id) ? $sql['label'] : NULL
+	);
+	$elements[] = array(
+		'name'=>'description',
+		'type'=>'textarea',
+		'cols'=>40,
+		'rows'=>5,
+		'label'=>'Description',
+		'default'=>($id) ? $sql['description'] : NULL
+	);
+	$elements[] = array(
+		'name'=>'typeKey',
+		'type'=>'hidden',
+		'value'=> ($id) ? $sql['typeKey'] : NULL
+	);
+	$form = $fm->startForm($agave->base_url."admin/users/types/save", 'post');
+	$form .= $fm->generateElements($elements);
+	$form .= $fm->endForm("Save Changes", TRUE);
+	
+	$title = ($id) ? "Edit User Type" : "Add User Type";
+	$t->page['title'] = $title;
+	$t->output = "<h2>$title</h2>".$form;
+	$t->output = $t->theme('admin', 'admin');
+}
+
+function viewTypes() {
+	global $agave;
+	$t = $agave->load('themer');
+	$fm = $agave->load('fieldManager');
+	
+	//get user types data
+	$query = "SELECT * FROM `user_types`";
+	$sql = $agave->doSQLQuery($query, 3);
+		
+	//theme output
+	$themevars['sql']=$sql;
+	$t->output = $t->theme("user","admin-user-types", $themevars);
+	$t->output = $t->theme('admin', 'admin');
+}
+
+function browseUsers() {
+	global $agave;
+	$t = $agave->load('themer');
+	$fm = $agave->load('fieldManager');
+	
+	//TODO build pager, query = LIMIT $start, $limit
+	
+	//get userData
+	$query = "SELECT * FROM `users`";
+	$userData = $agave->doSQLQuery($query, 3);
+		
+	//theme page
+	$themevars = array(
+		'userData' => $userData
+	);
+	$t->output = $t->theme('user','admin-users', $themevars);
+	$t->output = $t->theme('admin', 'admin');
+}
+
+function saveMulti() {
+	global $agave;
+
+	$agave->addFormData($_POST['saveData'], $_POST['metaData']);
+	$agave->saveOrder(array('users'), 'userKey');
+	$agave->save(); 
+	$agave->redirect("admin/users/multi&mappings=".$_GET['mappings']);
+}
+
+function editMulti() {
+	global $agave;
+	$t = $agave->load('themer');
+	$fm = $agave->load('fieldManager');
+	$userKeys = explode(",", $_GET['keys']);
+
+	//build users for submitted keys
+	$users = array();
+	for($i=0; $i<count($userKeys); $i++) {
+		$users[$i] = $agave->load('user', TRUE);
+		$users[$i]->build($userKeys[$i]);
+		$users[$i]->buildPrefs();
+	}
+	
+	//build form, each user as block
+	$elements = array();
+	$block=0;
+	foreach($users as $user) {
+		$parentName = "user-$user->userKey";
+		$elements[] = array(
+			'type'=>'fieldset',
+			'name'=> $parentName,
+			'label'=>'User '.$user->userKey,
+			'blockNum'=>$block,
+			'weight'=>$block
+		);
+		$elements[] = array(
+			'type'=>'hidden',
+			'name'=>$parentName.'/uKey',
+			'value'=>$user->userKey,
+			'blockNum'=>$block,
+			'metaData'=> array(
+				'table'=>'users',
+				'field'=>'userKey'
+			)
+		);
+		$elements[] = array(
+			'type'=>'text',
+			'name'=>$parentName.'/fname',
+			'label'=>'First Name',
+			'default'=>$user->firstName,
+			'blockNum'=>$block,
+			'weight'=>-50,
+			'metaData'=>array(
+				'table'=>'users',
+				'field'=>'firstName',
+			)
+		);
+		$elements[] = array(
+			'type'=>'text',
+			'name'=>$parentName.'/lname',
+			'label'=>'Last Name',
+			'default'=>$user->lastName,
+			'blockNum'=>$block,
+			'weight'=>-49,
+			'metaData'=>array(
+				'table'=>'users',
+				'field'=>'lastName',
+			)
+		);
+		$elements[] = array(
+			'type'=>'text',
+			'name'=>$parentName.'/email',
+			'label'=>'Email',
+			'weight'=>-48,
+			'default'=>$user->email,
+			'blockNum'=>$block,
+			'metaData'=>array(
+				'table'=>'users',
+				'field'=>'email',
+			)
+		);
+
+		//you can add elements from schema individually if you know what they are
+		//$elements[] = $user->returnElement('eyecolor', $block, $parentName);
+		//$elements[] = $user->returnElement('maiden_name', $block, $parentName);
+		
+		//or get all elements from schema
+		$elements = $user->returnElements($block, $parentName, $elements);
+
+		$block++;
+	}
+	
+	//build form
+	$form = $fm->startForm($agave->base_url."admin/users/multi/save&mappings=".$_GET['mappings'], "post");
+	$form .= $fm->generateElements($elements);
+	$form .= $fm->endForm("Save Changes", TRUE);
+	
+	$t->page['title'] = "Editing Users: ".$_GET['keys'];
+	$t->output = "<h2>Edit Multiple Users</h2>".$form;
+	$t->output = $t->theme('admin', 'admin');
+}
+
+function viewMulti() {
+	global $agave;
+	$user = $agave->load('user');
+	$um = $agave->load('userManager');
+	$fm = $agave->load('fieldManager');
+	$t = $agave->load('themer');
+	
+	//parse search params
+	if(isset($_GET['mappings'])) {
+		//parse posted search criteria
+		$vals = explode(";", $_GET['mappings']);
+		foreach($vals as $val){
+			$val = explode("=", $val);
+			$field = $val[0];
+			$value = explode(",", $val[1]);
+			$value = (count($value)<=1) ? $value[0] : $value;
+			$mappings[$field] = $value;
+		}
+		$themevars['userlist'] = $um->returnUsers($mappings);
+	}
+
+	$themevars['userkeys'] = array();
+	if(isset($themevars['userlist'])) foreach($themevars['userlist'] as $user) $themevars['userkeys'][] = $user->userKey;
+	$themevars['userkeys'] = implode(',', $themevars['userkeys']);
+
+	//build form for search
+	$elements = array();
+	$elements[] = array(
+		'type'=>'text',
+		'name'=>'mappings',
+		'label'=>'Params',
+		'help'=>"<big>Enter in form of <b>field1=a,b;field2=c;field3=d,e,f</b></big>",
+		'size'=>60,
+		'default'=>(isset($_GET['mappings'])) ? $_GET['mappings'] : NULL
+	);
+	$form = $fm->startForm($agave->base_url."admin/users/multi", "get");
+	$form .= $fm->generateElements($elements);
+	$form .= $fm->endForm("Search");
+	$themevars['form'] = $form;
+
+	//assemble output
+	$t->page['title'] = "User Search";
+	$t->output = $t->theme('user','multiuser-view', $themevars);
+	$t->output = $t->theme('admin', 'admin');
+}
+
+function dropPrivilege($args=null) {
+	global $agave;
+	$userKey = $args[0];
+	$mKey = $args[1];
+	$query = "DELETE FROM `user_access_map` WHERE `userKey`='$userKey' ";
+	if($mKey != '999999999999') $query .= "AND `mKey`='$mKey'";
+	$agave->doSQLQuery($query);
+	$agave->message('general', NULL, "Modified user's access privileges.");
+	$agave->redirect("admin/users/manage/$userKey");
+}
+
+function addUser($args=null) {
+	global $agave;
+	$t = $agave->load('themer');
+	$fm = $agave->load('fieldManager');
+
+	if(!empty($_POST)) processAddUser($_POST);
+	
+	$elements = array();
+	$elements[] = array(
+		'name'=>'fname',
+		'type'=>'text',
+		'label'=>'First name'
+	);
+	$elements[] = array(
+		'name'=>'lname',
+		'type'=>'text',
+		'label'=>'Last name'
+	);
+	$elements[] = array(
+		'name'=>'email',
+		'type'=>'text',
+		'label'=>'Email'
+	);
+	$elements[] = array(
+		'name'=>'login',
+		'type'=>'text',
+		'label'=>'Login'
+	);
+	$elements[] = array(
+		'name'=>'pword',
+		'type'=>'password',
+		'label'=>'Password'
+	);
+	$elements[] = array(
+		'name'=>'pwordConfirm',
+		'type'=>'password',
+		'label'=>'Confirm password'
+	);
+	
+	//generate form
+	$form = $fm->startForm($agave->base_url."admin/users/add", "post");
+	$form .= $fm->generateElements($elements);
+	$form .= $fm->endForm("Add User", TRUE);
+	
+	$t->output = "<h2>Add User</h2>".$form;
+	$t->output = $t->theme('admin', 'admin');
+}
+
+function processAddUser($postData=null) {
+	global $agave;
+
+	//unpack post vars
+	if(!empty($postData)) foreach($postData as $key=>$value) $$key = (!empty($value)) ? mysql_real_escape_string($value) : NULL;
+	
+	if(!$lname || !$fname || !$login || !$email || !$pword || !$pwordConfirm) {
+		$agave->message('error', "MISSING_FIELD");
+		$agave->redirect("admin/users/add");
+	}
+	
+	if($pword != $pwordConfirm) {
+		$agave->message('error', "NONMATCHING_PASSWORDS");
+		$agave->redirect("admin/users/add");
+	}
+	
+	$query = "SELECT * FROM `users` WHERE `email`='$email'";
+	$result = $agave->doSQLQuery($query, 3);
+	if($result) {
+		$agave->message('error', "EMAIL_TAKEN");
+		$agave->redirect("admin/users/add");
+	}
+
+	$query = "SELECT * FROM `users` WHERE `login`='$login'";
+	$result = $agave->doSQLQuery($query, 3);
+	if($result) {
+		$agave->message('error', "LOGIN_TAKEN");
+		$agave->redirect("admin/users/add");
+	}
+	
+	$query = "INSERT INTO `users` (`firstName`,`lastName`,`login`,`password`,`email`,`date_added`) VALUES('$fname','$lname','$login','".md5($pword)."','$email','".time()."')";
+	$agave->doSQLQuery($query);
+	$id = mysql_insert_id();
+	$agave->message('general', NULL, "Added user <b>$fname $lname</b>");
+	$agave->redirect("admin/users/manage/$id");
+}
+
+function messageUser($args=null) {
+	global $agave;
+	
+	if(!$agave->setting('user-messaging')) {
+		$agave->message('error', NULL, "User messaging is not enabled, turn it on if you want to message individual users.");
+		$agave->redirect("admin/users");
+	}
+	
+	if(!empty($_POST)) saveMessage($_POST);
+	
+	$t = $agave->load('themer');
+	$fm = $agave->load('fieldManager');
+	$user = $agave->load('user');
+	$key = $args[0];
+	$targetUser = $agave->load('user', TRUE);
+	if(!$targetUser->build($key)) agave_error_page('404');
+	
+	//assemble form
+	$elements = array();
+	$elements[] = array(
+		'name'=>'type',
+		'type'=>'text',
+		'label'=>"Message type",
+		'default'=>'general'
+	);
+	$elements[] = array(
+		'name'=>'message',
+		'type'=>'textarea',
+		'cols'=>60,
+		'rows'=>10,
+		'label'=>'Your Message',
+		'help'=>"Note that the message will say it is from <b>$user->firstName $user->lastName</b>, and it will go out immediately."
+	);
+	$elements[] = array(
+		'type'=>'hidden',
+		'name'=>'targetUserKey',
+		'value'=>$targetUser->userKey
+	);
+	$form = $fm->startForm($agave->base_url."admin/users/message/$targetUser->userKey", "post");
+	$form .= $fm->generateElements($elements);
+	$form .= $fm->endForm("Send Message", TRUE);
+	
+	$title = "Message to $targetUser->firstName $targetUser->lastName";
+	$t->page['title'] = $title;
+	$t->output = "<h2>$title</h2><p>Use the form below to send a message to an individual user.</p>".$form;
+	$t->output = $t->theme('admin','admin');
+}
+
+function saveMessage($post) {
+	global $agave;
+	foreach($post as $key=>$value) $$key = (!empty($value)) ? mysql_real_escape_string($value) : NULL;
+	$user = $agave->load('user');
+	$message = "<em>Message from <b>$user->firstName $user->lastName</b></em>:<br/>".$message;
+	$agave->message($type, NULL, $message, $targetUserKey);
+	$agave->message('general', NULL, "Sent message to user.");
+	$agave->redirect("admin/users");
+}
+?>

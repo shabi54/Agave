@@ -1,0 +1,5 @@
+<?php
+	//list all groups, provide management tools and settings
+	//manage group types and group type-level permissions
+	//tools: edit, view, add, delete, send message
+?>

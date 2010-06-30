@@ -1,0 +1,447 @@
+<?php
+//file DB status
+define('FILE_STATUS_TMP', 0);   //temporary files, 'tmp://' scheme only
+define('FILE_STATUS_SAVED', 1);  //permanent files, any scheme
+define('FILE_STATUS_ORPHAN', 2); //files who's corresponding physical file cannot be found
+
+//instruction constants for file moving
+define('FILE_EXISTS_RENAME', 0);
+define('FILE_EXISTS_REPLACE', 1);
+define('FILE_EXISTS_THROW_ERROR', 2);
+
+/*
+ * TODO: consider the possibility of 2 objects for files, a fileFactory for returning files, and a fileManager for manipulating files;
+ * WHY: that way you don't load all of this code if you just need to return a damn file... or is it unavoidable because of needing steam support?
+ * 		... maybe the fileFactory would include the stream support and fileManager would use the Factory?  ugh...
+ */
+
+final class fileManager {
+	protected $schemes = array();
+	
+	public function __construct() {
+		//load core interfaces and stream wrappers if they have not been loaded yet
+		global $agave;
+		$this->agave = $agave;
+		if(!isset($agave->stream_wrappers_loaded) || $agave->stream_wrappers_loaded == FALSE) {
+			//TODO: change to agave->inc
+			include_once("modules/fileManager/stream_wrappers/agaveStreamWrapper.object");
+			$this->register_stream_wrappers();
+		}
+	}
+
+	public function __destruct() {}
+	
+	/* parsing URIs in the form of scheme://target */
+	public function get_scheme($uri) {
+		$uri = explode("://", $uri);
+		if(count($uri) != 2) return FALSE;
+		return $uri[0];
+	}
+	public function get_target($uri) {
+		$uri = explode("://", $uri);
+		if(count($uri) != 2) return FALSE;
+		return $uri[1];
+	}
+	private function parseURI($uri) {
+		$uri = explode("://", $uri);
+		$data['scheme'] = $uri[0];
+		$data['target'] = $uri[1];
+		return $data;
+	}
+	
+	/* building file objects */
+	public function returnFile($fileKey) {
+		global $agave;
+		$query = "SELECT * FROM `files` WHERE `fileKey`='$fileKey'";
+		$data = $agave->doSQLQuery($query, 2);
+		return $this->unpackFileObject($data);
+	}
+	
+	public function returnFiles($fileKeys) {
+		global $agave;
+		$query = "SELECT * FROM `files` WHERE `fileKey` IN('".implode("','", $fileKeys)."')";
+		$results = $agave->doSQLQuery($query, 3);
+		$files = array();
+		if($results) foreach($results as $row) $files[] = $this->unpackFileObject($row);
+		unset($results);
+		return $files;
+	}
+
+	public function normalize($file) {
+		//will return a file always, but you can pass it a fileKey, or a file
+		return (is_object($file)) ? $file : $this->returnFile($file);
+	}
+	
+	private function unpackFileObject($dbrow){
+		$file = new stdClass;
+		foreach($dbrow as $key=>$value) $file->$key = $value;
+		
+		//unpack data field
+		if(!empty($file->data)) {
+			$file->data = unserialize($file->data);
+		}
+		else unset($file->data);
+		
+		//use stream_wrappers to determine actual URLS to file
+		$wrapper = $this->return_stream_wrapper($file->uri);
+		$file->url = $wrapper->getExternalUrl(); //could be same as absoluteURL, but may be www.example.com/download-file/$fileKey, or something like that
+		$file->server_path = $wrapper->realpath(); //note, we shouldn't need this anymore, just use $file->uri for file operations
+		return $file;
+	}
+
+	/* stream wrapper functions */
+	private function register_stream_wrappers() {
+		global $agave;
+		foreach($agave->module_env['extensions']['fileManager']['stream_wrappers'] as $wrapper) {
+			$scheme = $wrapper['data']['scheme'];
+			$class = "stream_wrapper_".$scheme;
+			$file = $wrapper['file'];
+			if(file_exists($file)) {
+				include_once($file);
+				stream_wrapper_register($scheme, $class);
+				$this->schemes[] = $scheme;
+			}
+		}
+		$agave->stream_wrappers_loaded = TRUE;
+	}
+	
+	private function return_stream_wrapper($uri=NULL, $scheme=NULL) {
+		//may have received full uri (public://myfile.jpg) or just a scheme (public)
+
+		if($uri) {
+			$explodedURI = explode("://", $uri);
+			if(count($explodedURI) != 2) return FALSE; //regular path received, not a stream
+			$scheme = $explodedURI[0];
+			$target = $explodedURI[1];
+		}
+		else if($scheme) {
+			$target = NULL;
+		}
+
+		//load wrapper by scheme, set the wrappers target (maybe)
+		$class = "stream_wrapper_".$scheme;
+		if (class_exists($class)) $wrapper =  new $class;
+		else {
+			global $agave;
+			$agave->message('error', NULL, "An illegal stream_wrapper was requested for scheme: '$scheme'.  The class required either does not exist, or was excluded because it did not implement the AgaveStreamWrapperInterface, or it is not enabled for this site.");
+			return FALSE;
+		}
+		
+		$wrapper->setUri($uri);
+		return $wrapper;
+	}
+
+	/* direct file manipulation actions INCLUDING DB DATA */
+	public function move_file($file, $targetURI, $replace = FILE_EXISTS_RENAME) {
+		global $agave;
+		$newFile = $this->copy_file($file, $targetURI, $replace); //note: maybe we should copy, but rename somehow to avoid overhead?
+		if(!$newFile) {
+			$agave->message('error', NULL, "An error occured while trying to move a file; the operation was cancelled.");
+			return FALSE;
+		}
+		$this->delete_file($file);
+		return $newFile;
+	}
+
+	public function delete_file($file, $deleteDerivatives=FALSE) {
+		$file = $this->normalize($file);
+		$this->agave->invoke('file_delete', $file);
+		
+		if($deleteDerivatives) {
+			//TODO: implement deleting derivative files
+			//get all derivative files
+			//foreach derivatives as file, delete_file
+		}
+		
+		$query = "DELETE FROM `files` WHERE `fileKey`='$file->fileKey'";
+		$this->agave->doSQLQuery($query, 0);
+		return $this->delete_realfile($file->uri);
+	}
+	
+	public function delete_derivatives($file) {
+		$file = $this->normalize($file);
+		$query = "SELECT `fileKey` FROM `files` WHERE `parentKey`='$file->fileKey'";
+		$keys = $this->agave->doSQLQuery($query, 1);
+		
+		$derivatives = $this->returnFiles($keys);
+		if($derivatives) foreach($derivatives as $child) $this->delete_file($child, TRUE);
+	}
+	
+	public function copy_file($file, $targetURI, $replace = FILE_EXISTS_RENAME) {
+		global $agave;
+		$destinationURI = $this->copy_realfile($file->uri, $targetURI, $replace);
+		if(!$destinationURI) {
+			$agave->message('error', NULL, "An error occured while trying to copy a file, the operation was cancelled.");
+			return false;
+		}
+
+		//return copied file object
+		$newFile = clone $file;
+		$file->uri = $destinationURI;
+
+		//save newly created file
+		$newFile = $this->save_file($file);
+		
+		return $newFile;
+	}
+
+	public function save_file(stdClass $file) {
+		//note, this takes a $file OBJECT (stdClass)
+		global $agave;
+		unset($file->url);
+		unset($file->server_path);
+		$funcArgs = func_get_args();
+		$fields = array();
+		$values = array();
+		$duplicates = array();
+		if(!empty($file->data)) $file->data = mysql_real_escape_string(serialize($file->data));
+		foreach($file as $field=>$value) {
+			$fields[] = "`$field`";
+			$values[] = "'".mysql_real_escape_string($value)."'";
+			$duplicates[] = " `$field`=VALUES(`$field`) ";
+		}
+		$fields = implode(",", $fields);
+		$values = implode(",", $values);
+		$duplicates = implode(",", $duplicates);
+		$query = "INSERT INTO `files` (".$fields.") VALUES(".$values.") ON DUPLICATE KEY UPDATE $duplicates";
+		$agave->doSQLQuery($query);
+		$fileKey = mysql_insert_id();
+		$file = $this->returnFile($fileKey);
+		return $file;
+	}
+
+	public function replace_file($file, $newfile) {
+		$oldfile = $this->normalize($file);
+		$this->delete_derivatives($oldfile);
+		$this->delete_realfile($oldfile->uri);
+
+		$newfile->fileKey = $oldfile->fileKey;
+		$finalfile = $this->save_file($newfile);
+		$this->agave->invoke('file_replaced', $finalfile);
+		return $finalfile;
+	}
+
+	private function move_realfile($sourceURI, $destinationURI, $replace = FILE_EXISTS_RENAME) {
+		$newURI = $this->copy_realfile($sourceURI, $destinationURI, $replace);
+		if($newURI) {
+			$this->delete_realfile($sourceURI);
+			return $newURI;
+		}
+		else return false;
+	}
+	
+	private function copy_realfile($sourceURI, $destinationURI, $replace = FILE_EXISTS_RENAME) {
+		global $agave;
+		$funcArgs = func_get_args();
+		$originalSourceURI = $sourceURI;
+		$originalDestinationURI = $destinationURI;
+		
+		//make sure sourceFile exists
+		$sourceRealPath = $this->realpath($sourceURI);
+		if(!file_exists($sourceRealPath)) {
+			$agave->message('error', NULL, "Attempted to copy a file that does not exist.");
+			$agave->debug("Tried to copy a file, but source file did not exist; returned FALSE", __METHOD__, $funcArgs, __LINE__, __FILE__);
+			return FALSE;
+		}
+		
+		//might need to insert integrity checks on check $destinationURI here, inluding stripping extra slashes, and making sure destination scheme is valid
+		
+		//TODO: make sure you aren't shooting yourself in the foot here by assuming that $destinationURI includes the name of the file, e.g. public://path/to/file/stuff.jpg instead of just public://path/to/file/
+		//prepare destination directory (assume here that $destinationURI INCLUDES the filename)
+		$targetDir = $this->dir_name($destinationURI);
+		if(!$this->prepare_dir($targetDir)) {
+			$agave->message('error', NULL, "Agave could not create or write to the necessary file directory.");
+			$agave->debug("Unsuccessful attempt at creating or writing to the new directory ($targetDir); returned FALSE", __METHOD__, $funcArgs, __LINE__, __FILE__);
+			return FALSE;
+		}
+		
+		//check for pre-existing files, throw error if you're not allowed to overwrite a pre-existing file
+		$destinationURI = $this->return_valid_file_destination($destinationURI, $replace);
+		if($destinationURI===FALSE) {
+			$agave->message('error', NULL, "Agave could not write the new file because of a pre-existing file.");
+			$agave->debug("Unsuccessful attempt at writing new file because of pre-existing file at target destination; returned FALSE", __METHOD__, $funcArgs, __LINE__, __FILE__);
+			return FALSE;
+		}
+		
+		//now write the new file, return false if action didn't work
+		if(!@copy($sourceURI, $destinationURI)) {
+			$agave->message('error', NULL, "Agave could not copy the file to its new location.");
+			$agave->debug("Unsuccessful attempt at copying file to new location; returned FALSE", __METHOD__, $funcArgs, __LINE__, __FILE__);
+			return FALSE;
+		}
+		
+		//set proper permissions for new file
+		$this->chmod_file($destinationURI);
+
+		return $destinationURI;
+	}
+	
+	private function delete_realfile($sourceURI) {
+		//return unlink($sourceURI);
+	}
+
+	public function chmod_file($uri, $mode=0644, $context=NULL) {
+		if($wrapper = $this->return_stream_wrapper($uri)) { if($wrapper->chmod($mode)) return TRUE; }
+		else if(!empty($uri)) { if(chmod($uri, $mode)) return TRUE; }
+		else return FALSE;
+	}
+
+	/* file path/name functions */
+	private function return_valid_file_destination($destinationURI, $replace=FILE_EXISTS_RENAME) {
+		if(file_exists($destinationURI)) {
+			switch($replace) {
+				case FILE_EXISTS_THROW_ERROR: return FALSE; break;
+				case FILE_EXISTS_REPLACE: break; //don't do anything, just let the current destination return and overwrite the existing file
+				case FILE_EXISTS_RENAME:
+					$basename = basename($destinationURI);
+					$directory = $this->dir_name($destinationURI);
+					$destinationURI = $this->return_untaken_uri($destinationURI);
+					break;
+			}
+		}
+		return $destinationURI;
+	}
+	
+	private function return_untaken_uri($targetURI) {
+		global $agave;
+		$funcArgs = func_get_args();
+		
+		if(file_exists($targetURI)) {
+			//rewrite file with _$counter.$extension until filename is not taken, return new valid $destinationURI
+			$exploded = explode(".", basename($targetURI));
+			$name = $exploded[0];
+			$extension = $exploded[1];
+			$dir = $this->dir_name($targetURI);
+			$scheme = $this->get_scheme($targetURI);
+			
+			if($dir!=$scheme."://") $dir = $dir."/";
+			$counter = 0;
+			do {
+				$targetURI = $dir.$name.'_'.$counter++.'.'.$extension;
+			} while(file_exists($targetURI));
+		}
+
+		$agave->debug("Created valid file destination $targetURI", __METHOD__, $funcArgs, __LINE__, __FILE__);
+		
+		return $targetURI;
+	}
+	
+	public function realpath($uri) {
+		if($wrapper = $this->return_stream_wrapper($uri)) return $wrapper->realpath();
+		else if(!empty($uri)) return realpath($uri);
+		else return FALSE;
+	}
+	
+	public function dir_name($uri) {
+		if($wrapper = $this->return_stream_wrapper($uri)) {
+			$target = $this->get_target($uri);
+			$scheme = $this->get_scheme($uri);
+			$dir = dirname($target);
+			if($dir == '.') $dir = '';
+			return $scheme."://".$dir;
+		}
+		else if(!empty($uri)) return dirname($uri);
+		else return FALSE;
+	}
+
+	/* directory manipulations */
+	private function prepare_dir($targetDir, $mode=0755) {
+		//make sure $targetDir is a dir and not a file...
+
+		//create the dir if it doesn't exist
+		if(!is_dir($targetDir)) if($this->make_dir($targetDir, $mode)) {
+			$this->chmod_dir($targetDir);
+		} else return FALSE;
+
+		//make it writable if it's not writable
+		if(!is_writable($targetDir)) if(!$this->chmod_dir($targetDir, $mode)) return FALSE;
+		
+		return TRUE;
+	}
+	
+	public function make_dir($uri, $mode=0775, $recursive=TRUE, $context=NULL) {
+		if (is_null($context)) {
+			return mkdir($uri, $mode, $recursive);
+		}
+		else {
+			return mkdir($uri, $mode, $recursive, $context);
+		}
+	}
+	
+	public function rm_dir($targetDir, $recursive=FALSE) {
+		//return true/false
+	}
+	
+	public function chmod_dir($uri, $mode=0755) {
+		//can take a full uri like scheme://target or a regular path to file
+		if($wrapper = $this->return_stream_wrapper($uri)) { if($wrapper->chmod($mode)) return TRUE; }
+		else if(!empty($uri)) { if(chmod($uri, $mode)) return TRUE; }
+		else return FALSE;
+	}
+	
+	/* file status/variable functions */
+	public function return_extension($uri) {
+		$uri = explode(".", $uri);
+		if(count($uri)>1) return strtolower(end($uri));
+		else return FALSE;
+	}
+	public function return_filesize($uri) {return filesize($uri);}
+	public function return_mime($uri) {return mime_content_type($uri);}
+
+
+	/* adding new files to db via upload or uri */
+	public function save_file_upload($name, $tmp_name, $size, $error, $mime, $destination=FALSE, $replace=FILE_EXISTS_RENAME) {
+		global $agave;
+		$user = $agave->load('user');
+		$funcArgs = func_get_args();
+		
+		//check for uploaded file
+		if(!file_exists($tmp_name)) {
+			$agave->message('error', NULL, "Uploaded file could not be found, try uploading again.");
+			$agave->debug("Uploaded file was not found ($tmp_name)", __METHOD__, $funcArgs, __LINE__, __FILE__);		
+			return FALSE;
+		}
+		
+		//TODO: add error checking based on $error, set error/debug messages and return false
+		
+		//figure out destination, default is temporary file
+		if(!$destination) $destination = "tmp://".basename($tmp_name); //TODO: I changed this
+		$time = time();
+		
+		//create file object
+		$file = new stdClass;
+		$file->filename = $name;
+		$file->uri = $destination;
+		$file->size = $size;
+		$file->mime = $mime;
+		$file->status = FILE_STATUS_TMP;
+		$file->extension = $this->return_extension($name);
+		$file->time_created = $time;
+		$file->time_modified = $time;
+		$file->userKey = $user->userKey;
+		//scan file for $data using getid3
+		
+		//TODO: start here
+		
+			//$agave->death(stream_get_wrappers());
+		
+		//TODO: add integrity check on filename, append .txt to executable code files
+
+		//TODO: make sure $file->uri is writable
+
+		//TODO: make a little less overhead... maybe change $this->save_file to return object that was passed, with key appended
+   		if(!file_exists($file->uri)) {
+			$agave->message('error', NULL, "Uploaded file could not saved.");
+			$agave->debug("Uploaded file could not be saved.", __METHOD__, $funcArgs, __LINE__, __FILE__);		
+			return FALSE;
+		}
+		$file = $this->save_file($file);
+
+		return $file;
+	}
+	
+	public function save_tmp_file($sourceURI) {
+		//add to db as tmp file, move it to tmp://
+		//basename() for $name, filesize for size, getmimetype for mime, destination is automatically figured out here, extension, whatever
+	}
+}

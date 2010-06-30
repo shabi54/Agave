@@ -1,0 +1,317 @@
+<?php
+final class fieldManager { //THIS IS A COMMENT
+	private $extensionsLoaded = FALSE;
+	public $fields = array();
+	private $fieldLocations = array();
+	public function __construct() {
+		global $agave;
+		$this->agave = $agave;
+		if(!$this->extensionsLoaded) {
+			$this->registerFields();
+			$this->registerForms(); //TODO: Write method
+			$this->registerFormOverrides(); //TODO: Write method
+		}
+		//$this->agave->death($this->fieldLocations);
+	}
+	
+	public function __destruct() { }
+	
+	private function registerFields() {
+		//check fields directory for default fields
+		$files = scandir("modules/fieldManager/fields/");
+		foreach($files as $file) {
+			if(substr($file, 0, 6) == "field_") {
+				$name = explode(".", $file);
+				$name = explode("_", $name[0]);
+				$name = isset($name[1]) ? $name[1] : NULL;
+				if(!in_array($name, $this->fields)) $this->fields[] = $name;
+				$this->fieldLocations[$name] = "modules/fieldManager/fields/field_$name.object";
+			}
+		}
+
+		//check extensions for fields - note that extensions can overwrite default fields, this is on purpose
+		if(isset($this->agave->module_env['extensions']['fieldManager']['fields'])) {
+			foreach($this->agave->module_env['extensions']['fieldManager']['fields'] as $field) {
+				if(!in_array($field['data']['fieldname'], $this->fields)) $this->fields[] = $field['data']['fieldname'];
+				$this->fieldLocations[$field['data']['fieldname']] = $field['file'];
+			}
+		}		
+	}
+	
+	private function registerForms() {} //TODO: implement this for fieldManager2
+	private function registerFormOverrides() {} //TODO: implement this for fieldManager2
+	
+	public function loadField($field) {
+		$class = "field_".$field;
+		//return already instantiated things
+		if(class_exists($class, FALSE) && isset($GLOBALS['objects']['fields'][$class])) {
+			 return $GLOBALS['objects']['fields'][$class];
+		}
+		else {
+			$file = $this->fieldLocations[$field];
+			include_once($file); //TODO do I really need __FILE__ ?
+			$GLOBALS['objects']['fields'][$class] = new $class;
+			return $GLOBALS['objects']['fields'][$class];
+		}
+	}
+	
+	public function returnSettingsForm($stem, $nodeKey) {
+		$query = "SELECT * FROM `".$stem."_schema` WHERE `nodeKey`='$nodeKey'";
+		$row = $this->agave->doSQLQuery($query, 2);
+
+		$class = $row['type'];
+		$field = $this->loadField($class);
+		return $field->returnSettingsForm(unserialize($row['settings']));
+	}
+
+	public function saveFieldSettings($stem, $nodeKey, $data) {
+		$query = "SELECT * FROM `".$stem."_schema` WHERE `nodeKey`='$nodeKey'";
+		$row = $this->agave->doSQLQuery($query, 2);
+
+		$class = $row['type'];
+		$field = $this->loadField($class);
+		$settings = serialize($field->saveSettingsFields($data));
+		
+		$query = "UPDATE `".$stem."_schema` SET `settings`='".mysql_real_escape_string($settings)."' WHERE `nodeKey`='$nodeKey'";
+		$this->agave->doSQLQuery($query);
+	}
+
+	public function format($values, $metaData) {
+		//$this->agave->death($_POST);
+		$class = $metaData->type;
+		$field = $this->loadField($class);
+		return $field->format($values, $metaData);
+	}
+	
+	public function unformat($type, $values) {
+		$class = $type;
+		$field = $this->loadField($class);
+		return $field->unformat($values);
+	}
+	
+	public function display($values, $row) {
+		$class = $row['type'];
+		$field = $this->loadField($class);
+		//TODO access check, return NULL if fail
+		return $this->displayWrap($field->display($values, $row['settings']), $row);
+	}
+	
+	public function edit($element) {
+		$class = $element['type'];
+		$field = $this->loadField($class);
+		//TODO access check, return NULL if fail
+		//last minute check for previously posted data
+		//TODO: fix this, check against posted form ID from endForm()
+		if(isset($_SESSION['previousPost'][$element['name']])) {
+			//$element['default'] = $_SESSION['previousPost'][$element['name']];
+		}
+		return $this->editWrap($field->edit($element), $element);
+	}
+
+	public function validate($values, $metaData) {
+		$class = $metaData->type;
+		$field = $this->loadField($class);
+		return $field->validate($values, $metaData);		
+	}
+	
+	private function editWrap($content=null, $element=null) {
+		if($content && $element) {
+			$html = '';
+			if(isset($element['preHTML'])) $html .= $element['preHTML'];
+			$html .= "<div class='fm-element-wrapper field-edit-wrapper field-".$element['type']."-edit-wrapper'>";
+			$html .= $this->generateLabel($element);
+			$html .= $content;
+			$html .= $this->generateMetaData($element);
+			$html .= isset($element['help']) ? "<div class='fm-help-text'>".$element['help']."</div>" : "";
+			$html .= "</div>";
+			if(isset($element['postHTML'])) $html .= $element['postHTML'];
+			return $html;
+		}
+		else return NULL;		
+	}
+	
+	protected function generateLabel($element) {
+		$html='';
+		$required = (isset($element['required']) || isset($element['validation'])) ? " <span class='fm-required-mark'>*</span> " : "";
+		if(isset($element['label'])) {
+			$html .= "<div class='fm-element-title'>$required<label>".$element['label']."</label></div>";
+			return $html;
+		}
+		else return NULL;
+	}
+
+	protected function generateMetaData($element) {
+		if(!empty($element['metaData'])) {
+			$element['metaData']['type'] = $element['type'];
+			$metadata = $this->agave->encrypt(json_encode($element['metaData']));
+			$html = "<input type='hidden' class='fm-metadata' name='metaData[".$element['blockNum']."][".$element['name']."]' value='$metadata' />";
+			return $html;
+		}
+		else return NULL;
+	}
+	
+	private function displayWrap($content=NULL, $row=NULL) {
+		$html = '';
+		//make sure not to print labels if there's no content for the field
+		if($content && $row['showLabel']) $html .= "
+					<div class='field-label'>
+						<span>".$row['label']."</span>
+					</div>";
+		$html .= "<div class='field-wrapper field-".$row['type']."-wrapper'>";
+		$html .= $this->hotswap($content, $row);
+		$html .= "</div>";
+		
+		return $html;
+	}
+	
+	private function hotswap($content, $row) {
+		//TODO add hotswappable JS, db, saving, whatever...
+		$start = (isset($row['hotswap'])) ? "<div class='fm-hotswap' value='".$this->agave->encrypt(json_encode($row['nodeKey']))."'>" : '';
+		$end = (isset($row['hotswap'])) ? "</div>" : '';
+		
+		return $start.$content.$end;
+	}
+
+	public function startForm($action, $method, $cssID=null, $includesFiles=null)  {
+		/* 
+		 * Description:				 	- The method which generates the beginning of an html form.
+		 * Arguments:	$action			- What submittal action (php script) the form should be pointed to.
+		 * 				$method		 	- How the data should be submitted: 'get' or 'post'.
+		 * Returns:		$html			- The string containing the html.
+		 */
+
+		$files = ($includesFiles) ? "enctype='multipart/form-data'" : '';
+		$method = ($includesFiles) ? "post" : $method;
+		$id = (isset($cssID)) ? "id='".$cssID."'" : '';
+	
+		$html = "<form action=\"".$action."\" method=\"".$method."\" $id $files>";
+		return $html;
+	}
+	
+	public function endForm($value="Submit", $cancel=NULL, $onclick=NULL) {
+		//TODO: if($agave->setting('secure_forms')) $id = $agave->encrypt(time().mt_rand()) - put in hidden element, and store in $_SESSION
+		//
+		$cancelLink = ($cancel != TRUE) ? $cancel : $_SESSION['previousLocation'];
+		$cancel = ($cancel) ? " or <a class='fm-button cancel-button' href='".$cancelLink."'>cancel</a>" : NULL;
+		$html = "<input class='fm-button' type='submit' value='".$value."' onclick='".$onclick."' />$cancel</form>";
+		return $html;
+	}
+	
+	public function generateElement($element) {
+		$element['original_name'] = $element['name'];
+		if(isset($element['disabled']) && $element['disabled']==TRUE) unset($element['metaData']);
+
+		return $this->edit($element);
+	}
+	
+	public function generateElements($elements) {
+		$elements = $this->organizeElements($elements);
+		return $this->markupElements($elements);
+	}
+	
+	private function organizeElements(&$elements) {
+		/*
+		 * This function loops through the elements and organizes them based on their name property.
+		 * 
+		 * Elements are put into their final structure with children of fieldsets added to that fieldsets
+		 * 'children' array
+		 * 
+		 * Javascript support is added here if any elements need them
+		 */
+		$organized = array();
+		$final = array();
+		$maxTreeLevel = 0;
+		$addable = FALSE;
+		$collapsible = FALSE;
+		$validation = FALSE;
+		$autosuggest = FALSE;
+		
+		//loop through all elements once to assign parent/child properties, and determine proper name, reorder into new array based on treedepth
+		$i=0;
+		foreach($elements as $element) {	
+			if(!isset($element['weight'])) $element['weight'] = $i;
+			$element['original_name'] = $element['name'];
+			$tree = explode("/", $element['name']);
+			$element['name'] = end($tree);
+			array_pop($tree);
+			$element['parents'] = $tree;
+			$element['parent'] = end($tree);
+			$element['treeLevel'] = count($tree);
+			if(!isset($element['blockNum'])) $element['blockNum'] = 0;
+			if($element['treeLevel'] > $maxTreeLevel) $maxTreeLevel = $element['treeLevel'];
+			if(isset($element['addable'])) $addable = $element['addable'];
+			if(isset($element['collapsible'])) $collapsible = $element['collapsible'];
+			if(isset($element['validation'])) $validation = TRUE;
+			if(isset($element['autosuggest'])) $autosuggest = TRUE;			
+			
+			//assign key to newly processed elements as weight + name, so they can be sorted later
+			$organized[count($tree)][$element['original_name']] = $element;
+			$i++;
+		}
+
+		//process the structured array, going from deep to shallow, adding child elements to the 'child' property of it's parent, sort by key
+		for($i=$maxTreeLevel; $i>=0; $i--) {
+			foreach($organized[$i] as $element) {
+				if(isset($element['children'])) ksort($element['children']);
+				$hash = (50000+$element['weight']).' '.$element['original_name'];
+				if(isset($organized[($i-1)][$element['parent']])) {
+					//set child array of parent if it's not set yet, then add current element
+					if(!isset($organized[($i-1)][$element['parent']]['children'])) $organized[($i-1)][$element['parent']]['children'] = array(); 
+					$organized[($i-1)][$element['parent']]['children'][$hash] = $element;
+				}
+				else $element['parents'] = NULL;
+				if(!$element['parents']) $final[$hash] = $element;
+			}
+		}
+		ksort($final);
+		
+		//add necessary javascript support if any of the processed elements required them
+		$themer = $this->agave->load('themer');
+		$themer->addCSS('fieldManager',"theme/css/fm-defaults.css");
+		if ($addable) $themer->addJS('fieldManager',"js/fm-addable.js");
+		if ($collapsible) $themer->addJS('fieldManager',"js/fm-collapsible.js");
+		if ($validation) $themer->addJS('fieldManager',"js/fm-validation.js");
+		if ($autosuggest) $themer->addJS('fieldManager',"js/fm-autosuggest.js");
+
+		return $final;
+	}
+	
+	private function markupElements($elements) {
+		//TODO: Why does it die when I send it fieldsets with no children?
+		$user = $this->agave->load("user");
+		$html = '';
+
+		foreach($elements as $element) {
+			//TODO: last minute check for previously posted value - use previously posted for default, does that go here or elsewhere?
+			if(empty($element['children'])) $html .= $this->generateElement($element);
+			else {
+				if(isset($element['access']) && !$user->access($element['access'])) $html .= "";
+				else {
+					if(isset($element['preHTML'])) $html .= $element['preHTML'];
+					$html .= $this->startFieldset($element);
+					$html .= $this->markupElements($element['children']);
+					$html .= $this->endFieldset();
+					if(isset($element['postHTML'])) $html .= $element['postHTML'];
+				}
+			}
+		}
+		return $html;
+	}
+
+	private function startFieldset(&$element) {
+		if (!isset($element['class'])) $element['class'] = '';
+		if (isset($element['addable'])) $element['class'] .= " fm-addable-fieldset ";
+		if (isset($element['collapsible'])) $element['class'] .= " fm-collapsible ";
+		if (isset($element['collapsed'])) $element['class'] .= " fm-collapsed ";
+		if (isset($element['label'])) $legend = "<legend class='fm-fieldset-legend'>".$element['label']."</legend>";
+		$desc = (isset($element['description'])) ? "title='".$element['description']."'" : '';
+		$html = "<fieldset class='fm-fieldset ".$element['class']."' name='".$element['name']."' $desc > $legend";
+		return $html;
+	}
+	
+	private function endFieldset() {
+		$html = "</fieldset>";
+		return $html;
+	}
+
+} //end fieldManager class

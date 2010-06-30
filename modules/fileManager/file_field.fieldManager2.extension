@@ -1,0 +1,167 @@
+<?php
+final class field_file extends genericField implements fieldInterface {
+	
+	public function __construct() {
+		global $agave;
+		$this->agave = $agave;
+		$this->fm = $this->agave->load('fileManager');
+	}
+	
+	public function __destruct() { }
+	
+	public function format($values=null, $fieldName) {
+		$args = func_get_args();
+		$i=0;
+		if(isset($values[$fieldName.'-key'])){
+			$fileKey = $values[$fieldName.'-key'];
+		}
+		if(isset($values[$fieldName.'-status'])){
+			$status = $values[$fieldName.'-status'];
+			switch($status) {
+				case 'BLANK' : $key = NULL; break;
+				case 'FILLED' : $key = $fileKey; break;
+				case 'DELETE' : $key = NULL; $this->deleteFile($fileKey); break;
+				case 'REPLACE' : $key = $this->replaceFile($fileKey, $fieldName); break;
+				case 'NEWFILE' : $key = $this->saveNewFile($fieldName); break;
+			}
+		}
+		return $key;
+	}
+	
+	private function saveNewFile($name) {
+		$args = func_get_args();
+		$fm = $this->agave->load('fileManager');
+		
+		$tmp_name = $_FILES[$name]['tmp_name'];
+		$name = $_FILES[$name]['name'];
+		$mime = $_FILES[$name]['type'];
+		$size = $_FILES[$name]['size'];
+		$error = $_FILES[$name]['error'];
+
+		return $fm->save_file_upload($name, $tmp_name, $size, $error, $mime)->fileKey;
+	}
+	
+	private function deleteFile($fileKey) {
+		$args = func_get_args();
+		$fm = $this->agave->load('fileManager');
+		//$this->agave->debug("Filefield deleting file $fileKey");
+		return $fm->delete_file($fm->returnFile($fileKey), TRUE); //also deletes children
+	}
+	
+	private function replaceFile($fileKey, $name) {
+		$args = func_get_args();
+		$fm = $this->agave->load('fileManager');
+		return $fm->replace_file($fileKey, $this->saveNewFile($name))->fileKey;
+	}
+	
+	public function unformat($fileKey) {
+		$args = func_get_args();
+		$file = $this->fm->returnFile($fileKey);
+		return $file;
+	}
+	
+	public function edit($element) {
+		$args = func_get_args();
+		$t = $this->agave->load('themer');
+		$t->addJS('modules/fieldManager/js/fm-filefield.js');
+		$t->addCSS('modules/fieldManager/theme/css/fm-filefield.css');
+		
+		$html = '';
+		
+		if(isset($element['default'])) {
+			$html = $this->markupFile($this->unformat($element['default']), $element, TRUE);
+		}
+		else $html = $this->returnBlankField($element);
+		
+		return $html;
+	}
+	
+	private function returnBlankField($element) {
+		$args = func_get_args();
+		$attributes = implode(" ", $this->generateAttributes($element));
+		$html = "
+			<div class='fm-file-wrapper'>
+				<input type='file' class='fm-filefield' name='".$element['name']."' $attributes />
+				<input type='hidden' class='file-status' name='".$element['name']."-status' value='BLANK' />
+			</div>
+		";
+		
+		return $html;
+	}
+	
+	private function markupFile($file=NULL, $element, $edit=FALSE) {
+		$user = $this->agave->load('user');
+		if(!$file) return $this->returnBlankField($element);
+		$editControls = ($user->userKey == $file->userKey && $edit==TRUE) ? $this->returnEditControls() : '';
+		$html = "
+			<div class='fm-file-wrapper'>
+				<span class='fm-file fm-file-$file->extension'>$file->filename</span>
+				$editControls
+				<input type='hidden' class='file-status' name='".$element['name']."-status' value='FILLED' />
+				<input type='hidden' class='file-key' name='".$element['name']."-key' value='file-$file->fileKey' />
+			</div>
+		";
+		
+		return $html;
+	}
+	
+	private function returnEditControls() {
+		$html = "
+			<div class='fm-file-controls'>
+				<input type='button' class='fm-file-replace' value='replace' />
+				<input type='button' class='fm-file-delete' value='delete' />
+			</div>
+		";
+		
+		return $html;
+	}
+	
+	public function display($values, $row) {
+		$t = $this->agave->load('themer');
+		$t->addCSS('modules/fieldManager/theme/css/fm-filefield.css');
+		if(is_object($values)) return $this->generateDisplayHTML($values);
+		else if(is_array($values)) {
+			$html = '';
+			foreach($values as $file) $html .= $this->generateDisplayHTML($file);
+			return $html;	
+		}
+	}
+	
+	private function generateDisplayHTML($file=null) {
+		if($file) {
+			$html = "
+				<div class='fm-file-wrapper'>
+					<a class='fm-file fm-file-$file->extension' href='$file->url'>$file->filename</a>
+				</div>
+			";
+			return $html;
+		}
+		else return "FILE NOT FOUND";
+	}
+
+	public function validate() {
+	return TRUE;
+	}
+	
+	public function returnSettingsForm($settings) {
+		$elements = array();
+		//directory: file
+		$elements[] = array(
+			'name'=>'directory',
+			'type'=>'text',
+			'label'=>'Sub-directory:',
+			'help'=>'You may optionally specify a sub-directory in which files uploaded via this element will be saved.',
+			'default'=>(isset($settings['directory'])) ? $settings['directory'] : NULL
+		
+		);
+		//TODO: option to specify authenticated downloads only		
+		return $elements;
+	}
+
+	public function saveSettingsFields($data) {
+		$settings = array();
+		$settings = $data;
+		return $settings;
+	}
+
+}

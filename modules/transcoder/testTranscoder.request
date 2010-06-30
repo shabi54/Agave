@@ -1,0 +1,66 @@
+<?php
+function test($args=null) {
+	
+	global $agave;
+	$t = $agave->load('themer');
+	$fm = $agave->load("fieldManager");
+	$t->output = "<h1>Transcoding Test Page</h1>";
+	$form = $fm->startForm($agave->base_url."transcoder/doit", "post", NULL, TRUE);
+	
+	$query = "SELECT `name` FROM `transcoding_presets`";
+	$options = $agave->doSQLQuery($query, 1);
+	
+	$element = array(
+				'name'=>'preset',
+				'label'=>'Select transcoding preset:',
+				'type'=>'select',
+				'values'=>$options,
+				'default'=>NULL
+	);
+	$form .= $fm->generateElement($element);
+	$elements = array();
+	$elements[] = array(
+		'name'=>'original',
+		'label'=>'File to transcode:',
+		'type'=>'file',
+		'default'=>NULL,
+	);
+	$form .= $fm->generateElements($elements);
+	$form .= "<br/>";
+	$form .= $fm->endForm("DO IT");
+	$t->output .= $form;
+	$t->output .= "<br/>This may take some time.  Only press DO IT once.";
+	
+}
+
+function doit($args=null){
+	
+	global $agave;
+	$t = $agave->load('themer');
+	$t->output = "<h3>Transcoding Finished.</h3><br/>The transcoding preset you selected:<br/>";
+	
+	if(array_key_exists('preset',$_POST)){
+	$t->output .= $_POST['preset'];
+	}
+	else{
+	$t->output .= "No transcoding preset selected.";
+	}
+	
+	$fileman = $agave->load('fileManager');
+	$name = $_FILES['original']['name'];
+	$tmp_name = $_FILES['original']['tmp_name'];
+	$size = $_FILES['original']['size'];
+	$error = $_FILES['original']['error'];
+	$mime = $_FILES['original']['type'];
+	$file =  $fileman->save_file_upload($name, $tmp_name, $size, $error, $mime);
+
+	$trans = $agave->load('transcoder');
+	$outfiles = $trans->execute($_POST['preset'],$file);
+	foreach($outfiles as $outfile){
+		$link = $outfile->url;
+		$t->output .= "<br/><br/>Link to transcoded file:<br/><a href='".$link."'>".$link."</a>";
+	}
+	
+	$t->output .= "<br/><br/><a href='".$agave->base_url."transcoder'>Go back and transcode another file.</a>";
+	
+}

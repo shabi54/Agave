@@ -1,0 +1,20 @@
+<?php
+$extensions = array();
+//stream wrapper for local media file system
+$extensions[] = array(
+	'module'=>'fileManager',
+	'type'=>'stream_wrappers',
+	'location'=>"media_stream_wrapper.fileManager.extension",
+	'data'=>array('scheme'=>'media')
+);
+
+//media field plugin for fieldManager
+$extensions[] = array(
+	'module'=>'fieldManager',
+	'type'=>'fields',
+	'location'=>"media_field.fieldManager.extension",
+	'data'=>array('fieldname'=>'media')
+);
+
+$objects = array();
+$objects['media'] = 'media.object';

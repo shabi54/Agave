@@ -1,0 +1,5 @@
+<?php
+function editSettings($args=null) {
+	//provide page to manage settings for ffmpeg, such as location, etc...
+}
+?>

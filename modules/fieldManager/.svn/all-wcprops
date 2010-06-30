@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/agave/!svn/ver/250/trunk/modules/fieldManager
+END
+admin.request
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/agave/!svn/ver/152/trunk/modules/fieldManager/admin.request
+END
+fieldManager.module
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/agave/!svn/ver/169/trunk/modules/fieldManager/fieldManager.module
+END
+fieldManager.object
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/agave/!svn/ver/234/trunk/modules/fieldManager/fieldManager.object
+END
+fieldManager.info
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/agave/!svn/ver/250/trunk/modules/fieldManager/fieldManager.info
+END
+hotswap-save.request
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/agave/!svn/ver/92/trunk/modules/fieldManager/hotswap-save.request
+END
+hotswap-get.request
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/agave/!svn/ver/92/trunk/modules/fieldManager/hotswap-get.request
+END
