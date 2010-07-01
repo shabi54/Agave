@@ -3,6 +3,8 @@
 //$settings['proj_root'] = "sites/localhost.agave/";
 //$settings['proj_url'] = "http://localhost/agave/";
 
+//THIS is hte version I want on the server.
+
 require('./core/bootstrap.inc');
 agave_timer_start();
 
@@ -37,4 +39,4 @@ switch($status) {
 
 	default : echo("Agave is IMPOSSIBLY confused...");
 }
-exit("<div style='float: left;'>Time to render: ".agave_timer_return()."</div>FOOOOOOOO");
+exit("<div style='float: left;'>Time to render: ".agave_timer_return()."</div>");
