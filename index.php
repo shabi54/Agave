@@ -2,7 +2,7 @@
 //for single installation projects - fill these in
 //$settings['proj_root'] = "sites/localhost.agave/";
 //$settings['proj_url'] = "http://localhost/agave/";
-
+CHANGED THIS
 require('./core/bootstrap.inc');
 agave_timer_start();
 
