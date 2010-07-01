@@ -1,88 +1,0 @@
-10
-
-dir
-259
-http://192.168.252.17/svn/agave/trunk/modules
-http://192.168.252.17/svn/agave
-
-
-
-2010-06-28T20:24:15.991304Z
-257
-evillemez
-has-props
-
-
-
-
-
-
-
-
-
-
-
-
-incomplete
-00dd55a1-faff-4885-b4f7-ed0eed9793ff
-
-chat
-dir
-
-media
-dir
-
-contentNode
-dir
-
-poppler
-dir
-
-themer
-dir
-
-email
-dir
-
-admin
-dir
-
-schemaManager
-dir
-
-mediaPlayer
-dir
-
-group
-dir
-
-imagemagick
-dir
-
-fieldManager2
-dir
-
-transcoder
-dir
-
-ffmpeg
-dir
-
-jodconverter
-dir
-
-dbTree
-dir
-
-fileManager
-dir
-
-schemaManager2
-dir
-
-fieldManager
-dir
-
-user
-dir
-
