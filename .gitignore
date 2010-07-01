@@ -1002,3 +1002,5 @@ vendor/jQuery/ui/ui.slider.js
 vendor/jQuery/ui/ui.sortable.js
 vendor/jQuery/ui/ui.tabs.js
 vendor/jQuery/version.txt
+.DS_Store
+.project
