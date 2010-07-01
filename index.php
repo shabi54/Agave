@@ -2,13 +2,10 @@
 //for single installation projects - fill these in
 //$settings['proj_root'] = "sites/localhost.agave/";
 //$settings['proj_url'] = "http://localhost/agave/";
-<<<<<<< HEAD
 
-//THIS is hte version I want on the server.
 
-=======
-CHANGED THIS
->>>>>>> 6c960615fad7af1b4447b478bf721ec667bdb938
+//I used BBEdit here and resolved a conflict visible in the code
+
 require('./core/bootstrap.inc');
 agave_timer_start();
 
