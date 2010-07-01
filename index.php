@@ -41,3 +41,5 @@ switch($status) {
 	default : echo("Agave is IMPOSSIBLY confused...");
 }
 exit("<div style='float: left;'>Time to render: ".agave_timer_return()."</div>");
+
+//change at bottom!!
