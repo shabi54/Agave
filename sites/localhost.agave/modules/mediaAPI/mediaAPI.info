@@ -1,0 +1,12 @@
+<?php
+function mediaAPI_info_meta() {
+	return array(
+		'name'=>'Media API',
+		'machine-name'=>'mediaAPI',
+		'description'=>'Provides REST plugins to expose basic media objects and actions to external sources.',
+		'group'=>'Media',
+		'version'=>'.1',
+		'agave-version'=>'1',
+		'dependencies'=>array('user','schemaManager', 'media'),
+	);
+}

@@ -1,0 +1,74 @@
+body {
+	font-family: helvetica;
+}
+
+table td{
+	vertical-align: top;
+}
+
+fieldset > legend {
+	font-size: 10px;
+}
+fieldset {
+	margin-bottom: 10px;
+}
+
+#container {
+	width: 90%;
+	border: 1px solid #000;
+}
+
+#header {
+	width: 100%;
+	border-bottom: 1px solid #000;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	font-weight: bold;
+	font-size: 20px;
+	background-color: #c9e9d1;
+}
+
+#content {
+	padding: 10px;
+}
+
+#autogen {
+
+}
+
+#rubric {
+
+}
+
+#prompt 
+
+}
+
+#sample {
+
+}
+
+#sample-container {
+	margin: 10px;
+	padding: 10px;
+	background-color: #f6ebda;
+	font-size: 12px;
+	border: 1px solid #000;
+	overflow: auto;
+	height: 150px;
+}
+
+.field > label {
+	font-weight: bold;
+	font-size: 14px;
+	display: block;
+}
+
+.field {
+	display: block;
+	margin-bottom: 10px;
+}
+.element-wrapper {
+	display: block;
+	font-size: 12px;
+}
