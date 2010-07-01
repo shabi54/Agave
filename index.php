@@ -1,4 +1,5 @@
 <?php
+//added useless comment
 //for single installation projects - fill these in
 //$settings['proj_root'] = "sites/localhost.agave/";
 //$settings['proj_url'] = "http://localhost/agave/";
