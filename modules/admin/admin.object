@@ -1,5 +1,4 @@
 <?php
-//test comment
 
 final class admin {
 	public function __construct() {
@@ -99,6 +98,8 @@ final class admin {
 		include_once($this->agave->modulePath($module).$module.".info");
 		$meta = call_user_func($module."_info_meta");
 $this->agave->death($meta);
+
+//TODO: START HERE - get module updates working (more or less)
 
 		//run update hook (take care of Access here)
 		

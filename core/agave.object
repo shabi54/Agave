@@ -40,7 +40,7 @@ class agave extends olddb {
 	}
 	
 	private function setCache($item, $data, $module, $expires=0) {
-		if($this->installed) {
+		if($this->installed) {  
 			$time = time();
 			$data = mysql_real_escape_string(serialize($data));
 			$query = "DELETE FROM `cache` WHERE `item`='$item'";
