@@ -1,7 +1,0 @@
-<?php
-$extensions = array();
-$extensions[] = array(
-	'module'=>'fieldManager',
-	'type'=>'fields',
-	'location'=>"modules/mediaAPI/mediaapi_field.fieldManager.extension"
-);
