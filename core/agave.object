@@ -53,7 +53,6 @@ class agave extends olddb {
 	}
 	
 	public function rebuildCaches($cache=NULL) {
-		//TODO: implement rebuilding specific caches
 		$this->cache = FALSE;
 		$this->loadSettings();
 		$this->loadModules();

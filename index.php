@@ -3,9 +3,6 @@
 //$settings['proj_root'] = "sites/localhost.agave/";
 //$settings['proj_url'] = "http://localhost/agave/";
 
-
-//I used BBEdit here and resolved a conflict visible in the code
-
 require('./core/bootstrap.inc');
 agave_timer_start();
 
@@ -41,5 +38,3 @@ switch($status) {
 	default : echo("Agave is IMPOSSIBLY confused...");
 }
 exit("<div style='float: left;'>Time to render: ".agave_timer_return()."</div>");
-
-//change at bottom!!
