@@ -1,4 +1,5 @@
 <?php
+//test comment
 
 final class admin {
 	public function __construct() {
