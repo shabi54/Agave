@@ -3,6 +3,8 @@
 //$settings['proj_root'] = "sites/localhost.agave/";
 //$settings['proj_url'] = "http://localhost/agave/";
 
+//Added useless comment
+
 require('./core/bootstrap.inc');
 agave_timer_start();
 
