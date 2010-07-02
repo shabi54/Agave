@@ -28,14 +28,14 @@ $settings = array();
 $settings['agave_version'] = '1';
 $settings['enabled_modules'] = array('admin','user','schemaManager','fieldManager','themer','fileManager');
 $settings['installed_modules'] = array('admin','user','schemaManager','fieldManager','themer','fileManager');
-$settings['module_paths'] = array(
-	'admin'=>'modules/admin/',
-	'user'=>'modules/user/',
-	'schemaManager'=>'modules/schemaManager/',
-	'fieldManager'=>'modules/fieldManager/',
-	'fileManager'=>'modules/fileManager/',
-	'themer'=>'modules/themer/',
-);
+
+$settings['module_data']['admin']['path'] = 'modules/admin/';
+$settings['module_data']['user']['path'] = 'modules/user/';
+$settings['module_data']['schemaManager']['path'] = 'modules/schemaManager/';
+$settings['module_data']['fieldManager']['path'] = 'modules/fieldManager/';
+$settings['module_data']['fileManager']['path'] = 'modules/fileManager/';
+$settings['module_data']['themer']['path'] = 'modules/themer/';
+
 $settings['home_page'] = 'user/login';
 $settings['default_theme'] = 'default';
 $settings['clean_urls'] = FALSE;
