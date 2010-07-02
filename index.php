@@ -3,7 +3,6 @@
 //$settings['proj_root'] = "sites/localhost.agave/";
 //$settings['proj_url'] = "http://localhost/agave/";
 
-//CHANGE AT TOP!
 
 //I used BBEdit here and resolved a conflict visible in the code
 
