@@ -324,9 +324,12 @@ final class themer {
 		global $agave;
 		$user = $agave->load('user');
 		$html = "";
+                $htmlarr = array();
 		
 		foreach($arr as $key=>$val) {
 			if(!$this->isProp($key)){
+                                $thehtml = '';
+                                isset($val['^weight']) ? $weight = $val['^weight'] : $weight = 0;
 				if(!empty($val['^href'])) $href = (substr($val['^href'], 0, 4)=="http") ? $val['^href'] : $agave->base_url.$val['^href'];
 				$beginLink = ($val['^href']) ? "<a href='".$href."'>" : NULL;
 				$endLink = ($val['^href']) ? "</a>" : NULL;
@@ -337,19 +340,25 @@ final class themer {
 					if($agave->current_location == $val['^href'] || $agave->base_url.$agave->current_location == $val['^href']) $classes .= " selected";
 					$classes = "class='$classes'";
 					if(($val['^access'] != NULL && $user->access($val['^access'])) || !$val['^access']) {
-						$html .= "<li $title $classes>".$beginLink.$key.$endLink."<ul class='menu-sub'>";
-						$html .= $this->markupMenuItems($val);
-						$html .= "</ul></li>";
+						$thehtml .= "<li $title $classes>".$beginLink.$key.$endLink."<ul class='menu-sub'>";
+						$thehtml .= $this->markupMenuItems($val);
+						$thehtml .= "</ul></li>";
 					}
 				}
 				else {
 					$classes = "class='$classes'";
-					$html .= (($val['^access'] != NULL && $user->access($val['^access'])) || !$val['^access']) ? "<li $title $classes>".$beginLink.$key.$endLink."</li>" : '';
+					$thehtml .= (($val['^access'] != NULL && $user->access($val['^access'])) || !$val['^access']) ? "<li $title $classes>".$beginLink.$key.$endLink."</li>" : '';
 				}
-				
+                                while(isset($htmlarr[$weight])){
+                                    $weight += 0.01;
+                                }
+                                $htmlarr[$weight] = $thehtml;
 			}
 		}
-		
+		ksort($htmlarr);
+                foreach($htmlarr as $key => $htmlbit){
+                    $html .= $htmlbit;
+                }
 		return $html;
 	}
 	
