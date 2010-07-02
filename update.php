@@ -30,4 +30,3 @@ function updateModules() {
 	$installed = json_decode($agave->setting('installed_modules'));
 	
 }
-?>

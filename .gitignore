@@ -1004,3 +1004,6 @@ vendor/jQuery/ui/ui.tabs.js
 vendor/jQuery/version.txt
 .DS_Store
 .project
+nbproject/private/private.properties
+nbproject/project.properties
+nbproject/project.xml
