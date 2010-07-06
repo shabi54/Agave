@@ -95,29 +95,49 @@ final class admin {
 	}
 
 	public function updateModule($module) {
+        //NOTE: updating a module right now will ignore system_variables and user_access
+
+		//get meta info
 		include_once($this->agave->modulePath($module).$module.".info");
 		$meta = call_user_func($module."_info_meta");
-$this->agave->death($meta);
 
-//TODO: START HERE - get module updates working (more or less)
+		//get version info for module
+		$versions = $this->agave->setting('module_versions');
+        $oldVersion = $versions[$module];
+        $newVersion = $meta['version'];
 
-		//run update hook (take care of Access here)
-		
-		//update cron (preserve settings, drop and replace)
-		//update actions () //TODO: add field for file
-		//update menu (add new, don't replace old)
-		//update menu items (Drop and replace)
-		//update messages (Drop and replace)
-		//update system_uri (Drop and replace)
-		//update system_variables (add new, DO NOT remove/change old)
+        //special sql done here - as of now configurations are dropped and re-added; this is a pain and should change at some point
+		call_user_func_array($module."_info_update", array());
 
-		//TODO: maybe not drop core data... user_access for example, would ruin user settings
-		//drop core DATA, same as uninstall - but DON'T call uninstall hook
-		//add in data again from .info file
-		
-		//update version
+        //remove items from .info file
+		$this->uninstallActions($module);
+		$this->uninstallCron($module);
+		$this->uninstallMenu($module);
+		$this->uninstallMenuItems($module);
+		$this->uninstallMessages($module);
+		$this->uninstallPanels($module);
+		$this->uninstallSystemUri($module);
 
-		$this->agave->log('module', "Updated module $module");
+		//remove cache items from db
+		$this->clearModuleCache($module);
+
+        //install items from .info file
+		if(function_exists($module."_info_actions")) $this->installActions(call_user_func($module."_info_actions"), $module);
+		if(function_exists($module."_info_cron")) $this->installCron(call_user_func($module."_info_cron"), $module);
+		if(function_exists($module."_info_menu")) $this->installMenu(call_user_func($module."_info_menu"), $module);
+		if(function_exists($module."_info_menu_items")) $this->installMenuItems(call_user_func($module."_info_menu_items"), $module);
+		if(function_exists($module."_info_messages")) $this->installMessages(call_user_func($module."_info_messages"), $module);
+		if(function_exists($module."_info_panels")) $this->installPanels(call_user_func($module."_info_panels"), $module);
+		if(function_exists($module."_info_system_uri")) $this->installSystemUri(call_user_func($module."_info_system_uri"), $module);
+
+		//save version info for module
+        $versions[$module] = $newVersion;
+        $this->saveSetting('module_versions', $versions);
+
+        //let user know that module may need to be reconfigured
+        $this->agave->message('warning', NULL, "Module <b>$module</b> has been updated, it may need to be reconfigured for your site to work properly.");
+
+		$this->agave->log('module', "Updated module $module from version $oldVersion to $newVersion");
 	}
 
 /**
