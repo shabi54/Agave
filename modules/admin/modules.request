@@ -4,7 +4,7 @@ function viewModules() {
 	$agave->rebuildCaches();
 	$t = $agave->load("themer");
 	$admin = $agave->load("admin");
-		
+
 	$modules = array();
 	$modules['Global'] = getModuleData('global');
 	$modules['Local'] = getModuleData('local');	
@@ -34,7 +34,7 @@ function getModuleData($loc) {
 
 	//read dir for all module directories
 	$modules = array();
-	$items = scandir($dir);
+	$items = (file_exists($dir)) ? scandir($dir) : FALSE;
 	if($items) foreach($items as $item) if(substr($item, 0, 1) != '.') $modules[] = $item;
 	
 	//include .module files

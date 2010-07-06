@@ -1,4 +1,0 @@
-<?php
-function ajax_code($args=null) {
-	echo("<div style='float: left;'>Time to ajax: ".agave_timer_return()."</div>");
-}

@@ -1004,4 +1004,12 @@ vendor/jQuery/ui/ui.tabs.js
 vendor/jQuery/version.txt
 .DS_Store
 .project
+<<<<<<< HEAD
+nbproject/private/private.properties
+nbproject/project.properties
+nbproject/project.xml
+nbproject/private/private.xml
 sites/localhost.agave/settings.php
+=======
+sites/localhost.agave/settings.php
+>>>>>>> 3f121d64c7e659ce77175646b5b5b43bc32439d3

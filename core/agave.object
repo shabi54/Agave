@@ -15,7 +15,8 @@ class agave extends olddb {
 	public $settings = FALSE;
 	public $cache = TRUE; //set to false before loading other objects to force them to update their caches
 	public $installed = TRUE;
-	
+	public $user = FALSE;
+
 	public function __construct() {	}
 	
 	public function modulePath($module) {
@@ -40,7 +41,7 @@ class agave extends olddb {
 	}
 	
 	private function setCache($item, $data, $module, $expires=0) {
-		if($this->installed) {
+		if($this->installed) {  
 			$time = time();
 			$data = mysql_real_escape_string(serialize($data));
 			$query = "DELETE FROM `cache` WHERE `item`='$item'";
@@ -53,7 +54,6 @@ class agave extends olddb {
 	}
 	
 	public function rebuildCaches($cache=NULL) {
-		//TODO: implement rebuilding specific caches
 		$this->cache = FALSE;
 		$this->loadSettings();
 		$this->loadModules();

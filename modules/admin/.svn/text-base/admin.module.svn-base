@@ -1,3 +1,0 @@
-<?php
-$objects = array();
-$objects['admin'] = 'admin.object';
