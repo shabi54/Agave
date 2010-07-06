@@ -15,7 +15,8 @@ class agave extends olddb {
 	public $settings = FALSE;
 	public $cache = TRUE; //set to false before loading other objects to force them to update their caches
 	public $installed = TRUE;
-	
+	public $user = FALSE;
+
 	public function __construct() {	}
 	
 	public function modulePath($module) {

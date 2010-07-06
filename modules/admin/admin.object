@@ -9,6 +9,40 @@ final class admin {
 /**
  * Module status methods
  */
+
+	public function setModuleEnabled($module) {
+		$enabled = $this->agave->setting('enabled_modules');
+		$enabled[] = $module;
+		$this->saveSetting('enabled_modules', $enabled);
+	}
+
+	public function setModuleDisabled($module) {
+		$enabled = $this->agave->setting('enabled_modules');
+		$key = array_search($module, $enabled);
+		unset($enabled[$key]);
+		$this->saveSetting('enabled_modules', $enabled);
+	}
+
+	public function setModuleInstalled($module) {
+		$installed = $this->agave->setting('installed_modules');
+		$installed[] = $module;
+		$this->saveSetting('installed_modules', $installed);
+	}
+
+	public function setModuleUninstalled($module) {
+		$installed = $this->agave->setting('installed_modules');
+		$key = array_search($module, $installed);
+		unset($installed[$key]);
+		$this->saveSetting('installed_modules', $installed);
+	}
+
+
+	public function setModuleVersion($module, $version) {
+		$versions = $this->agave->setting('module_versions');
+		$versions[$module] = $version;
+		$this->saveSetting('module_versions', $versions);
+	}
+
 	public function installModule($module) {
 		include_once($this->agave->modulePath($module).$module.".info");
 		$meta = call_user_func($module."_info_meta");
@@ -26,19 +60,18 @@ final class admin {
 		if(function_exists($module."_info_system_uri")) $this->installSystemUri(call_user_func($module."_info_system_uri"), $module);
 		if(function_exists($module."_info_system_variables")) $this->installSystemVariables(call_user_func($module."_info_system_variables"));
 		if(function_exists($module."_info_user_access")) $this->installUserAccess(call_user_func($module."_info_user_access"), $module);
-		
-		$this->agave->invoke('module_install', $module);
-		
+				
 		//add module to installed list
-		$installed = $this->agave->setting('installed_modules');
-		$installed[] = $module;
-		$this->saveSetting('installed_modules', $installed);
-		
+		$this->setModuleInstalled($module);
+
+		//add module to enabled list
+		$this->setModuleEnabled($module);
+
 		//update version of module
-		$versions = $this->agave->setting('module_versions');
-		$versions[$module] = $meta['version'];
-		$this->saveSetting('module_versions', $versions);
-		
+		$this->setModuleVersion($module, $meta['version']);
+
+		$this->agave->invoke('module_install', $module);
+
 		$this->agave->log('module', "Installed module $module");
 	}
 
@@ -63,12 +96,10 @@ final class admin {
 		//call uninstall hook for module
 		if(function_exists($module."_info_uninstall")) call_user_func($module."_info_uninstall");
 
-		//remove module from installed_modules setting
-		$installed = $this->agave->setting('installed_modules');
-		$key = array_search($module, $installed);
-		unset($installed[$key]);
-		$this->saveSetting('installed_modules', $installed);
-
+		//remove module from installed_modules and enabled_modules setting
+		$this->setModuleUninstalled($module);
+		$this->setModuleDisabled($module);
+		
 		$this->agave->log('module', "Uninstalled module $module");
 	}
 
@@ -76,9 +107,7 @@ final class admin {
 		include_once($this->agave->modulePath($module).$module.".info");
 		$meta = call_user_func($module."_info_meta");
 
-		$activated = $this->agave->setting('enabled_modules');
-		$activated[] = $module;
-		$this->saveSetting('enabled_modules', $activated);
+		$this->setModuleEnabled($module);
 
 		$this->agave->log('module', "Enabled module $module");
 	}
@@ -86,10 +115,8 @@ final class admin {
 	public function disableModule($module) {
 		include_once($this->agave->modulePath($module).$module.".info");
 		$meta = call_user_func($module."_info_meta");
-		$enabled = $this->agave->setting('enabled_modules');
-		$key = array_search($module, $enabled);
-		unset($enabled[$key]);
-		$this->saveSetting('enabled_modules', $enabled);
+
+		$this->setModuleDisabled($module);
 
 		$this->agave->log('module', "Disabled module $module");
 	}
@@ -131,9 +158,7 @@ final class admin {
 		if(function_exists($module."_info_system_uri")) $this->installSystemUri(call_user_func($module."_info_system_uri"), $module);
 
 		//save version info for module
-        $versions[$module] = $newVersion;
-        $this->saveSetting('module_versions', $versions);
-
+		$this->setModuleVersion($module, $newVersion);
         //let user know that module may need to be reconfigured
         $this->agave->message('warning', NULL, "Module <b>$module</b> has been updated, it may need to be reconfigured for your site to work properly.");
 

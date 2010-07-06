@@ -1,6 +1,5 @@
 <?php
 class contentNode {
-	private $properties;
 	public $contentNodeKey;
 	public $fields;
 	
