@@ -348,6 +348,9 @@ function returnMenuItemForm($menuKey, $path=null) {
 		$posspathsarr = array();
 		$posspathsarr[] = '/';
 		possiblePaths($posspathsarr, $menuarr, "");
+                foreach($posspathsarr as &$pathe){
+                    if($pathe != "/") { $pathe .= "/"; }
+                }
 		$elements[] = array(
 			'name'=>'menupath',
 			'label'=>'Path',
@@ -366,6 +369,9 @@ function returnMenuItemForm($menuKey, $path=null) {
 		$posspathsarr = array();
 		$posspathsarr[] = '/';
 		possiblePaths($posspathsarr, $menuarr, "");
+                foreach($posspathsarr as &$pathe){
+                    if($pathe != "/") { $pathe .= "/"; }
+                }
 		$elements[] = array(
 			'name'=>'menupath',
 			'label'=>'Path',
