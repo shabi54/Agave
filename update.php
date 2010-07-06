@@ -1,5 +1,9 @@
 <?php
 
+
+//i pwn3d ur update thing
+
+
 require_once('./core/bootstrap.php');
 $status = bootstrap();
 
