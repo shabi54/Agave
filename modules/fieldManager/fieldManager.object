@@ -251,6 +251,8 @@ final class fieldManager { //THIS IS A COMMENT
 
 		//process the structured array, going from deep to shallow, adding child elements to the 'child' property of it's parent, sort by key
 		for($i=$maxTreeLevel; $i>=0; $i--) {
+                        if(!$organized) { $organized = array(); } //null array fix
+                        if(!$organized[$i]) { $organized[$i] = array(); } //null array fix
 			foreach($organized[$i] as $element) {
 				if(isset($element['children'])) ksort($element['children']);
 				$hash = (50000+$element['weight']).' '.$element['original_name'];

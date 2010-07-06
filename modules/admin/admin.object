@@ -397,6 +397,7 @@ $this->agave->death($meta);
 	public function addAccessArgument($action, $label, $desc, $default, $module) {
 		$query = "SELECT `action` FROM `user_access`";
 		$current = $this->agave->doSQLQuery($query, 1);
+                if(!$current) $current = array(); // attempting fix
 		if(in_array($action, $current)) {
 			$this->message('error', "DUPLICATE_ACTION");
 			$this->redirect(TRUE);
@@ -433,6 +434,7 @@ $this->agave->death($meta);
 		
 		$query = "SELECT `name` FROM `user_types`";
 		$current = $this->agave->doSQLQuery($query, 1);
+                if(!$current) $current = array(); // attempting fix
 		if(in_array($name, $current)) {
 			$this->agave->message('error', "DUPLICATE_user_type");
 			$this->agave->redirect("admin/users&mode=types");
