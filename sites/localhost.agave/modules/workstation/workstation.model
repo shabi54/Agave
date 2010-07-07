@@ -1,9 +1,0 @@
-<?php
-class workstation {
-	
-	public function __construct(){
-	global $agave ;
-	$this->agave = $agave;
-	}
-}
-?>
