@@ -1,4 +1,9 @@
 <?php
+/**
+ * NOTICE: This fileManager class is an object-oriented implementation of Drupal 7's file.inc;
+ * See original at http://api.drupal.org
+ */
+
 //file DB status
 define('FILE_STATUS_TMP', 0);   //temporary files, 'tmp://' scheme only
 define('FILE_STATUS_SAVED', 1);  //permanent files, any scheme

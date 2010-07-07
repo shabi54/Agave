@@ -4,14 +4,13 @@
 /**
  * Module meta data - run during install/uninstall
  */
-
 function contentNode_info_meta() {
 	return array(
 		'name'=>'Content Node',
 		'machine-name'=>'contentNode',
 		'description'=>'Provides a general framework for page-level content and support for multiple content types.',
 		'group'=>'Basic Content',
-		'version'=>'.1',
+		'version'=>'.2',
 		'agave-version'=>'1',
 		'dependencies'=>array('user','schemaManager'),
 	);

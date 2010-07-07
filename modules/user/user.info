@@ -72,7 +72,7 @@ function user_info_system_uri() {
 	$uris[] = array('admin/access/edit/%',NULL,'administer_users','editProperty','access',0,1,0);
 	$uris[] = array('admin/access/manage',NULL,'administer_users','viewProperties','access',0,1,0);
 	$uris[] = array('admin/access/save',NULL,'administer_users','saveProperty','access',0,1,0);
-	$uris[] = array('admin/access/update',NULL,'administer_users','update','access',0,1,0);
+	$uris[] = array('admin/access/update',NULL,'administer_users','admin_save_access_grid','access',0,1,0);
 	$uris[] = array('admin/users',NULL,'administer_users','browseUsers','admin',0,1,0);
 	$uris[] = array('admin/users/%/drop-access/%',NULL,'administer_users','dropPrivilege','admin',0,1,0);
 	$uris[] = array('admin/users/add',NULL,'administer_users','addUser','admin',0,1,0);

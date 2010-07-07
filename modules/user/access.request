@@ -28,7 +28,7 @@ function admin_save_access_grid() {
 		foreach($data as $datum) {
 			$actions[$datum['user_type']."_".$datum['action']] = $datum;
 		}	
-		foreach($_POST['access_args'] as $arg) {
+		if(isset($_POST['access_args'])) foreach($_POST['access_args'] as $arg) {
 			if(isset($actions[$arg])) {
 				$query = "UPDATE `user_access_map` SET `value`='1' WHERE `action`='".$actions[$arg]['action']."' AND `user_type`='".$actions[$arg]['user_type']."'";
 				$agave->doSQLQuery($query);

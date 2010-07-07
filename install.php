@@ -26,8 +26,17 @@ define('MODULE_NOT_ENABLED', 0);
 //hardcode necessary settings for partial bootstrap
 $settings = array();
 $settings['agave_version'] = '1';
+
 $settings['enabled_modules'] = array('admin','user','schemaManager','fieldManager','themer','fileManager');
 $settings['installed_modules'] = array('admin','user','schemaManager','fieldManager','themer','fileManager');
+$settings['module_versions'] = array(
+	'admin'=>'.1',
+	'user'=>'.1',
+	'schemaManager'=>'.1',
+	'fieldManager'=>'.1',
+	'fileManager'=>'.1',
+	'themer'=>'.1',
+);
 
 $settings['module_data']['admin']['path'] = 'modules/admin/';
 $settings['module_data']['user']['path'] = 'modules/user/';
@@ -98,7 +107,7 @@ function install_finish() {
 	global $agave;
 	$admin = $agave->load('admin');
 
-	//$agave->death($agave->settings);
+	//TODO: add session into agave for admin user to automatically log them into their new site
 
 	foreach($_SESSION as $key=>$value) unset($_SESSION[$key]);
 	foreach($agave->settings as $key=>$value) $admin->saveSetting($key, $value);
