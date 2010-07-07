@@ -1,0 +1,30 @@
+<?php
+class center_mgr {
+	
+	public function __construct(){
+	global $agave ;
+	$this->agave = $agave;
+	}
+	
+	public function getUserCenters($userKey,$examKey=null){
+	//$_args = func_get_args();
+	$today = date("y-m-d");
+	$andClause = ($examKey) ? "AND um.`examKey` = '$examKey' " : "";
+	$queryStatement = "SELECT DISTINCT um.`centerKey`,tc.`name` " .
+					  "FROM `users_map` um  " .
+					  "INNER JOIN `examDates` ed " .
+					  "ON um.`dateKey` = ed.`dateKey` " .
+					  "INNER JOIN `exams` ex " .
+					  "ON ed.`examKey` = ex.`examKey` " .
+					  "INNER JOIN `testingCenters` tc " .
+					  "ON tc.`centerKey` = um.`centerKey` " .
+					  "WHERE ed.`startDate` >= '$today' " .
+					  $andClause .
+					  "AND um.`userKey` = '$userKey' ";
+	$sqlData = $this->agave -> doSQLQuery($queryStatement,3);
+    //$this->buildDebugMessage(__FUNCTION__, $_args, "Debug getUserCenters");
+	return $sqlData;
+	}
+}
+
+?>
