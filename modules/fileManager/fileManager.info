@@ -82,5 +82,7 @@ function fileManager_info_install() {
 }
 
 function fileManager_info_uninstall() {
-	//anything special to run before uninstall
+	global $agave;
+	$query = "DROP TABLE `files`";
+	$agave->doSQLQuery($query, 0);
 }
