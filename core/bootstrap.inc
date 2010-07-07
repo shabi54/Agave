@@ -172,7 +172,6 @@ function bootstrap_env() {
 
 	//figure out other important paths based on settings
 	$agave->modules = $agave->setting('enabled_modules');
-	$agave->module_paths = $agave->setting('module_paths');
 	$agave->module_versions = $agave->setting('module_versions');
 
 	//loads .module file in all active modules, OR, if cached uses necessary data structure from settings

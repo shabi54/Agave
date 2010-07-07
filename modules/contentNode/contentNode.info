@@ -125,8 +125,8 @@ function contentNode_info_install() {
 	$agave->doSQLQuery($query, 0);
 			
 	$query = "ALTER TABLE `contentNode_values`
-			  ADD CONSTRAINT `contentnode_values_ibfk_1` FOREIGN KEY (`contentNodeKey`) REFERENCES `contentnode` (`contentNodeKey`),
-			  ADD CONSTRAINT `contentnode_values_ibfk_2` FOREIGN KEY (`nodeKey`) REFERENCES `contentnode_schema` (`nodeKey`);";
+			  ADD CONSTRAINT `contentNode_values_ibfk_1` FOREIGN KEY (`contentNodeKey`) REFERENCES `contentNode` (`contentNodeKey`),
+			  ADD CONSTRAINT `contentNode_values_ibfk_2` FOREIGN KEY (`nodeKey`) REFERENCES `contentNode_schema` (`nodeKey`);";
 	$agave->doSQLQuery($query, 0);
 	
 	//TODO: add content type for page

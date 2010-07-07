@@ -51,8 +51,7 @@ final class dispatcher {
 		$file = $agave->modulePath($module).$requestfile.".request";
 		if(file_exists($file)) include_once($file);
 		else if($agave->status > BOOTSTRAP_FAST_ROUTE) {
-			$agave->message('error', NULL, "Agave could not find the request file for ".$uri['parsedDest']);
-			agave_error_page(404);
+			agave_error_page('404', "Agave could not find the request file for ".$uri['parsedDest']);
 		}
 		else die("Fast route file not found.");
 	}
