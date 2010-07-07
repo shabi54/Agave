@@ -1,0 +1,48 @@
+<?php
+function AO_CommentRequest($args=null){
+	global $agave;
+ 	$t = $agave->load('themer');
+ 	$user = $agave->load('user');
+ 	
+ 	$objectKey = (isset($args[0])) ? $args[0] : NULL;
+	$version = (isset($args[1])) ? $args[1] : NULL;
+	$childKey = (isset($_GET['childKey'])) ? $_GET['childKey'] : NULL;
+	$AO = $agave->load('AO');
+	if (!$AO -> build($objectKey,$version))  agave_error_page('404');
+	$themeVars = array ('AO' => $AO ,
+	                    'childKey' => $childKey
+                       );
+    $t -> page['title'] = 'Comment Assessemnt Object';
+    $t -> output = $t -> theme('AO','commentAssessment',$themeVars);
+    
+}
+function giveMeElement($i,$AO){
+	$elements[] = array(
+	'name'=>'comment',
+	'type'=>'textarea',
+	'default'=> $AO->mapData['comment'][$i]['comment'],
+	'size' => 80
+	);
+	$elements[] = array(
+	'name'=>'childKey',
+	'type'=>'hidden',
+	'value'=> $AO->mapData['comment'][$i]['childKey']
+	);
+	return $elements;
+}
+
+function returnTextarea($newCommentIndex){
+	$newCommentIndex = (int)($newCommentIndex) + 1;
+	$elements[] = array(
+	'name'=>'newComment',
+	'type'=>'textarea',
+	'default'=> 'Write your comment...',
+	'size' => 80
+	);
+	$elements[] = array(
+	'name'=>'index',
+	'type'=>'hidden',
+	'value'=> $newCommentIndex
+	);
+	return $elements;
+}

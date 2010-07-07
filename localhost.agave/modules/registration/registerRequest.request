@@ -1,0 +1,90 @@
+<?php
+/*
+ * Author: Shabnam Tafreshi
+ * Date: 06-25-10
+ * Registration Page
+*/
+function registration_RegisterRequest($args=null){
+	global $agave;
+	$t = $agave->load('themer');
+ 	$user = $agave->load('user');
+ 	$registration = $agave->load('registration');
+ 	$role = (isset($_POST['role'])) ? $_POST['role'] : NULL;
+ 	$centerKey = (isset($_POST['centerKey'])) ? $_POST['centerKey']: NULL;
+ 	$examKey = (isset($_POST['examKey'])) ? $_POST['examKey']: NULL;
+   		if (!$registration -> build())  agave_error_page('404');
+ 	$themeVars = array ('user' => $user ,
+ 	                    'role' => $role,
+ 	                    'centerKey' => $centerKey,
+ 	                    'examKey' => $examKey
+                       );
+	    if ($centerKey && $examKey){
+	    	addUserToUsers_map($centerKey,$examKey);
+	    	//send email to us for handling the request.
+	    }
+    $t -> page['title'] = 'View Registration';
+    $t -> output = $t -> theme('registration','registerRequest',$themeVars);
+}
+
+function createRoles(){
+	$elements[] = array(
+		'name'=>'role',
+		'label'=>"Role:",
+		'type'=>'radio',
+		'help'=>"",
+		'values'=>array("Teacher","Coordinator"),
+		'default'=> ""
+	);
+	return $elements;
+}
+
+function getCenterKeys($userKey,$role){
+	 global $agave;
+	 $query = "SELECT um.`centerKey`,`name` 
+               FROM `users_map` um
+               INNER JOIN `testingCenters` tc
+               ON um.`centerKey` = tc.`centerKey` 
+               WHERE `userKey` = '$userKey' 
+               AND `userLevel` LIKE '%$role%' 
+               GROUP BY um.`centerKey` ";
+	 $centerKeys = $agave->doSQLQuery($query,3);
+	 return $centerKeys;
+}
+
+function getUpcomingExams(){
+	 global $agave;
+	 $today = date("y-m-d");
+	 $upcomingExams = "SELECT ex.`examKey`,`examName`
+                       FROM `exams` ex
+		               INNER JOIN `examDates` ed
+                       ON ex.`examKey` = ed.`examKey`
+		               WHERE ed.`startDate` >= '$today'
+                       AND `adminStage` = 'exam'";
+	 $examKeys = $agave->doSQLQuery($upcomingExams,3);
+	 return $examKeys;
+}
+
+function buildCenterAndExams($CenterKeys,$examKeys){
+	for($i=0;$i<count($CenterKeys);$i++){
+		$elements[] = array(
+		'name'=>'centerKey-'.$i.'/centerKey['.$i.']',
+		'type'=>'checkbox',
+		'nolabel'=>FALSE,
+		'values'=>array($CenterKeys[$i]['name']=>$CenterKeys[$i]['centerKey']),
+		'default'=>NULL
+		);
+			for ($j=0;$j<count($examKeys);$j++){
+				$elements[] = array(
+				'name'=>'centerKey-'.$i.'/examKey['.$j.']',
+				'type'=>'checkbox',
+				'nolabel'=>FALSE,
+				'values'=>array($examKeys[$j]['examName']=>$examKeys[$j]['examKey']),
+				'default'=>NULL
+				);
+			}//for ($j=0;$j<count($examKeys);$j++)
+	}//for($i=0;$i<count($CenterKeys);$i++)
+ return $elements;
+}
+
+function addUserToUsers_map($centerKey,$examKey){
+}

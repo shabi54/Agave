@@ -1,0 +1,10 @@
+<?php
+class lab {
+	
+	public function __construct(){
+	global $agave ;
+	$this->agave = $agave;
+	}
+	
+}
+?>
