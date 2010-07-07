@@ -3,7 +3,6 @@ function viewModules() {
 	global $agave;
 	$agave->rebuildCaches();
 	$t = $agave->load("themer");
-	$admin = $agave->load("admin");
 
 	$modules = array();
 	$modules['Global'] = getModuleData('global');
@@ -36,18 +35,24 @@ function getModuleData($loc) {
 	$modules = array();
 	$items = (file_exists($dir)) ? scandir($dir) : FALSE;
 	if($items) foreach($items as $item) if(substr($item, 0, 1) != '.') $modules[] = $item;
+	if(empty($modules)) return FALSE;
 	
 	//include .module files
 	$globals = array();
 	foreach($modules as $module) if(file_exists($file=$dir."/".$module."/$module.info")) include($file);
 	
-	//get data from _info_meta hook if it exists
-	$moduleData = array();
-	foreach($modules as $module) if(function_exists($module."_info_meta")) $moduleData[] = call_user_func($module."_info_meta");
+	//get data from _info_meta hook if it exists, add module data into setting
+	$moduleData = $agave->setting('module_data');
+	foreach($modules as $module) if(function_exists($module."_info_meta")) {
+		$moduleData[$module] = call_user_func($module."_info_meta");
+		$moduleData[$module]['path'] = $dir."/".$module."/";
+		$moduleData[$module]['location'] = $loc;
+	}
+	$admin->saveSetting('module_data', $moduleData);
 	
 	//re-organize moduleData for theme processing
 	$categories = array();
-	foreach($moduleData as $module) {
+	foreach($moduleData as $moduleName=>$module) {
 		if(!isset($module['group'])) $module['group'] = "Unassigned";
 		$module['location'] = $location;
 		$module['enabled'] = (in_array($module['machine-name'], $agave->setting('enabled_modules'))) ? TRUE : FALSE;
@@ -62,12 +67,6 @@ function getModuleData($loc) {
 		$dependencies = array();
 		if($module['dependencies']) foreach($module['dependencies'] as $item) $dependencies[] = (in_array($item, $agave->setting('enabled_modules'))) ? "<span class='dependency-enabled'>$item</span>" : "<span class='dependency-disabled'>$item</span>";
 		$module['dependencies'] = $dependencies;
-		
-		//log module_path
-		$paths = $agave->setting('module_paths');
-		$path = ($location == MODULE_LOCATION_GLOBAL) ? "modules/".$module['machine-name']."/" : $agave->site_dir."modules/".$module['machine-name']."/";
-		$paths[$module['machine-name']] = $path;
-		$admin->saveSetting('module_paths', $paths);
 		
 		//figure out which actions are available to perform on given module, build urls to them
 		$actions = array();
