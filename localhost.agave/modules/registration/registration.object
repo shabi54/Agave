@@ -1,8 +1,0 @@
-<?php
-
-class registration {
-	function build(){
-		return TRUE;
-	}
-}
-?>

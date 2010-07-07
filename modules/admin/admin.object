@@ -425,6 +425,7 @@ final class admin {
 	}
 
 	public function saveSetting($key, $value) {
+                $this->agave->settings[$key] = $value;
 		if($value) {
 			if($value=="0" || $value=="no") $value = FALSE;
 			if($value=="1" || $value=="yes") $value = TRUE;

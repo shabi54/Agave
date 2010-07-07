@@ -43,16 +43,19 @@ function getModuleData($loc) {
 	
 	//get data from _info_meta hook if it exists, add module data into setting
 	$moduleData = $agave->setting('module_data');
+        if(!$moduleData) $moduleData = array();
 	foreach($modules as $module) if(function_exists($module."_info_meta")) {
 		$moduleData[$module] = call_user_func($module."_info_meta");
 		$moduleData[$module]['path'] = $dir."/".$module."/";
 		$moduleData[$module]['location'] = $loc;
 	}
+//        $agave->death($moduleData);
 	$admin->saveSetting('module_data', $moduleData);
 	
 	//re-organize moduleData for theme processing
 	$categories = array();
 	foreach($moduleData as $moduleName=>$module) {
+            if($module['location']==$loc) {
 		if(!isset($module['group'])) $module['group'] = "Unassigned";
 		$module['location'] = $location;
 		$module['enabled'] = (in_array($module['machine-name'], $agave->setting('enabled_modules'))) ? TRUE : FALSE;
@@ -104,6 +107,7 @@ function getModuleData($loc) {
 		}
 		$module['actions'] = $actions;
 		$categories[$module['group']][] = $module;
+            }
 	}
 	
 	return $categories;
