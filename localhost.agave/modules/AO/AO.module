@@ -1,0 +1,7 @@
+<?php
+/* 
+ * Shabnam Tafreshi
+ * July 06, 2010
+ */
+$objects = array();
+$objects['AO'] = 'AO.object';
