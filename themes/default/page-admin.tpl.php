@@ -22,7 +22,7 @@
 	<?php endif; ?>
 	<?php echo $javascript ?>
 	<?php echo $styles ?>
-	<link href="<?php print $agave->agave_base_url."themes/default/css/page-admin.css" ?>" type="text/css" media="screen" rel="stylesheet">
+	<link href="<?php print $agave->agave_base_url."themes/default/css/page-admin.css" ?>" type="text/css" media="screen" rel="stylesheet" />
 </head>
 <body>
 	<div id='admin-header'>
