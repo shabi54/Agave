@@ -62,7 +62,7 @@ function deleteMenu($args=null) {
 	else {
 		$query = "DELETE FROM `menu` WHERE `menuKey`='".$menuKey."'";
 		$agave->doSQLQuery($query);
-		$agave->message('general', NULL, "The '".$sql['name']."' menu was deleted.");
+		$agave->message('general', "The '".$sql['name']."' menu was deleted.");
 		$agave->redirect("admin/menus/list");
 	}
 }
@@ -95,7 +95,7 @@ function saveMenu($args=null) {
 	$agave->saveOrder(NULL, "menuKey");
 	$id = $agave->save();
 	
-	$agave->message('general', NULL, "Saved info for menu $id");
+	$agave->message('general', "Saved info for menu $id");
 	$agave->redirect("admin/menus/list");
 }
 
@@ -139,7 +139,7 @@ function deleteMenuItem($args=null) { //path looks like label1/label2/label3 for
 		$menuarr = serialize($menuarr);
 		$query = "UPDATE `menu` SET `array`='$menuarr' WHERE `menuKey`='$menuKey'";
 		$agave->doSQLQuery($query, 0);
-		$agave->message('general', NULL, "Menu item was deleted.");
+		$agave->message('general', "Menu item was deleted.");
 		$agave->redirect("admin/menus/$menuKey/items/list");
 	}
 }
@@ -195,7 +195,7 @@ function saveMenuItem($args=null) {
 	$a = $agave->load('admin');
 	$a->addMenuItem($menu['name'], $_POST['menupath'].$_POST['label'], $_POST['weight'], $_POST['desc'], $_POST['href'], $_POST['visible'], $_POST['expanded'], $_POST['access'], $_POST['module']);
 	
-	$agave->message('general', NULL, "Menu item was saved.");
+	$agave->message('general', "Menu item was saved.");
 	$agave->redirect("admin/menus/$menuKey/items/list");
 }
 

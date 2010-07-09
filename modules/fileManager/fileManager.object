@@ -128,7 +128,7 @@ final class fileManager {
 		if (class_exists($class)) $wrapper =  new $class;
 		else {
 			global $agave;
-			$agave->message('error', NULL, "An illegal stream_wrapper was requested for scheme: '$scheme'.  The class required either does not exist, or was excluded because it did not implement the AgaveStreamWrapperInterface, or it is not enabled for this site.");
+			$agave->message('error', "An illegal stream_wrapper was requested for scheme: '$scheme'.  The class required either does not exist, or was excluded because it did not implement the AgaveStreamWrapperInterface, or it is not enabled for this site.");
 			return FALSE;
 		}
 		
@@ -141,7 +141,7 @@ final class fileManager {
 		global $agave;
 		$newFile = $this->copy_file($file, $targetURI, $replace); //note: maybe we should copy, but rename somehow to avoid overhead?
 		if(!$newFile) {
-			$agave->message('error', NULL, "An error occured while trying to move a file; the operation was cancelled.");
+			$agave->message('error', "An error occured while trying to move a file; the operation was cancelled.");
 			return FALSE;
 		}
 		$this->delete_file($file);
@@ -176,7 +176,7 @@ final class fileManager {
 		global $agave;
 		$destinationURI = $this->copy_realfile($file->uri, $targetURI, $replace);
 		if(!$destinationURI) {
-			$agave->message('error', NULL, "An error occured while trying to copy a file, the operation was cancelled.");
+			$agave->message('error', "An error occured while trying to copy a file, the operation was cancelled.");
 			return false;
 		}
 
@@ -244,7 +244,7 @@ final class fileManager {
 		//make sure sourceFile exists
 		$sourceRealPath = $this->realpath($sourceURI);
 		if(!file_exists($sourceRealPath)) {
-			$agave->message('error', NULL, "Attempted to copy a file that does not exist.");
+			$agave->message('error', "Attempted to copy a file that does not exist.");
 			$agave->debug("Tried to copy a file, but source file did not exist; returned FALSE", __METHOD__, $funcArgs, __LINE__, __FILE__);
 			return FALSE;
 		}
@@ -255,7 +255,7 @@ final class fileManager {
 		//prepare destination directory (assume here that $destinationURI INCLUDES the filename)
 		$targetDir = $this->dir_name($destinationURI);
 		if(!$this->prepare_dir($targetDir)) {
-			$agave->message('error', NULL, "Agave could not create or write to the necessary file directory.");
+			$agave->message('error', "Agave could not create or write to the necessary file directory.");
 			$agave->debug("Unsuccessful attempt at creating or writing to the new directory ($targetDir); returned FALSE", __METHOD__, $funcArgs, __LINE__, __FILE__);
 			return FALSE;
 		}
@@ -263,14 +263,14 @@ final class fileManager {
 		//check for pre-existing files, throw error if you're not allowed to overwrite a pre-existing file
 		$destinationURI = $this->return_valid_file_destination($destinationURI, $replace);
 		if($destinationURI===FALSE) {
-			$agave->message('error', NULL, "Agave could not write the new file because of a pre-existing file.");
+			$agave->message('error', "Agave could not write the new file because of a pre-existing file.");
 			$agave->debug("Unsuccessful attempt at writing new file because of pre-existing file at target destination; returned FALSE", __METHOD__, $funcArgs, __LINE__, __FILE__);
 			return FALSE;
 		}
 		
 		//now write the new file, return false if action didn't work
 		if(!@copy($sourceURI, $destinationURI)) {
-			$agave->message('error', NULL, "Agave could not copy the file to its new location.");
+			$agave->message('error', "Agave could not copy the file to its new location.");
 			$agave->debug("Unsuccessful attempt at copying file to new location; returned FALSE", __METHOD__, $funcArgs, __LINE__, __FILE__);
 			return FALSE;
 		}
@@ -402,7 +402,7 @@ final class fileManager {
 		
 		//check for uploaded file
 		if(!file_exists($tmp_name)) {
-			$agave->message('error', NULL, "Uploaded file could not be found, try uploading again.");
+			$agave->message('error', "Uploaded file could not be found, try uploading again.");
 			$agave->debug("Uploaded file was not found ($tmp_name)", __METHOD__, $funcArgs, __LINE__, __FILE__);		
 			return FALSE;
 		}
@@ -436,7 +436,7 @@ final class fileManager {
 
 		//TODO: make a little less overhead... maybe change $this->save_file to return object that was passed, with key appended
    		if(!file_exists($file->uri)) {
-			$agave->message('error', NULL, "Uploaded file could not saved.");
+			$agave->message('error', "Uploaded file could not saved.");
 			$agave->debug("Uploaded file could not be saved.", __METHOD__, $funcArgs, __LINE__, __FILE__);		
 			return FALSE;
 		}

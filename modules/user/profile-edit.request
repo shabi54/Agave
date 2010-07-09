@@ -8,22 +8,17 @@ function user_edit_profile($args=NULL) {
 	//determine userKey on which we will be editing
 	$userKey = (isset($args[0])) ? $args[0] : $user->userKey;
 	//access checks
-	if($user->isAnon) {
-		$agave->message('error', "ACCESS_DENIED");
-		$agave->redirect();
-	}
+	if($user->isAnon) agave_error_page('403');
 	$user->access('edit-profile', FALSE);
 	if($user->userKey==$userKey) $user->access('edit-profile', TRUE);
 	if(!$user->access('edit-profile')) {
-		$agave->message('error', "ACCESS_DENIED");
-		$agave->redirect();		
+		agave_error_page('403');
 	}
 
 	//get user data for profile
 	$targetUser = $agave->load('user', TRUE);
 	if(!$targetUser->build($userKey)) {
-		$agave->message('error', "DESTINATION_UNKNOWN");
-		$agave->redirect();
+		agave_error_page('404');
 	}
 	$targetUser->buildPrefs();
 		

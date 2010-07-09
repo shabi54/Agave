@@ -252,10 +252,18 @@ function view() {
 	//debugging section
 	$elements[] = array(
 		'name'=>'debugging',
-		'label'=>"Debugging",
+		'label'=>"Development",
 		'type'=>'fieldset',
 		'collapsible'=>TRUE,
 		'collapsed'=>TRUE,
+	);
+	$elements[] = array(
+		'name'=>'debugging/development_mode',
+		'type'=>'radio',
+		'label'=>"Development Mode",
+		'help'=>"Development mode turns all caching off.  This makes your site slower, should be turned off in production environments.",
+		'values'=>array("yes","no"),
+		'default'=> ($agave->setting("development_mode")) ? "yes" : "no",
 	);
 	$elements[] = array(
 		'name'=>'debugging/debug',

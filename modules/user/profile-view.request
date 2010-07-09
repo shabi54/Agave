@@ -19,8 +19,7 @@ function user_view_profile($args=null) {
 	//get user data for profile
 	$targetUser = $agave->load('user', TRUE);
 	if(!$targetUser->build($userKey)) {
-		$agave->message('error', "DESTINATION_UNKNOWN");
-		$agave->redirect();
+		agave_error_page('404');
 	}
 	$targetUser->buildPrefs();
 	

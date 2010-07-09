@@ -1,0 +1,17 @@
+<?php
+//TODO: generate real interface for managing presets
+function adminTranscodingOverview($args=NULL) {
+	global $agave;
+	$transcoder = $agave->load('transcoder');
+
+	//get presets from db
+	$query = "SELECT * FROM `transcoding_presets`";
+	$presets = $agave->doSQLQuery($query, 0);
+
+	//theme admin page
+	$t = $agave->load('themer');
+	$themevars['plugins'] = $transcoder->getPlugins();
+	$themevars['presets'] = $presets;
+	$t->output = $t->theme('transcoder', 'admin-transcoder', $themevars);
+	$t->output = $t->theme('admin','admin');
+}

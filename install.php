@@ -255,7 +255,6 @@ function install_core() {
 		if(function_exists($module."_info_cron")) $admin->installCron(call_user_func($module."_info_cron"), $module);
 		if(function_exists($module."_info_menu")) $admin->installMenu(call_user_func($module."_info_menu"), $module);
 		if(function_exists($module."_info_menu_items")) $admin->installMenuItems(call_user_func($module."_info_menu_items"), $module);
-		if(function_exists($module."_info_messages")) $admin->installMessages(call_user_func($module."_info_messages"), $module);
 		if(function_exists($module."_info_panels")) $admin->installPanels(call_user_func($module."_info_panels"), $module);
 		if(function_exists($module."_info_system_uri")) $admin->installSystemUri(call_user_func($module."_info_system_uri"), $module);
 		if(function_exists($module."_info_system_variables")) $admin->installSystemVariables(call_user_func($module."_info_system_variables"));
@@ -347,7 +346,7 @@ function __autoload($object) {
 	if(!$file) die("Request could not be completed because a necessary object could not be loaded.  The module that provides the requested object (<b>$object</b>) may not be installed/enabled.");
 	if(file_exists($file)) include($file);
 	else {
-			$agave->message('error', 'FAILED_DEPENDENCY');
+			$agave->message('error', 'A required object could not be loaded (probably missing). Execution stopped.');
 			$agave->log('build_error', "Failed loading dependency '$object'");
 			$agave->redirect();
 	}

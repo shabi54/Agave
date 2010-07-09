@@ -1,0 +1,16 @@
+<?php
+/* 
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+function ffmpeg_info_meta() {
+	return array(
+		'name'=>'FFMPEG',
+		'machine-name'=>'ffmpeg',
+		'description'=>'Provides a plugin to transcoder module for manipulating audio and video.',
+		'group'=>'Transcoding',
+		'version'=>'.1',
+		'agave-version'=>'1',
+		'dependencies'=>array('transcoder'),
+	);
+}

@@ -104,7 +104,7 @@ function delete($args=null) {
 	else {
 		$admin = $agave->load('admin');
 		$admin->removeAccessArgument($sql['action']);
-		$agave->message('general', NULL, "Removed access property.");
+		$agave->message('general', "Removed access property.");
 		$agave->redirect("admin/access");
 	}
 }

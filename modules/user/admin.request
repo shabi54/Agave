@@ -176,7 +176,7 @@ function deleteUser($args=null) {
 		$agave->doSQLQuery($query);
 		$query = "DELETE FROM `users` WHERE `userKey`='$userKey'";
 		$agave->doSQLQuery($query);
-		$agave->message('general', NULL, "User $userKey was deleted.");
+		$agave->message('general', "User $userKey was deleted.");
 		$agave->redirect("admin/users");
 	}
 }
@@ -244,14 +244,14 @@ function saveType($args=null) {
 		$typeKey = $_POST['typeKey'];
 		$query = "UPDATE `user_types` SET `label`='$label', `description`='$desc' WHERE `typeKey`='$typeKey'";
 		$agave->doSQLQuery($query);
-		$agave->message('general', NULL, "Saved User Type $typeKey");
+		$agave->message('general', "Saved User Type $typeKey");
 		$agave->redirect("admin/users/types");
 	}
 	else if(empty($_POST['typeKey'])) {
 		$post = $_POST;
 		$admin = $agave->load('admin');
 		$admin->addUserType($post['name'], $post['label'], $post['description']);
-		$agave->message('general', NULL, "Saved new user type.");
+		$agave->message('general', "Saved new user type.");
 		$agave->redirect("admin/users/types");
 	}
 }
@@ -494,7 +494,7 @@ function dropPrivilege($args=null) {
 	$query = "DELETE FROM `user_access_map` WHERE `userKey`='$userKey' ";
 	if($mKey != '999999999999') $query .= "AND `mKey`='$mKey'";
 	$agave->doSQLQuery($query);
-	$agave->message('general', NULL, "Modified user's access privileges.");
+	$agave->message('general', "Modified user's access privileges.");
 	$agave->redirect("admin/users/manage/$userKey");
 }
 
@@ -553,33 +553,33 @@ function processAddUser($postData=null) {
 	if(!empty($postData)) foreach($postData as $key=>$value) $$key = (!empty($value)) ? mysql_real_escape_string($value) : NULL;
 	
 	if(!$lname || !$fname || !$login || !$email || !$pword || !$pwordConfirm) {
-		$agave->message('error', "MISSING_FIELD");
+		$agave->message('error', "All fields in the form are required!");
 		$agave->redirect("admin/users/add");
 	}
 	
 	if($pword != $pwordConfirm) {
-		$agave->message('error', "NONMATCHING_PASSWORDS");
+		$agave->message('error', "The passwords you entered do not match");
 		$agave->redirect("admin/users/add");
 	}
 	
 	$query = "SELECT * FROM `users` WHERE `email`='$email'";
 	$result = $agave->doSQLQuery($query, 3);
 	if($result) {
-		$agave->message('error', "EMAIL_TAKEN");
+		$agave->message('error', "That email address is already taken, please use another.");
 		$agave->redirect("admin/users/add");
 	}
 
 	$query = "SELECT * FROM `users` WHERE `login`='$login'";
 	$result = $agave->doSQLQuery($query, 3);
 	if($result) {
-		$agave->message('error', "LOGIN_TAKEN");
+		$agave->message('error', "That login is already taken, please use another.");
 		$agave->redirect("admin/users/add");
 	}
 	
 	$query = "INSERT INTO `users` (`firstName`,`lastName`,`login`,`password`,`email`,`date_added`) VALUES('$fname','$lname','$login','".md5($pword)."','$email','".time()."')";
 	$agave->doSQLQuery($query);
 	$id = mysql_insert_id();
-	$agave->message('general', NULL, "Added user <b>$fname $lname</b>");
+	$agave->message('general', "Added user <b>$fname $lname</b>");
 	$agave->redirect("admin/users/manage/$id");
 }
 
@@ -587,7 +587,7 @@ function messageUser($args=null) {
 	global $agave;
 	
 	if(!$agave->setting('user-messaging')) {
-		$agave->message('error', NULL, "User messaging is not enabled, turn it on if you want to message individual users.");
+		$agave->message('error', "User messaging is not enabled, turn it on if you want to message individual users.");
 		$agave->redirect("admin/users");
 	}
 	
@@ -631,13 +631,13 @@ function messageUser($args=null) {
 	$t->output = $t->theme('admin','admin');
 }
 
+//TODO: move to userMessages module
 function saveMessage($post) {
 	global $agave;
 	foreach($post as $key=>$value) $$key = (!empty($value)) ? mysql_real_escape_string($value) : NULL;
 	$user = $agave->load('user');
 	$message = "<em>Message from <b>$user->firstName $user->lastName</b></em>:<br/>".$message;
-	$agave->message($type, NULL, $message, $targetUserKey);
-	$agave->message('general', NULL, "Sent message to user.");
+	//$agave->message($type, $message, $targetUserKey);
+	//$agave->message('general', NULL, "Sent message to user.");
 	$agave->redirect("admin/users");
 }
-?>

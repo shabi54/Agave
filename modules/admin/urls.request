@@ -19,7 +19,7 @@ function saveEdit($args=null) {
 	$agave->saveOrder(NULL, "uriKey");
 	$id = $agave->save();
 	
-	$agave->message('general', NULL, "Saved info for URL $id");
+	$agave->message('general', "Saved info for URL $id");
 	$agave->redirect("admin/urls");
 }
 
@@ -51,7 +51,7 @@ function delete($args=null) {
 	else {
 		$query = "DELETE FROM `system_uri` WHERE `uriKey`='$id'";
 		$agave->doSQLQuery($query);
-		$agave->message('general', NULL, "Deleted URL $id");
+		$agave->message('general', "Deleted URL $id");
 		$agave->redirect("admin/urls");
 	}
 }

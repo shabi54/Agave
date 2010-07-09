@@ -24,7 +24,7 @@ function update($args=null) {
 		$query = "UPDATE `actions` SET `active`='1' WHERE `name`='$key'";
 		$agave->doSQLQuery($query);
 	}
-	$agave->message('general', NULL, "Saved changes.");
+	$agave->message('general', "Saved changes.");
 	$agave->redirect("admin/actions");
 }
 
@@ -53,7 +53,7 @@ function saveEdit($args=null) {
 	$agave->saveOrder(NULL, "eKey");
 	$id = $agave->save();
 	
-	$agave->message('general', NULL, "Saved data for action $id");
+	$agave->message('general', "Saved data for action $id");
 	$agave->redirect("admin/actions");
 }
 
@@ -64,7 +64,7 @@ function delete($args=null) {
 	else {
 		$query = "DELETE FROM `actions` WHERE `eKey`='$id'";
 		$agave->doSQLQuery($query);
-		$agave->message('general', NULL, "Deleted action $id");
+		$agave->message('general', "Deleted action $id");
 		$agave->redirect("admin/actions");
 	}
 }

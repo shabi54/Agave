@@ -100,9 +100,6 @@ function admin_info_user_access() {
 /**
 	Update/modification hooks
 */
-function admin_info_update() {
-	//any special processing that should occur whenever update.php is run
-}
 
 function admin_info_install() {
 	global $agave;
@@ -158,21 +155,6 @@ function admin_info_install() {
 	  `userKey` int(11) default NULL,
 	  `time` bigint(20) NOT NULL,
 	  PRIMARY KEY  (`key`)
-	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;";
-	$agave->doSQLQuery($query, 0);
-
-	//messages
-	$query = "CREATE TABLE IF NOT EXISTS `messages` (
-	  `messageKey` bigint(20) NOT NULL auto_increment,
-	  `type` varchar(12) collate utf8_unicode_ci NOT NULL default 'general',
-	  `handle` text character set latin1 NOT NULL,
-	  `message` text character set utf8 NOT NULL,
-	  `userKey` int(11) default NULL,
-	  `time_added` bigint(20) default NULL,
-	  `time_start` bigint(20) NOT NULL,
-	  `time_expire` bigint(20) NOT NULL,
-	  `module` varchar(128) character set latin1 NOT NULL,
-	  PRIMARY KEY  (`messageKey`)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1 ;";
 	$agave->doSQLQuery($query, 0);
 	

@@ -17,7 +17,11 @@ final class transcoder {
 			}
 		}
 	}
-	
+
+	public function getPlugins() {
+		return $this->plugins;
+	}
+
 	private function loadPlugin($name) {
 		if(isset($this->instances[$name])) return $this->instances[$name];
 		$plugin = 'transcode_plugin_'.$name;

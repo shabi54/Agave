@@ -134,7 +134,7 @@ function modulePerformAction($args=null) {
 			case 'update' : $admin->updateModule($module); break;
 		}
 		
-		$agave->message('message', NULL, "Action <em>$action</em> performed on module <em>$module</em>.");
+		$agave->message('message', "Action <em>$action</em> performed on module <em>$module</em>.");
 		$agave->redirect("admin/modules");
 	}
 }
