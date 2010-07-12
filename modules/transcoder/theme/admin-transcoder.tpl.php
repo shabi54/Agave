@@ -7,7 +7,7 @@
 ?>
 <h2>Transcoding</h2>
 <p>Here are the plugins available:</p>
-<pre><?php print_r($plugins, TRUE) ?></pre>
+<pre><?php print_r($plugins) ?></pre>
 
 <p>These are the presets available for use:</p>
-<pre><?php print_r($presets, TRUE) ?></pre>
+<pre><?php print_r($presets) ?></pre>

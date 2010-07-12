@@ -62,7 +62,7 @@ function presetCreate($args = null){
 			$_SESSION['form'] = $form;
 			//$agave->death($_SESSION);
 			$fm2->saveForm($form);
-			$agave->redirect('presetcreate/save');
+			$agave->redirect('admin/transcoder/preset/save');
 		}
 	}
 	//we can has form tiem now, plz?
@@ -169,7 +169,7 @@ function presetSave($args = null) {
 
 	$t = $agave->load('themer');
 	$t->output = "<h1>We think it's all done!</h1><br/>";
-	$t->output .= "<br/><br/><a href='".$agave->base_url."presetcreate'>Go back and create another preset.</a>";
+	$t->output .= "<br/><br/><a href='".$agave->base_url."admin/transcoder/preset/create'>Go back and create another preset.</a>";
 
 }
 
