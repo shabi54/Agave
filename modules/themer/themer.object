@@ -340,9 +340,15 @@ final class themer {
 					if($agave->current_location == $val['^href'] || $agave->base_url.$agave->current_location == $val['^href']) $classes .= " selected";
 					$classes = "class='$classes'";
 					if(($val['^access'] != NULL && $user->access($val['^access'])) || !$val['^access']) {
-						$thehtml .= "<li $title $classes>".$beginLink.$key.$endLink."<ul class='menu-sub'>";
-						$thehtml .= $this->markupMenuItems($val);
-						$thehtml .= "</ul></li>";
+                                                $thehtml .= "<li $title $classes>".$beginLink.$key.$endLink;
+                                                $boolsub = false;
+                                                foreach($val as $k => $v) { if(!$this->isProp($k)){ $boolsub = true; } }
+                                                if($boolsub){
+                                                    $thehtml .= "<ul class='menu-sub'>";
+                                                    $thehtml .= $this->markupMenuItems($val);
+                                                    $thehtml .= "</ul>";
+                                                }
+                                                $thehtml .= "</li>";
 					}
 				}
 				else {
