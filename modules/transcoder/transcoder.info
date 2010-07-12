@@ -13,7 +13,7 @@ function transcoder_info_meta() {
 		'group'=>'Transcoding',
 		'version'=>'.1',
 		'agave-version'=>'1',
-		'dependencies'=>array('fileManager'),
+		'dependencies'=>array('fileManager','fieldManager2'),
 	);
 }
 
@@ -46,11 +46,12 @@ function transcoder_info_panels() {
 }
 
 function transcoder_info_system_uri() {
+    //	$uris[] = array('dest','alias','access','function','file','panels','actions','fast_route');
 	$uris = array();
 	$uris[] = array('admin/transcoder',NULL,'administer_transcoder','adminTranscodingOverview','admin','0','1','0');
-	$uris[] = array('admin/transcoder/preset/create',NULL,'administer_transcoder','presets','admin','0','1','0');
-	$uris[] = array('admin/transcoder/preset/%',NULL,'administer_transcoder','presets','admin','0','1','0');
-	$uris[] = array('admin/transcoder/preset/save',NULL,'administer_transcoder','presets','admin','0','1','0');
+	$uris[] = array('admin/transcoder/preset/create',NULL,'administer_transcoder','presetCreate','admin','0','1','0');
+	$uris[] = array('admin/transcoder/preset/%',NULL,'administer_transcoder','presetEdit','admin','0','1','0');
+	$uris[] = array('admin/transcoder/preset/save',NULL,'administer_transcoder','presetSave','admin','0','1','0');
 	
 	return $uris;
 }

@@ -15,3 +15,630 @@ function adminTranscodingOverview($args=NULL) {
 	$t->output = $t->theme('transcoder', 'admin-transcoder', $themevars);
 	$t->output = $t->theme('admin','admin');
 }
+function presetEdit($args=null){
+	global $agave;
+	$t = $agave->load('themer');
+	$t->output = "<h1>Editing Trancoder Presets</h1><br/>";
+	$fm2 = $agave->load('fieldManager2');
+	$form = $fm2->getForm('preset_edit');
+
+	if($form->submitted && $form->validateOK){ //Form has been submitted before, and has validated successfully.  Send the data somewhere.
+		$_SESSION['form'] = $form;
+		$agave->redirect('somepage');// Go where we wanna go with this spiffy session information.  Remember to copy and unset $_SESSION['form'] as soon as we get there.
+	}
+	elseif($form->submitted && !$form->validateOK){ // Form did not validate successfully.  Rerender so that the user can fix his/her errors.
+		$html = $fm2->renderForm($form);
+		$t->output .= $html;
+	}
+	else{ // Form not submitted - coming out for the first time.  Render for user input.
+		$html = $fm2->renderForm($form);
+		$t->output .= $html;
+	}
+}
+
+function presetCreate($args = null){
+	global $agave;
+	$t =  $agave->load('themer');
+	$t->output = "<h1>Creating a Transcoder Preset</h1><br />";
+	$fm2 = $agave->load('fieldManager2');
+
+	if(!isset($_POST['step'])){
+		$step = 0;
+	}
+	else{
+		$step = $_POST['step'];
+	}
+
+	//$agave->death($step);
+
+	$form = $fm2->getForm('preset_create', true, $step);
+
+	if($form->submitted && $form->validateOK){
+		if(!isset($_POST['laststep'])){ //Move on to next step while steps still exist
+			//$agave->death((int)$step);
+			$form = $fm2->getForm('preset_create', true, (int)$step + 1);
+		}
+		else{ //Success of entire form (all steps) and time to redirect with values
+			$_SESSION['form'] = $form;
+			//$agave->death($_SESSION);
+			$fm2->saveForm($form);
+			$agave->redirect('presetcreate/save');
+		}
+	}
+	//we can has form tiem now, plz?
+	$html = $fm2->renderForm($form);
+	$t->output .= $html;
+}
+
+function viewPresets($args=null) {
+	//provide interface for viewing presets
+}
+
+function presetSave($args = null) {
+	$form = $_SESSION['form'];
+	unset($_SESSION['form']);
+	global $agave;
+	//$agave->death($form);
+	$settings = array();
+	switch($form->values['plugin']){
+		case 'ffmpeg':
+			switch($form->values['av']){
+				case 'audio':
+					$acceptedextensions = array('.ac3','.flac','.mp3','.ogg','.wav');
+					$targetextension = $form->values['audioformat'];
+					$settings['format']=$form->values['audioformat'];
+					if(isset($form->values['audiocodec'])){
+						$settings['audiocodec']=$form->values['audiocodec'];
+					}
+					if(isset($form->values['audiobitrate'])){
+						$settings['audiobitrate']=$form->values['audiobitrate'];
+					}
+					if(isset($form->values['audiofreq'])){
+						$settings['audiofreq']=$form->values['audiofreq'];
+					}
+				break;
+				case 'video':
+					$acceptedextensions = array('.ogg','.avi','.mp4','.flv','.mkv','.wmv','.mpg');
+					$targetextension = $form->values['videoformat'];
+					$settings['format']=$form->values['videoformat'];
+					if(isset($form->values['videocodec'])){
+						$settings['codec']= $form->values['videocodec'];
+					}
+					if(isset($form->values['size'])){
+						$settings['size']= $form->values['size'];
+					}
+					if(isset($form->values['vpre'])){
+						$settings['vpre']= $form->values['vpre'];
+					}
+					if(isset($form->values['videobitrate'])){
+						$settings['bitrate']= $form->values['videobitrate'];
+					}
+					if(isset($form->values['framerate'])){
+						$settings['framerate']= $form->values['framerate'];
+					}
+				break;
+			}
+		break;
+		case 'imagemagick':
+			$acceptedextensions = array('.bmp','.gif','.jpg','.jpeg','.png','.tif','.tiff');
+			$targetextension = $form->values['outformat'];
+			$settings['format']=$form->values['outformat'];
+			if(isset($form->values['resize'])){
+				$settings['resize']= $form->values['resize'];
+			}
+			if(isset($form->values['compress'])){
+				$settings['compress']= $form->values['compress'];
+			}
+			if(isset($form->values['quality'])){
+				$settings['quality']= $form->values['quality'];
+			}
+		break;
+		case 'poppler':
+			$acceptedextensions = array('.pdf');
+			$targetextension = $form->values['outformat'];
+			$settings['format']=$form->values['outformat'];
+			if(isset($form->values['encoding'])){
+				$settings['enc']= $form->values['encoding'];
+			}
+		break;
+		case 'jodconverter':
+			switch($form->values['informat']){
+				case 'text':
+					$acceptedextensions = array('.odt','.rtf','.doc','.docx','.wpd','.txt');
+				break;
+				case 'spreadsheet':
+					$acceptedextensions = array('.ods','.xls','.xlsx','.csv','.tsv');
+				break;
+				case 'presentation':
+					$acceptedextensions = array('.odp','.ppt','.pptx');
+				break;
+			}
+			$targetextension = $form->values['outformat'];
+			$settings['format']=$form->values['outformat'];
+		break;
+	}
+	$settings = serialize($settings);
+	$plugin = $form->values['plugin'];
+	$name = $form->values['name'];
+	$targetextension = ".".$targetextension;
+	$acceptedextensions = implode(", ",$acceptedextensions);
+
+	$query = "INSERT INTO `transcoding_presets` (`name`,`plugin`,`acceptedExtensions`,`targetExtension`,`settings`) VALUES ('$name','$plugin','$acceptedextensions','$targetextension','$settings')";
+
+	$agave->doSQLQuery($query);
+
+	$t = $agave->load('themer');
+	$t->output = "<h1>We think it's all done!</h1><br/>";
+	$t->output .= "<br/><br/><a href='".$agave->base_url."presetcreate'>Go back and create another preset.</a>";
+
+}
+
+function returnCreationForm($form_values, $step) {  //you and me baby ain't nothing but pupils so let's DO IT LIKE DRUPAL'S
+	$formarr = array();
+	$formarr['method']='post';
+	$formarr['action']='';
+	$formarr['alter']=FALSE;
+	$formarr['id']='preset_create';
+	$formarr['multistep']=TRUE;
+	$formarr['fields']=array();
+
+	switch ($step) {
+		case 0:
+			$formarr['fields']['name'] = array(
+				'#name'=>'name',
+				'#label'=>'Enter the name for your new transcoding preset:',
+				'#type'=>'text',
+				//'#validation'=>array('alphanumeric','/^[a-zA-Z]+$/'),
+				//'#errormessage'=>'that is not legitimaaaate...',
+			);
+		break;
+
+	    case 1:
+			foreach($form_values as $name=>$value){
+				$formarr['fields'][$name] = array(
+			    '#name' => $name,
+			    '#type' => 'hidden',
+			    '#value' => $value,
+				);
+			}
+	    	$options = array();
+	    	global $agave;
+	    	foreach($agave->module_env['extensions']['transcoder']['plugin'] as $plugin){
+	    		$options[] = $plugin['data']['name'];
+	    	}
+			$formarr['fields']['plugin'] = array(
+				'#name'=>'plugin',
+				'#label'=>'Select which plugin your transcoding preset will use:',
+				'#type'=>'select',
+				'#values'=>$options,
+				'#default'=>NULL,
+			);
+		break;
+
+	    case 2:
+	      foreach($form_values as $name=>$value){
+	      	$formarr['fields'][$name] = array(
+	      		'#name' => $name,
+			    '#type' => 'hidden',
+			    '#value' => $value,
+	  		);
+	      }
+	      switch($form_values['plugin']){
+	      	case 'ffmpeg':
+	      		$formarr['fields']['av'] = array(
+					'#name'=>'av',
+					'#label'=>"Choose what you'll be transcoding:",
+					'#type'=>'select',
+					'#values'=>array('audio','video'),
+					'#default'=>NULL,
+	      		);
+	      	break;
+	      	case 'imagemagick':
+	      		$formarr['fields']['outformat'] = array(
+					'#name'=>'outformat',
+					'#label'=>'Select the extension to which imagemagick will convert images:',
+					'#type'=>'select',
+					'#values'=>array('.bmp','.gif','.jpg','.png','.tif'),
+					'#default'=>NULL,
+		      		'#validation'=>'/^\.([A-Za-z0-9]+)$/',
+					'#errormessage'=>'that is not legitimaaaaaate'
+	      		);
+	      	break;
+	      	case 'poppler':
+	      		$formarr['fields']['outformat'] = array(
+					'#name'=>'outformat',
+					'#label'=>'Select the extension to which poppler-utils will convert pdfs:',
+					'#type'=>'select',
+					'#values'=>array('.txt','.html'),
+					'#default'=>NULL,
+		      		'#validation'=>'/^\.([A-Za-z0-9]+)$/',
+					'#errormessage'=>'that is not legitimaaaaaate'
+	      		);
+	      	break;
+	      	case 'antiword':
+	      		// Obsolete, use jodconverter instead.
+	      		global $agave;
+	      		$agave->death("Use jodconverter instead of antiword!");
+	      	break;
+	      	case 'jodconverter':
+	      		// Lots of output filetypes, but they depend upon input filetypes.
+	      		$formarr['fields']['informat'] = array(
+					'#name'=>'informat',
+					'#label'=>'Select type of file to be converted by jodconverter:<br/> Text = .odt,.rtf,.doc,.docx,.wpd,.txt<br/> Spreadsheet = .ods,.xls,.xlsx,.csv,.tsv<br/> Presentation = .odp,.ppt,.pptx',
+					'#type'=>'select',
+					'#values'=>array('text','spreadsheet','presentation'),
+					'#default'=>NULL,
+	      		);
+	      	break;
+	      }
+	      break;
+
+	    case 3:
+			foreach($form_values as $name=>$value){
+		      	$formarr['fields'][$name] = array(
+		      		'#name' => $name,
+				    '#type' => 'hidden',
+				    '#value' => $value,
+		  		);
+	    	}
+	    	switch($form_values['plugin']){
+		      	case 'ffmpeg':
+		      		switch($form_values['av']){
+		      			case 'audio':
+		      				$formarr['fields']['audioformat'] = array(
+								'#name'=>'audioformat',
+								'#label'=>'Select which audio container ffmpeg will use for transcoding:',
+								'#type'=>'select',
+								'#values'=>array('ac3','flac','mp3','ogg','wav'),
+								'#default'=>NULL,
+				      		);
+		      			break;
+		      			case 'video':
+		      				$formarr['fields']['videoformat'] = array(
+								'#name'=>'videoformat',
+								'#label'=>'Select which video container ffmpeg will use for transcoding:',
+								'#type'=>'select',
+								'#values'=>array('avi','flv','mkv','mp4','ogg','wmv'),
+								'#default'=>NULL,
+				      		);
+		      			break;
+		      		}
+		      	break;
+		      	case 'imagemagick':
+		      		switch($form_values['outformat']){
+		      			case '.jpg':
+		      				$formarr['fields']['quality'] = array(
+								'#name'=>'quality',
+								'#label'=>'Input image quality 0-100 (lower number = higher compression):',
+								'#type'=>'text',
+								'#default'=>'85',
+					      		'#validation'=>'/^([0-9]{1,3})$/',
+								'#errormessage'=>'that is not legitimaaaaaate'
+					      	);
+		      			break;
+		      			case '.png':
+		      				$formarr['fields']['quality'] = array(
+								'#name'=>'quality',
+								'#label'=>'Input image quality 0-100 (lower number = higher compression):',
+								'#type'=>'text',
+								'#default'=>'85',
+					      		'#validation'=>'/^((100)|(\d{1,2}))$/',
+								'#errormessage'=>'that is not legitimaaaaaate'
+					      	);
+		      			break;
+		      		}
+		      		$formarr['fields']['resize'] = array(
+						'#name'=>'resize',
+						'#label'=>'Input scaling factor, if desired, as a percentage:',
+						'#type'=>'text',
+						'#default'=>'100%',
+			      		'#validation'=>'/^([0-9]{1,4})\%$/',
+						'#errormessage'=>'that is not legitimaaaaaate'
+			      	);
+	      			$formarr['fields']['laststep'] = array(
+			      		'#name' => 'laststep',
+					    '#type' => 'hidden',
+					    '#value' => 'true',
+			  		);
+		      	break;
+		      	case 'poppler':
+		      		switch($form_values['outformat']){
+		      			case '.txt':
+		      				$formarr['fields']['encoding'] = array(
+					      		'#name' => 'encoding',
+							    '#type' => 'select',
+		      					'#label' => 'Select text encoding type for poppler utils to use:',
+							    '#values' => array('utf-8','UCS-2','ASCII7','Latin1','Symbol'),
+					  		);
+		      			break;
+		      			case '.html':
+		      				$formarr['fields']['complex'] = array(
+					      		'#name' => 'complex',
+							    '#type' => 'select',
+		      					'#label' => 'Render complex html page?',
+							    '#values' => array('yes','no'),
+					  		);
+		      			break;
+		      		}
+	      			$formarr['fields']['laststep'] = array(
+			      		'#name' => 'laststep',
+					    '#type' => 'hidden',
+					    '#value' => 'true',
+			  		);
+		      	break;
+		      	case 'antiword':
+		      		// Obsolete, use jodconverter instead.
+		      		global $agave;
+		      		$agave->death("Use jodconverter instead of antiword!");
+		      	break;
+		      	case 'jodconverter':
+		      		switch($form_values['informat']){
+		      			case 'text':
+				      		$formarr['fields']['outformat'] = array(
+								'#name'=>'outformat',
+								'#label'=>'Select extension to convert to with jodconverter:',
+								'#type'=>'select',
+								'#values'=>array('.pdf','.odt','.rtf','.doc','.docx','.txt'),
+								'#default'=>NULL,
+					      		'#validation'=>'/^\.([A-Za-z0-9]+)$/',
+								'#errormessage'=>'that is not legitimaaaaaate'
+				      		);
+		      			break;
+		      			case 'spreadsheet':
+				      		$formarr['fields']['outformat'] = array(
+								'#name'=>'outformat',
+								'#label'=>'Select extension to convert to with jodconverter:',
+								'#type'=>'select',
+								'#values'=>array('.pdf','.ods','.xls','.xlsx','.csv','.tsv'),
+								'#default'=>NULL,
+					      		'#validation'=>'/^\.([A-Za-z0-9]+)$/',
+								'#errormessage'=>'that is not legitimaaaaaate'
+				      		);
+		      			break;
+		      			case 'presentation':
+				      		$formarr['fields']['outformat'] = array(
+								'#name'=>'outformat',
+								'#label'=>'Select extension to convert to with jodconverter:',
+								'#type'=>'select',
+								'#values'=>array('.pdf','.swf','.odp','.ppt','.pptx'),
+								'#default'=>NULL,
+					      		'#validation'=>'/^\.([A-Za-z0-9]+)$/',
+								'#errormessage'=>'that is not legitimaaaaaate'
+				      		);
+		      			break;
+		      		}
+		      		$formarr['fields']['laststep'] = array(
+			      		'#name' => 'laststep',
+					    '#type' => 'hidden',
+					    '#value' => 'true',
+			  		);
+		      	break;
+	    	}
+	    break;
+	    case 4:
+			foreach($form_values as $name=>$value){
+		      	$formarr['fields'][$name] = array(
+		      		'#name' => $name,
+				    '#type' => 'hidden',
+				    '#value' => $value,
+		  		);
+	    	}
+	    	switch($form_values['plugin']){
+		      	case 'ffmpeg':
+		      		switch($form_values['av']){
+		      			case 'audio':
+		      				switch($form_values['audioformat']){
+		      					case 'ac3':
+		      						$formarr['fields']['audiocodec'] = array(
+							      		'#name' => 'audiocodec',
+									    '#type' => 'hidden',
+									    '#value' => 'ac3',
+							  		);
+		      					break;
+		      					case 'flac':
+		      						$formarr['fields']['audiocodec'] = array(
+							      		'#name' => 'audiocodec',
+									    '#type' => 'hidden',
+									    '#value' => 'flac',
+							  		);
+		      					break;
+		      					case 'mp3':
+		      						$formarr['fields']['audiocodec'] = array(
+							      		'#name' => 'audiocodec',
+									    '#type' => 'hidden',
+									    '#value' => 'libmp3lame',
+							  		);
+		      					break;
+		      					case 'ogg':
+		      						$formarr['fields']['audiocodec'] = array(
+							      		'#name' => 'audiocodec',
+									    '#type' => 'hidden',
+									    '#value' => 'vorbis',
+							  		);
+		      					break;
+		      					case 'wav':
+		      						$formarr['fields']['audiocodec'] = array(
+							      		'#name' => 'audiocodec',
+									    '#type' => 'hidden',
+									    '#value' => 'wmav2',
+							  		);
+		      					break;
+		      				}
+		      				if($form_values['audioformat'] != 'flac'){
+		      					$formarr['fields']['audiobitrate'] = array(
+									'#name'=>'audiobitrate',
+									'#label'=>'Select audio bitrate in kbps:',
+									'#type'=>'select',
+									'#values'=>array('32k', '40k', '48k', '56k', '64k', '80k', '96k', '112k', '128k', '160k', '192k', '224k', '256k', '320k'),
+									'#default'=>'128k',
+					      		);
+					      		$formarr['fields']['audiofreq'] = array(
+									'#name'=>'audiofreq',
+									'#label'=>'Select audio frequency cutoff in kHz:',
+									'#type'=>'select',
+									'#values'=>array('32k','44.1k','48k'),
+									'#default'=>'44.1k',
+					      		);
+		      				}
+				      		else{
+				      			$formarr['fields']['skiptext'] = array(
+									'#name'=>'skiptext',
+									'#label'=>'',
+									'#type'=>'text',
+									'#default'=>'Please press submit.',
+					      		);
+				      		}
+				      		$formarr['fields']['laststep'] = array(
+					      		'#name' => 'laststep',
+							    '#type' => 'hidden',
+							    '#value' => 'true',
+					  		);
+		      			break;
+		      			case 'video':
+		      				switch($form_values['videoformat']){
+		      					case 'ogg':
+		      						$formarr['fields']['videocodec'] = array(
+										'#name'=>'videocodec',
+										'#label'=>'Select which video codec to use with the ogg container:',
+										'#type'=>'select',
+										'#values'=>array('libtheora','libschroedinger','libdirac'),
+										'#default'=>NULL,
+						      		);
+		      					break;
+		      					case 'avi':
+		      						$formarr['fields']['videocodec'] = array(
+										'#name'=>'videocodec',
+										'#label'=>'Select which video codec to use with the avi container:',
+										'#type'=>'select',
+										'#values'=>array('libx264','libxvid','ffv1'),
+										'#default'=>NULL,
+						      		);
+		      					break;
+		      					case 'mkv':
+		      						$formarr['fields']['videocodec'] = array(
+										'#name'=>'videocodec',
+										'#label'=>'Select which video codec to use with the mkv container:',
+										'#type'=>'select',
+										'#values'=>array('libx264','libxvid','ffv1'),
+										'#default'=>NULL,
+						      		);
+		      					break;
+		      					case 'mp4':
+		      						$formarr['fields']['videocodec'] = array(
+							      		'#name' => 'videocodec',
+									    '#type' => 'hidden',
+									    '#value' => 'mpeg4',
+							  		);
+
+		      					break;
+		      					case 'flv':
+		      						$formarr['fields']['videocodec'] = array(
+							      		'#name' => 'videocodec',
+									    '#type' => 'hidden',
+									    '#value' => 'flv',
+							  		);
+		      					break;
+		      					case 'wmv':
+		      						$formarr['fields']['videocodec'] = array(
+							      		'#name' => 'videocodec',
+									    '#type' => 'hidden',
+									    '#value' => 'wmv2',
+							  		);
+		      					break;
+		      				}
+	      					$formarr['fields']['size'] = array(
+								'#name'=>'size',
+								'#label'=>'Please select output video size:',
+								'#type'=>'select',
+					  			'#values'=>array('vga','hd480','hd720','hd1080'),
+								'#default'=>NULL,
+			      			);
+		      			break;
+		      		}
+		      	break;
+	    	}
+	    break;
+	    case 5:
+			foreach($form_values as $name=>$value){
+		      	$formarr['fields'][$name] = array(
+		      		'#name' => $name,
+				    '#type' => 'hidden',
+				    '#value' => $value,
+		  		);
+	    	}
+			switch($form_values['videocodec']){
+      			case 'libx264':
+      				$formarr['fields']['vpre'] = array(
+						'#name'=>'vpre',
+						'#label'=>'Select which preset to use with the libx264 encoder:',
+						'#type'=>'select',
+						'#values'=>array('baseline','default','normal','hq','max'),
+						'#default'=>'medium',
+		      		);
+      			break;
+      			default:
+      				$formarr['fields']['videobitrate'] = array(
+						'#name'=>'videobitrate',
+						'#label'=>'Please select output video bitrate:',
+						'#type'=>'select',
+			  			'#values'=>array('256k','512k','1024k','2048k','4096k','8192k'),
+						'#default'=>'512k',
+	      			);
+	      			$formarr['fields']['framerate'] = array(
+						'#name'=>'framerate',
+						'#label'=>'Please select output video framerate:',
+						'#type'=>'select',
+			  			'#values'=>array('60','45','30','15'),
+						'#default'=>'30',
+	      			);
+      			break;
+      		}
+      		$formarr['fields']['laststep'] = array(
+	      		'#name' => 'laststep',
+			    '#type' => 'hidden',
+			    '#value' => 'true',
+	  		);
+
+	}
+	$formarr['fields']['step'] = array(
+    	'#name' => 'step',
+	    '#type' => 'hidden',
+	    '#value' => $step,
+	);
+  	return $formarr;
+}
+
+function returnEditForm() { //TODO: Does not actually return an edit form... make it do so.
+	$formarr = array();
+	$formarr['method']='post';
+	$formarr['action']='';
+	$formarr['alter']=FALSE;
+	$formarr['id']='preset_edit';
+	$element1 = array(
+				'#name'=>'text1',
+				'#label'=>'Enter some alphanumeric string, bro:',
+				'#type'=>'text',
+				'#default'=>NULL,
+				'#validation'=>'/^([a-zA-Z0-9]+)$/',
+				'#errormessage'=>'Please enter an alphanumeric strrrrrrrrringgggggg'
+	);
+	$element2 = array(
+				'#name'=>'select1',
+				'#label'=>'Select something that has to do with the text:',
+				'#type'=>'select',
+				'#values'=>array('option1','option2','option3'),
+				'#default'=>NULL,
+	);
+	$element1['select1']=$element2;
+	$formarr['fields']['text1'] = $element1;
+
+	//global $agave;
+	//$agave->death($formarr);
+	/*if($id==null){ // make blank form for creation of preset
+
+	}
+	else{ // grab info from db for editing the preset
+
+	}*/
+	return $formarr;
+}
