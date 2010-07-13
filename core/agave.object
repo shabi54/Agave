@@ -232,7 +232,7 @@ class agave extends olddb {
 	}
 	
 	public function loadModules() {
-		if($this->module_env = $this->cache('agave_module_env')) $this->modulesLoaded = TRUE; 
+		if($this->module_env = $this->cache('agave_module_env')) $this->modulesLoaded = TRUE;
 		else {
 			foreach($this->setting('enabled_modules') as $module) {
 				$modulePath = $this->modulePath($module);

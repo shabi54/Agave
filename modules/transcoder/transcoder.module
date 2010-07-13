@@ -22,3 +22,4 @@ $extensions[] = array(
 
 $objects = array();
 $objects['transcoder'] = 'transcoder.object';
+$objects['transcoder_plugin'] = 'transcoder_plugin.object';

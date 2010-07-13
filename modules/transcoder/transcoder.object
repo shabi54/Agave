@@ -19,7 +19,9 @@ final class transcoder {
 	}
 
 	public function getPlugins() {
-		return $this->plugins;
+		$plugins = array();
+		foreach($this->plugins as $key=>$value) $plugins[] = $key;
+		return $plugins;
 	}
 
 	private function loadPlugin($name) {
