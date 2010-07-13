@@ -9,3 +9,4 @@ $extensions[] = array(
 
 $objects = array();
 $objects['contentNode'] = 'contentNode.object';
+$objects['contentNodeManager'] = 'contentNodeManager.object';
