@@ -61,4 +61,246 @@ ffmpeg -i ".$fileman->realpath("tmp://")."/".$input->filename;
 		return $newfiles;
 		
 	}
+
+        public function creationForm($formarr, $form_values, $step) {
+            switch($step) {
+                case 1:
+                    $formarr['fields']['av'] = array(
+                            '#name'=>'av',
+                            '#label'=>"Choose what you'll be transcoding:",
+                            '#type'=>'select',
+                            '#values'=>array('audio','video'),
+                            '#default'=>NULL,
+	      	    );
+                break;
+                case 2:
+                    switch($form_values['av']){
+                            case 'audio':
+                                    $formarr['fields']['audioformat'] = array(
+                                                    '#name'=>'audioformat',
+                                                    '#label'=>'Select which audio container ffmpeg will use for transcoding:',
+                                                    '#type'=>'select',
+                                                    '#values'=>array('ac3','flac','mp3','ogg','wav'),
+                                                    '#default'=>NULL,
+                                    );
+                            break;
+                            case 'video':
+                                    $formarr['fields']['videoformat'] = array(
+                                                    '#name'=>'videoformat',
+                                                    '#label'=>'Select which video container ffmpeg will use for transcoding:',
+                                                    '#type'=>'select',
+                                                    '#values'=>array('avi','flv','mkv','mp4','ogg','wmv'),
+                                                    '#default'=>NULL,
+                                    );
+                            break;
+                    }
+                break;
+                case 3:
+                    switch($form_values['av']){
+                                case 'audio':
+                                        switch($form_values['audioformat']){
+                                                case 'ac3':
+                                                        $formarr['fields']['audiocodec'] = array(
+                                                                '#name' => 'audiocodec',
+                                                                    '#type' => 'hidden',
+                                                                    '#value' => 'ac3',
+                                                                );
+                                                break;
+                                                case 'flac':
+                                                        $formarr['fields']['audiocodec'] = array(
+                                                                '#name' => 'audiocodec',
+                                                                    '#type' => 'hidden',
+                                                                    '#value' => 'flac',
+                                                                );
+                                                break;
+                                                case 'mp3':
+                                                        $formarr['fields']['audiocodec'] = array(
+                                                                '#name' => 'audiocodec',
+                                                                    '#type' => 'hidden',
+                                                                    '#value' => 'libmp3lame',
+                                                                );
+                                                break;
+                                                case 'ogg':
+                                                        $formarr['fields']['audiocodec'] = array(
+                                                                '#name' => 'audiocodec',
+                                                                    '#type' => 'hidden',
+                                                                    '#value' => 'vorbis',
+                                                                );
+                                                break;
+                                                case 'wav':
+                                                        $formarr['fields']['audiocodec'] = array(
+                                                                '#name' => 'audiocodec',
+                                                                    '#type' => 'hidden',
+                                                                    '#value' => 'wmav2',
+                                                                );
+                                                break;
+                                        }
+                                        if($form_values['audioformat'] != 'flac'){
+                                                $formarr['fields']['audiobitrate'] = array(
+                                                                '#name'=>'audiobitrate',
+                                                                '#label'=>'Select audio bitrate in kbps:',
+                                                                '#type'=>'select',
+                                                                '#values'=>array('32k', '40k', '48k', '56k', '64k', '80k', '96k', '112k', '128k', '160k', '192k', '224k', '256k', '320k'),
+                                                                '#default'=>'128k',
+                                                );
+                                                $formarr['fields']['audiofreq'] = array(
+                                                                '#name'=>'audiofreq',
+                                                                '#label'=>'Select audio frequency cutoff in kHz:',
+                                                                '#type'=>'select',
+                                                                '#values'=>array('32k','44.1k','48k'),
+                                                                '#default'=>'44.1k',
+                                                );
+                                        }
+                                        else{
+                                                $formarr['fields']['skiptext'] = array(
+                                                                '#name'=>'skiptext',
+                                                                '#label'=>'',
+                                                                '#type'=>'text',
+                                                                '#default'=>'Please press submit.',
+                                                );
+                                        }
+                                        $formarr['fields']['laststep'] = array(
+                                                '#name' => 'laststep',
+                                                    '#type' => 'hidden',
+                                                    '#value' => 'true',
+                                                );
+                                break;
+                                case 'video':
+                                        switch($form_values['videoformat']){
+                                                case 'ogg':
+                                                        $formarr['fields']['videocodec'] = array(
+                                                                        '#name'=>'videocodec',
+                                                                        '#label'=>'Select which video codec to use with the ogg container:',
+                                                                        '#type'=>'select',
+                                                                        '#values'=>array('libtheora','libschroedinger','libdirac'),
+                                                                        '#default'=>NULL,
+                                                        );
+                                                break;
+                                                case 'avi':
+                                                        $formarr['fields']['videocodec'] = array(
+                                                                        '#name'=>'videocodec',
+                                                                        '#label'=>'Select which video codec to use with the avi container:',
+                                                                        '#type'=>'select',
+                                                                        '#values'=>array('libx264','libxvid','ffv1'),
+                                                                        '#default'=>NULL,
+                                                        );
+                                                break;
+                                                case 'mkv':
+                                                        $formarr['fields']['videocodec'] = array(
+                                                                        '#name'=>'videocodec',
+                                                                        '#label'=>'Select which video codec to use with the mkv container:',
+                                                                        '#type'=>'select',
+                                                                        '#values'=>array('libx264','libxvid','ffv1'),
+                                                                        '#default'=>NULL,
+                                                        );
+                                                break;
+                                                case 'mp4':
+                                                        $formarr['fields']['videocodec'] = array(
+                                                                '#name' => 'videocodec',
+                                                                    '#type' => 'hidden',
+                                                                    '#value' => 'mpeg4',
+                                                                );
+
+                                                break;
+                                                case 'flv':
+                                                        $formarr['fields']['videocodec'] = array(
+                                                                '#name' => 'videocodec',
+                                                                    '#type' => 'hidden',
+                                                                    '#value' => 'flv',
+                                                                );
+                                                break;
+                                                case 'wmv':
+                                                        $formarr['fields']['videocodec'] = array(
+                                                                '#name' => 'videocodec',
+                                                                    '#type' => 'hidden',
+                                                                    '#value' => 'wmv2',
+                                                                );
+                                                break;
+                                        }
+                                        $formarr['fields']['size'] = array(
+                                                        '#name'=>'size',
+                                                        '#label'=>'Please select output video size:',
+                                                        '#type'=>'select',
+                                                        '#values'=>array('vga','hd480','hd720','hd1080'),
+                                                        '#default'=>NULL,
+                                        );
+                                break;
+                        }
+                break;
+                case 4:
+                    switch($form_values['videocodec']){
+      			case 'libx264':
+      				$formarr['fields']['vpre'] = array(
+						'#name'=>'vpre',
+						'#label'=>'Select which preset to use with the libx264 encoder:',
+						'#type'=>'select',
+						'#values'=>array('baseline','default','normal','hq','max'),
+						'#default'=>'medium',
+		      		);
+      			break;
+      			default:
+      				$formarr['fields']['videobitrate'] = array(
+						'#name'=>'videobitrate',
+						'#label'=>'Please select output video bitrate:',
+						'#type'=>'select',
+			  			'#values'=>array('256k','512k','1024k','2048k','4096k','8192k'),
+						'#default'=>'512k',
+	      			);
+	      			$formarr['fields']['framerate'] = array(
+						'#name'=>'framerate',
+						'#label'=>'Please select output video framerate:',
+						'#type'=>'select',
+			  			'#values'=>array('60','45','30','15'),
+						'#default'=>'30',
+	      			);
+      			break;
+                    }
+      		$formarr['fields']['laststep'] = array(
+	      		'#name' => 'laststep',
+			    '#type' => 'hidden',
+			    '#value' => 'true',
+	  		);
+                break;
+            }
+            return $formarr;
+        }
+
+        public function saveForm($form, &$settings, &$acceptedextensions, &$targetextension) {
+            switch($form->values['av']){
+                    case 'audio':
+                            $acceptedextensions = array('.ac3','.flac','.mp3','.ogg','.wav');
+                            $targetextension = $form->values['audioformat'];
+                            $settings['format']=$form->values['audioformat'];
+                            if(isset($form->values['audiocodec'])){
+                                    $settings['audiocodec']=$form->values['audiocodec'];
+                            }
+                            if(isset($form->values['audiobitrate'])){
+                                    $settings['audiobitrate']=$form->values['audiobitrate'];
+                            }
+                            if(isset($form->values['audiofreq'])){
+                                    $settings['audiofreq']=$form->values['audiofreq'];
+                            }
+                    break;
+                    case 'video':
+                            $acceptedextensions = array('.ogg','.avi','.mp4','.flv','.mkv','.wmv','.mpg');
+                            $targetextension = $form->values['videoformat'];
+                            $settings['format']=$form->values['videoformat'];
+                            if(isset($form->values['videocodec'])){
+                                    $settings['codec']= $form->values['videocodec'];
+                            }
+                            if(isset($form->values['size'])){
+                                    $settings['size']= $form->values['size'];
+                            }
+                            if(isset($form->values['vpre'])){
+                                    $settings['vpre']= $form->values['vpre'];
+                            }
+                            if(isset($form->values['videobitrate'])){
+                                    $settings['bitrate']= $form->values['videobitrate'];
+                            }
+                            if(isset($form->values['framerate'])){
+                                    $settings['framerate']= $form->values['framerate'];
+                            }
+                    break;
+            }
+        }
 }

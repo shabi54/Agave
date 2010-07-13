@@ -50,7 +50,7 @@ function transcoder_info_system_uri() {
 	$uris = array();
 	$uris[] = array('admin/transcoder',NULL,'administer_transcoder','adminTranscodingOverview','admin','0','1','0');
 	$uris[] = array('admin/transcoder/preset/create',NULL,'administer_transcoder','presetCreate','admin','0','1','0');
-	$uris[] = array('admin/transcoder/preset/%',NULL,'administer_transcoder','presetEdit','admin','0','1','0');
+	$uris[] = array('admin/transcoder/presets',NULL,'administer_transcoder','viewPresets','admin','0','1','0');
 	$uris[] = array('admin/transcoder/preset/save',NULL,'administer_transcoder','presetSave','admin','0','1','0');
 	
 	return $uris;

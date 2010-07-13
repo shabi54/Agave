@@ -76,4 +76,54 @@ pdftohtml ";
 		return $newfiles;
 		
 	}
+        public function creationForm($formarr, $form_values, $step) {
+            switch($step) {
+                case 1:
+	      		$formarr['fields']['outformat'] = array(
+					'#name'=>'outformat',
+					'#label'=>'Select the extension to which poppler-utils will convert pdfs:',
+					'#type'=>'select',
+					'#values'=>array('.txt','.html'),
+					'#default'=>NULL,
+		      		'#validation'=>'/^\.([A-Za-z0-9]+)$/',
+					'#errormessage'=>'that is not legitimaaaaaate'
+	      		);
+                break;
+                case 2:
+                    switch($form_values['outformat']){
+                            case '.txt':
+                                    $formarr['fields']['encoding'] = array(
+                                            '#name' => 'encoding',
+                                                '#type' => 'select',
+                                            '#label' => 'Select text encoding type for poppler utils to use:',
+                                                '#values' => array('utf-8','UCS-2','ASCII7','Latin1','Symbol'),
+                                            );
+                            break;
+                            case '.html':
+                                    $formarr['fields']['complex'] = array(
+                                            '#name' => 'complex',
+                                                '#type' => 'select',
+                                            '#label' => 'Render complex html page?',
+                                                '#values' => array('yes','no'),
+                                            );
+                            break;
+                    }
+                    $formarr['fields']['laststep'] = array(
+                            '#name' => 'laststep',
+                                '#type' => 'hidden',
+                                '#value' => 'true',
+                    );
+                break;
+            }
+            return $formarr;
+        }
+
+        public function saveForm($form, &$settings, &$acceptedextensions, &$targetextension) {
+                $acceptedextensions = array('.pdf');
+                $targetextension = $form->values['outformat'];
+                $settings['format']=$form->values['outformat'];
+                if(isset($form->values['encoding'])){
+                        $settings['enc']= $form->values['encoding'];
+                }
+        }
 }
