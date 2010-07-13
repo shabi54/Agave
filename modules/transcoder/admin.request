@@ -4,14 +4,9 @@ function adminTranscodingOverview($args=NULL) {
 	global $agave;
 	$transcoder = $agave->load('transcoder');
 
-	//get presets from db
-	$query = "SELECT * FROM `transcoding_presets`";
-	$presets = $agave->doSQLQuery($query, 1);
-
 	//theme admin page
 	$t = $agave->load('themer');
 	$themevars['plugins'] = $transcoder->getPlugins();
-	$themevars['presets'] = $presets;
 	$t->output = $t->theme('transcoder', 'admin-transcoder', $themevars);
 	$t->output = $t->theme('admin','admin');
 }
@@ -52,6 +47,17 @@ function presetCreate($args = null){
 
 function viewPresets($args=null) {
 	//provide interface for viewing presets
+        global $agave;
+
+	//get presets from db
+	$query = "SELECT * FROM `transcoding_presets` WHERE `plugin`='".$_GET['name']."'";
+	$presets = $agave->doSQLQuery($query, 3);
+
+	//theme admin page
+	$t = $agave->load('themer');
+	$themevars['presets'] = $presets;
+	$t->output = $t->theme('transcoder', 'admin-transcoder-presets', $themevars);
+	$t->output = $t->theme('admin','admin');
 }
 
 function presetSave($args = null) {
