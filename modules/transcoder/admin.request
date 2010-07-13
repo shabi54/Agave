@@ -11,6 +11,19 @@ function adminTranscodingOverview($args=NULL) {
 	$t->output = $t->theme('admin','admin');
 }
 
+function presetDelete($args = null) {
+    $presetKey = $args[0];
+    global $agave;
+    $t =  $agave->load('themer');
+    $t->output = "<h1>Deleting a Transcoder Preset</h1><br />";
+    if(!isset($_POST['confirm'])){
+        $t->output .= "";
+    }
+    else{
+        $t->output .= "";
+    }
+}
+
 function presetCreate($args = null){
 	global $agave;
 	$t =  $agave->load('themer');
@@ -86,8 +99,8 @@ function presetSave($args = null) {
 
 	$t = $agave->load('themer');
 	$t->output = "<h1>We think it's all done!</h1><br/>";
+        $t->output .= '<br/><br/><a href="'.$agave->base_url.'admin/transcoder/presets&name='.$plugin.'">View your preset.</a>';
 	$t->output .= "<br/><br/><a href='".$agave->base_url."admin/transcoder/preset/create'>Go back and create another preset.</a>";
-
 }
 
 function returnCreationForm($form_values, $step) {  //you and me baby ain't nothing but pupils so let's DO IT LIKE DRUPAL'S
