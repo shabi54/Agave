@@ -34,6 +34,7 @@ function transcoder_info_cron() {
 function transcoder_info_menu_items() {
 	$items = array();
 	$items[] = array('Admin','/Transcoder',0,'Manage transcoding presets.','admin/transcoder',1,1,'administer_transcoder');
+        $items[] = array('Admin','/Transcoder/Transcode',0,'Transcode a file.','admin/transcoder/transcode',1,1,'administer_transcoder');
 	
 	return $items;
 }
