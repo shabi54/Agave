@@ -1,7 +1,7 @@
 <?php
 $extensions = array();
 $extensions[] = array(
-	'module'=>'fieldManager2',
+	'module'=>'fieldManager',
 	'type'=>'form',
 	'location'=>'node_edit.request',
 	'data'=>array('name'=>'contentNode_edit','func'=>'contentNode_return_edit_form'),

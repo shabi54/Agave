@@ -7,11 +7,11 @@ $extensions[] = array(
 	'location'=>"file_field.fieldManager.extension",
 	'data'=>array('fieldname'=>'file')
 );
-//fields for fieldManager2
+//fields for fieldManager
 $extensions[] = array(
-	'module'=>'fieldManager2',
+	'module'=>'fieldManager',
 	'type'=>'fields',
-	'location'=>"file_field.fieldManager2.extension",
+	'location'=>"file_field.fieldManager.extension",
 	'data'=>array('fieldname'=>'file')
 );
 

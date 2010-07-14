@@ -4,7 +4,7 @@ class agave extends olddb {
 	//TODO: organize properties by what is set during bootstrap, and what is set internally
 	public $destination = FALSE;
 	public $current_location = FALSE;
-	public $saveInfo = FALSE; //saveInfo and metaInfo should hopefully become deprecated w/ fieldManager2
+	public $saveInfo = FALSE; //saveInfo and metaInfo should hopefully become deprecated w/ fieldManager
 	public $metaInfo = FALSE;
 	public $uri = FALSE;
 	public $module_env = array();

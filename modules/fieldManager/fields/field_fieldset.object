@@ -1,13 +1,10 @@
 <?php
-interface fieldInterface {
+final class field_checkbox extends genericField implements fieldInterface {
 	public function format($values, $metaData); //format values for how they should be stored in DB
 	public function unformat($values); //unformat values for how you want them in PHP
 	public function edit($element); //generate interface with form elements
 	public function display($values, $settings); //format value as it should be displayed on page
 	public function validate($values, $metaData); //special validation before formating for save
-	public function returnSettingsForm($settings); //return form elements for editing settings specific to the field 
+	public function returnSettingsForm($settings); //return form elements for editing settings specific to the field
 	public function saveSettingsFields($data); //format information submitted from the settings form
-	
-	//public function edit_settings(); //return interface for editting settings, like display settings, db settings, whatever
 }
-?>

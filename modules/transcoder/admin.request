@@ -33,7 +33,7 @@ function presetCreate($args = null){
 	global $agave;
 	$t =  $agave->load('themer');
 	$t->output = "<h1>Creating a Transcoder Preset</h1><br />";
-	$fm2 = $agave->load('fieldManager2');
+	$fm2 = $agave->load('fieldManager');
 
 	if(!isset($_POST['step'])){
 		$step = 0;

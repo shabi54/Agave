@@ -155,6 +155,7 @@ final class themer {
 	}
 	
 	public function addCSS($module=FALSE, $file=FALSE, $inline=FALSE, $vendor=FALSE) {
+		$styles = FALSE;
 		if($file) $styles = $this->agave->modulePath($module).$file;
 		if($vendor) $styles = $vendor;
 		if($inline) $styles = $inline;
@@ -169,6 +170,7 @@ final class themer {
 	}
 
 	public function addJS($module=FALSE, $file=FALSE, $inline=FALSE, $vendor=FALSE) {
+		$js = FALSE;
 		if($file) $js = $this->agave->modulePath($module).$file;
 		if($vendor) $js = $vendor;
 		if($inline) $js = $inline;

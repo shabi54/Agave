@@ -34,7 +34,7 @@ function saveContentNode($args=null) {
 
 function saveContentNode2($args=null) {
 	global $agave;
-	$fm = $agave->load('fieldManager2');
+	$fm = $agave->load('fieldManager');
 	
 	$form = $fm->getForm('nodeForm');
 	

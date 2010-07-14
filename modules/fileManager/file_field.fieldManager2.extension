@@ -30,7 +30,6 @@ final class field_file extends genericField implements fieldInterface {
 	
 	private function saveNewFile($name) {
 		$args = func_get_args();
-		$fm = $this->agave->load('fileManager');
 		
 		$tmp_name = $_FILES[$name]['tmp_name'];
 		$name = $_FILES[$name]['name'];
@@ -38,36 +37,31 @@ final class field_file extends genericField implements fieldInterface {
 		$size = $_FILES[$name]['size'];
 		$error = $_FILES[$name]['error'];
 
-		return $fm->save_file_upload($name, $tmp_name, $size, $error, $mime)->fileKey;
+		return $this->fm->save_file_upload($name, $tmp_name, $size, $error, $mime)->fileKey;
 	}
 	
 	private function deleteFile($fileKey) {
 		$args = func_get_args();
-		$fm = $this->agave->load('fileManager');
-		//$this->agave->debug("Filefield deleting file $fileKey");
-		return $fm->delete_file($fm->returnFile($fileKey), TRUE); //also deletes children
+		return $this->fm->delete_file($fm->returnFile($fileKey), TRUE); //also deletes children
 	}
 	
 	private function replaceFile($fileKey, $name) {
 		$args = func_get_args();
-		$fm = $this->agave->load('fileManager');
-		return $fm->replace_file($fileKey, $this->saveNewFile($name))->fileKey;
+		return $this->fm->replace_file($fileKey, $this->saveNewFile($name))->fileKey;
 	}
 	
-	public function unformat($fileKey) {
-		$args = func_get_args();
-		$file = $this->fm->returnFile($fileKey);
-		return $file;
+	public function unformat($fileKeyOrObjectOrWhatever) {
+		return $this->fm->normalize($fileKeyOrObjectOrWhatever);
 	}
 	
 	public function edit($element) {
 		$args = func_get_args();
 		$t = $this->agave->load('themer');
-		$t->addJS('modules/fieldManager/js/fm-filefield.js');
-		$t->addCSS('modules/fieldManager/theme/css/fm-filefield.css');
+		$t->addJS('fileManager','theme/js/fm-filefield.js');
+		$t->addCSS('fileManager','theme/css/fm-filefield.css');
 		
 		$html = '';
-		
+
 		if(isset($element['default'])) {
 			$html = $this->markupFile($this->unformat($element['default']), $element, TRUE);
 		}

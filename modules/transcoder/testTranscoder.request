@@ -3,7 +3,7 @@ function test($args=null) { //TODO: Switch the file field to fm2
 	
 	global $agave;
 	$t = $agave->load('themer');
-	$fm = $agave->load("fieldManager2");
+	$fm = $agave->load("fieldManager");
 	$t->output = "<h1>Transcoding Test Page</h1>";
 	$form = $fm->startForm($agave->base_url."admin/transcoder/transcode/doit", "post", NULL, TRUE);
 	

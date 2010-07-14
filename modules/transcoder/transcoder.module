@@ -1,20 +1,20 @@
 <?php
 $extensions[] = array(
-	'module'=>'fieldManager2',
+	'module'=>'fieldManager',
 	'type'=>'form',
 	'location'=>'presets.request',
 	'data'=>array('name'=>'preset_edit','func'=>'returnEditForm'),
 );
 
 $extensions[] = array(
-	'module'=>'fieldManager2',
+	'module'=>'fieldManager',
 	'type'=>'form',
 	'location'=>'presets.request',
 	'data'=>array('name'=>'preset_create','func'=>'returnCreationForm'),
 );
 
 $extensions[] = array(
-	'module'=>'fieldManager2',
+	'module'=>'fieldManager',
 	'type'=>'alterer',
 	'location'=>'testalterer.object',
 	'data'=>array('name'=>'testalterer','targetform'=>'preset_create','location'=>'modules/transcoder/testalterer.object'),

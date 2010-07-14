@@ -19,8 +19,11 @@ function viewFile($args=null) {
 
 function editFile($args=null) {
 	global $agave;
+
+	//$agave->death(ini_get_all());
+
 	$t = $agave->load('themer');
-	$fm = $agave->load('fieldManager2');
+	$fm = $agave->load('fieldManager');
 	$fileMgr = $agave->load('fileManager');
 	
 	//check for valid destination
@@ -47,7 +50,7 @@ function returnEditForm($file=FALSE) {
 		'name'=>'fm2test',
 		'label'=>'FM 2 test',
 		'type'=>'file',
-		'default'=>($file) ? $file : NULL,
+		'default'=>$file,
 	);
 	return $elements;
 }
@@ -56,6 +59,7 @@ function saveFile($args=null) {
 	global $agave;
 	$fm = $agave->load('fileManager');
 
+	$agave->death($_FILES);
 //TODO: update filefield - change this code to use fieldManager and formatting
 
 //	$md = new stdClass;
@@ -67,7 +71,6 @@ function saveFile($args=null) {
 	$size = $_FILES['fm2test']['size'];
 	$error = $_FILES['fm2test']['error'];
 	$mime = $_FILES['fm2test']['type'];
-	
 	$file =  $fm->save_file_upload($name, $tmp_name, $size, $error, $mime);
 	
 	$newDestination = "public://".$file->filename;

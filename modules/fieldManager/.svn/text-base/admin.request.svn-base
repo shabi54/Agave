@@ -1,6 +1,0 @@
-<?php
-function executeRequest($args=null) {
-	//TODO: interface for managing fieldManager/form settings
-	//ex: secureForms, savePostDataInSessions, ENABLEDFIELDS (not all fields enabled for every project, for example mediafield vs mediaAPIfield)
-}
-?>
