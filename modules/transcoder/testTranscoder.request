@@ -5,7 +5,7 @@ function test($args=null) {
 	$t = $agave->load('themer');
 	$fm = $agave->load("fieldManager");
 	$t->output = "<h1>Transcoding Test Page</h1>";
-	$form = $fm->startForm($agave->base_url."transcoder/doit", "post", NULL, TRUE);
+	$form = $fm->startForm($agave->base_url."admin/transcoder/transcode/doit", "post", NULL, TRUE);
 	
 	$query = "SELECT `name` FROM `transcoding_presets`";
 	$options = $agave->doSQLQuery($query, 1);
@@ -61,6 +61,6 @@ function doit($args=null){
 		$t->output .= "<br/><br/>Link to transcoded file:<br/><a href='".$link."'>".$link."</a>";
 	}
 	
-	$t->output .= "<br/><br/><a href='".$agave->base_url."transcoder'>Go back and transcode another file.</a>";
+	$t->output .= "<br/><br/><a href='".$agave->base_url."admin/transcoder/transcode'>Go back and transcode another file.</a>";
 	
 }
