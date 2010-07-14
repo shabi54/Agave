@@ -1,6 +1,6 @@
 <?php
 /*
- * The following is to provide stream wrapper support for Agave, it is largely taken from Drupal7's Stream Wrapper support
+ * The following is to provide stream wrapper support for Agave, it is largely taken from Drupal7's Stream Wrapper support; see http://api.drupal.org
  * */
 //From PHP.net
 interface StreamWrapperInterface {
