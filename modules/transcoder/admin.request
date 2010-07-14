@@ -95,7 +95,7 @@ function presetSave($args = null) {
 	$settings = serialize($settings);
 	$plugin = $form->values['plugin'];
 	$name = $form->values['name'];
-	$targetextension = ".".$targetextension;
+	$targetextension = $targetextension;
 	$acceptedextensions = implode(", ",$acceptedextensions);
 
 	$query = "INSERT INTO `transcoding_presets` (`name`,`plugin`,`acceptedExtensions`,`targetExtension`,`settings`) VALUES ('$name','$plugin','$acceptedextensions','$targetextension','$settings')";

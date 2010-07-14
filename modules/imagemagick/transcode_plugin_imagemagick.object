@@ -8,12 +8,12 @@ class transcode_plugin_imagemagick implements transcoder_plugin {//TODO: Have im
 		global $agave;
 		$fileman = $agave->load('fileManager');
 		$time = time();
-		
-		
+
+
 		$shellscript = "#!/bin/sh
 "./*"exec 2>&1".*/"
 cd ".$fileman->realpath("tmp://")."
-convert ".$fileman->realpath("tmp://")."/".$input->filename;
+convert ".$fileman->realpath($input->uri);
 		
 		if(isset($settings['resize'])){ //Needs a percentage with the % intact eg -resize 200%
 			$shellscript .= " -resize ".$settings['resize'];

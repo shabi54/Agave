@@ -13,7 +13,7 @@ class transcode_plugin_poppler implements transcoder_plugin {
 			$shellscript = "#!/bin/sh
 "/*."exec 2>&1"*/."
 cd ".$fileman->realpath("tmp://")."
-pdftotext ".$fileman->realpath("tmp://")."/".$input->filename;
+pdftotext ".$fileman->realpath($input->uri);
 			if(isset($settings['enc'])){
 				$shellscript .= " -enc ".$settings['enc'];
 			}

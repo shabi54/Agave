@@ -19,7 +19,7 @@ class transcode_plugin_jodconverter implements transcoder_plugin {  // Needs jod
 		$shellscript = "#!/bin/sh
 "./*"exec 2>&1".*/"
 cd ".$fileman->realpath("tmp://")."
-java -jar ".$agave->agave_root."vendor/jodconverter-*/lib/jodconverter-cli-*.jar ".$fileman->realpath("tmp://")."/".$input->filename;
+java -jar ".$agave->agave_root."vendor/jodconverter-*/lib/jodconverter-cli-*.jar ".$fileman->realpath($input->uri);
 		
 		$shellscript .= " "."transcoder_output_".$time.".".$settings['format'];
 		
