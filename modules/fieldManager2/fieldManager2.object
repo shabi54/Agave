@@ -126,7 +126,7 @@ final class fieldManager2 {
 		//For multistep forms which need $form_values
 		if($multistep){
 			$form_values = $_POST;
-			if(!empty($_POST)){ global $agave; $agave->death($_POST); }
+			//if(!empty($_POST)){ global $agave; $agave->death($_POST); }
 			array_unshift($args,$form_values);
 		}
 
@@ -218,7 +218,7 @@ final class fieldManager2 {
 			if(!$this->isProp($key)){
 				$class = $value['#type'];
 				$field = $this->loadField($class);
-				$form->values[$field['name']] = $field->format($form->values, $field['name']);
+				$form->values[$value['#name']] = $field->format($form->values, $value['#name']);
 				$this->formatValuesWithFieldsArray($value, $form);
 			}
 		}

@@ -24,7 +24,7 @@ final class transcoder {
 		return $plugins;
 	}
 
-	private function loadPlugin($name) {
+	public function loadPlugin($name) {
 		if(isset($this->instances[$name])) return $this->instances[$name];
 		$plugin = 'transcode_plugin_'.$name;
 		$file = $this->plugins[$name];

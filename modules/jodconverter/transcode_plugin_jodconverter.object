@@ -39,4 +39,77 @@ java -jar ".$agave->agave_root."vendor/jodconverter-*/lib/jodconverter-cli-*.jar
 		return $newfiles;
 		
 	}
+
+        public function creationForm($formarr, $form_values, $step) {
+            switch($step) {
+                case 1:
+	      		$formarr['fields']['informat'] = array(
+					'#name'=>'informat',
+					'#label'=>'Select type of file to be converted by jodconverter:<br/> Text = .odt,.rtf,.doc,.docx,.wpd,.txt<br/> Spreadsheet = .ods,.xls,.xlsx,.csv,.tsv<br/> Presentation = .odp,.ppt,.pptx',
+					'#type'=>'select',
+					'#values'=>array('text','spreadsheet','presentation'),
+					'#default'=>NULL,
+	      		);
+                break;
+                case 2:
+                        switch($form_values['informat']){
+                                case 'text':
+                                        $formarr['fields']['outformat'] = array(
+                                                        '#name'=>'outformat',
+                                                        '#label'=>'Select extension to convert to with jodconverter:',
+                                                        '#type'=>'select',
+                                                        '#values'=>array('.pdf','.odt','.rtf','.doc','.docx','.txt'),
+                                                        '#default'=>NULL,
+                                                '#validation'=>'/^\.([A-Za-z0-9]+)$/',
+                                                        '#errormessage'=>'that is not legitimaaaaaate'
+                                        );
+                                break;
+                                case 'spreadsheet':
+                                        $formarr['fields']['outformat'] = array(
+                                                        '#name'=>'outformat',
+                                                        '#label'=>'Select extension to convert to with jodconverter:',
+                                                        '#type'=>'select',
+                                                        '#values'=>array('.pdf','.ods','.xls','.xlsx','.csv','.tsv'),
+                                                        '#default'=>NULL,
+                                                '#validation'=>'/^\.([A-Za-z0-9]+)$/',
+                                                        '#errormessage'=>'that is not legitimaaaaaate'
+                                        );
+                                break;
+                                case 'presentation':
+                                        $formarr['fields']['outformat'] = array(
+                                                        '#name'=>'outformat',
+                                                        '#label'=>'Select extension to convert to with jodconverter:',
+                                                        '#type'=>'select',
+                                                        '#values'=>array('.pdf','.swf','.odp','.ppt','.pptx'),
+                                                        '#default'=>NULL,
+                                                '#validation'=>'/^\.([A-Za-z0-9]+)$/',
+                                                        '#errormessage'=>'that is not legitimaaaaaate'
+                                        );
+                                break;
+                        }
+                        $formarr['fields']['laststep'] = array(
+                                '#name' => 'laststep',
+                                    '#type' => 'hidden',
+                                    '#value' => 'true',
+                        );
+                break;
+            }
+            return $formarr;
+        }
+
+        public function saveForm($form, &$settings, &$acceptedextensions, &$targetextension) {
+                switch($form->values['informat']){
+                        case 'text':
+                                $acceptedextensions = array('.odt','.rtf','.doc','.docx','.wpd','.txt');
+                        break;
+                        case 'spreadsheet':
+                                $acceptedextensions = array('.ods','.xls','.xlsx','.csv','.tsv');
+                        break;
+                        case 'presentation':
+                                $acceptedextensions = array('.odp','.ppt','.pptx');
+                        break;
+                }
+                $targetextension = $form->values['outformat'];
+                $settings['format']=$form->values['outformat'];
+        }
 }
