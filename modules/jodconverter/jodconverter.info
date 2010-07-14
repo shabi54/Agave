@@ -7,7 +7,7 @@ function jodconverter_info_meta() {
 	return array(
 		'name'=>'JODconverter',
 		'machine-name'=>'jodconverter',
-		'description'=>'Provides a plugin to transcoder module for ________________.',
+		'description'=>'Provides a plugin to transcoder module for manipulating documents.',
 		'group'=>'Transcoding',
 		'version'=>'.1',
 		'agave-version'=>'1',

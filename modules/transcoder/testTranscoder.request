@@ -1,5 +1,5 @@
 <?php
-function test($args=null) {
+function test($args=null) { //TODO: Switch the file field to fm2
 	
 	global $agave;
 	$t = $agave->load('themer');
