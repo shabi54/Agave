@@ -16,11 +16,16 @@ function presetDelete($args = null) {
     global $agave;
     $t =  $agave->load('themer');
     $t->output = "<h1>Deleting a Transcoder Preset</h1><br />";
-    if(!isset($_POST['confirm'])){
-        $t->output .= "";
+    $query = "SELECT * FROM `transcoding_presets` WHERE `presetKey`='$presetKey'";
+    $sql = $agave->doSQLQuery($query, 2);
+    //$t->output .= print_r($sql,true);
+    if(!isset($_GET['confirm'])){
+        $t->output .= '<p>Are you sure you want to delete the <strong>'.$sql['name'].'</strong> preset?</p><a href="'.$agave->base_url.'admin/transcoder/preset/delete/'.$presetKey.'&confirm=true">Yes</a><br/><a href="'.$agave->base_url.'admin/transcoder/">No</a></p>';
     }
     else{
-        $t->output .= "";
+        $query = "DELETE FROM `transcoding_presets` WHERE `presetKey`='".$presetKey."'";
+	$agave->doSQLQuery($query);
+        $t->output .= '<p>Preset deleted!</p><a href="'.$agave->base_url.'admin/transcoder">Return</a>';
     }
 }
 
