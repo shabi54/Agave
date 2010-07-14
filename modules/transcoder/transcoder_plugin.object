@@ -1,0 +1,5 @@
+<?php
+class transcoder_plugin {
+	public function execute($settings, $input, $presetname);
+	public function settingsForm($form_values, $step);
+}

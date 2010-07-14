@@ -1,5 +1,5 @@
 <?php
-class transcode_plugin_ffmpeg{
+class transcode_plugin_ffmpeg {
 	
 	public function __construct() {	}
 	
