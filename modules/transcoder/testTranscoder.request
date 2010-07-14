@@ -45,8 +45,20 @@ function doit($args=null){
 	else{
 	$t->output .= "No transcoding preset selected.";
 	}
-	
+
+        //$return = move_uploaded_file($_FILES['original']['tmp_name'], "/tmp/cool.jpg");
+
+        //$agave->death($_FILES);
+
+        //$return = $_FILES['original']['tmp_name'];
+        /*while(1){
+            echo "forever";
+        }*/
+
+        //$agave->death($return);
+
 	$fileman = $agave->load('fileManager');
+
 	$name = $_FILES['original']['name'];
 	$tmp_name = $_FILES['original']['tmp_name'];
 	$size = $_FILES['original']['size'];
@@ -57,7 +69,7 @@ function doit($args=null){
 	$trans = $agave->load('transcoder');
 	$outfiles = $trans->execute($_POST['preset'],$file);
 	foreach($outfiles as $outfile){
-		$link = $outfile->url;
+		$link = $outfile->uri;
 		$t->output .= "<br/><br/>Link to transcoded file:<br/><a href='".$link."'>".$link."</a>";
 	}
 	
