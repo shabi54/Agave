@@ -1,5 +1,5 @@
 <?php
-class transcode_plugin_imagemagick{//TODO: Have imagemagick handle pdf>>images instead of poppler, because it is bad at that
+class transcode_plugin_imagemagick implements transcoder_plugin {//TODO: Have imagemagick handle pdf>>images instead of poppler, because it is bad at that
 	
 	public function __construct() {	}
 	

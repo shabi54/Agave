@@ -1,5 +1,5 @@
 <?php
-class transcode_plugin_jodconverter{  // Needs jodconverter-* folder in vendor folder
+class transcode_plugin_jodconverter implements transcoder_plugin {  // Needs jodconverter-* folder in vendor folder
 	
 	public function __construct() {	}
 	

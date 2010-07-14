@@ -1,5 +1,5 @@
 <?php
-class transcode_plugin_poppler{
+class transcode_plugin_poppler implements transcoder_plugin {
 	
 	public function __construct() {	}
 	
