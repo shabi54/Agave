@@ -139,8 +139,9 @@ final class field_file extends genericField implements fieldInterface {
 		else return "FILE NOT FOUND";
 	}
 
-	public function validate() {
-	return TRUE;
+	public function validate($values, $metaData) {
+		//TODO return true or false
+		return TRUE;
 	}
 	
 	public function returnSettingsForm($settings) {

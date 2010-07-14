@@ -387,6 +387,14 @@ final class fieldManager2 {
 		$field = $this->loadField($class);
 		return $this->wrap($field->edit($element), $element);
 	}
+
+        public function generateElements($elements) {
+            $html = "";
+            foreach($elements as $element){
+                $html .= $this->generateElement($element);
+            }
+            return $html;
+        }
 	
 	private function wrap($content=null, $element=null) {
 		if($content && $element) {
