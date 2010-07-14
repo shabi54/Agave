@@ -11,7 +11,7 @@ function fileManager_info_meta() {
 		'machine-name'=>'fileManager', //name of directory in the modules folder
 		'description'=>'Provides an object for managing files, and provides stream wrapper support for abstracting physical file systems.',
 		'group'=>'Core', //the category in which you module will appear on modules page, if 
-		'version'=>'.2', //the current version of your module, increment this any time you make changes to db in your module
+		'version'=>'.3', //the current version of your module, increment this any time you make changes to db in your module
 		'agave-version'=>'1', //what version of agave is required for this module to work?
 		'dependencies'=>array('user','schemaManager'), //what other modules does this module rely on?
 	);
@@ -44,6 +44,7 @@ function fileManager_info_system_uri() {
 	$uris[] = array('user/files',NULL,NULL,'user_view_user_files','user',0,1,0);
 	$uris[] = array('files/%',NULL,NULL,'viewFile','file',0,1,0);
 	$uris[] = array('files/%/edit',NULL,NULL,'editFile','file',0,1,0);
+	$uris[] = array('files/save',NULL,NULL,'saveFile','file',0,1,0);
 	
 	return $uris;
 }
