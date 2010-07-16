@@ -9,7 +9,10 @@ final class field_checkbox extends genericField implements fieldInterface {
 	
 	
 	public function format($values=null, $fieldName) {
-		return serialize($values[$fieldName]);
+		if(array_key_exists($fieldName, $values)){
+                    return serialize($values[$fieldName]);
+                }
+                else return null;
 	}
 	
 	public function unformat($value) {

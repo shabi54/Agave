@@ -345,6 +345,7 @@ final class fieldManager {
 	}
 	
 	private function renderFieldsArray($array, $form) {
+                $html = "";
 
                 //DO UNFORMATS
 		$this->unformatValuesWithFieldsArray($form->fields, $form);
@@ -429,6 +430,7 @@ final class fieldManager {
                         }
 			$html .= $this->label($element);
 			$html .= $content;
+                        $html .= $this->generateMetaData($element);
 			$html .= isset($element['error']) ? "<div class='fm-error-text'>".$element['error']."</div>" : "";
 			$html .= isset($element['help']) ? "<div class='fm-help-text'>".$element['help']."</div>" : "";
                         if($element['type'] != "fieldset") {
@@ -474,5 +476,15 @@ final class fieldManager {
             $field = $this->loadField($type);
             return $field->unformat($value);
         }
+
+        protected function generateMetaData($element) { //TODO: old, try to get away from using
+		if(!empty($element['metaData'])) {
+			$element['metaData']['type'] = $element['type'];
+			$metadata = $this->agave->encrypt(json_encode($element['metaData']));
+			$html = "<input type='hidden' class='fm-metadata' name='metaData[".$element['blockNum']."][".$element['name']."]' value='$metadata' />";
+			return $html;
+		}
+		else return "";
+	}
 	
 } //endfieldManager class

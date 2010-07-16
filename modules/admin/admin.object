@@ -422,8 +422,8 @@ final class admin {
 		$current = $this->agave->doSQLQuery($query, 1);
                 if(!$current) $current = array(); // attempting fix
 		if(in_array($action, $current)) {
-			$this->message('error', "An access argument by that name already exists in the database.");
-			$this->redirect(TRUE);
+			$this->agave->message('error', "An access argument by that name already exists in the database.");
+			$this->agave->redirect(TRUE);
 		}
 		
 		//add new access property

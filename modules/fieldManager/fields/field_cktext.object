@@ -9,10 +9,13 @@ final class field_cktext extends genericField implements fieldInterface {
 	public function __destruct() { }
 	
 	public function format($values=null, $fieldName) {
-		return $values[$fieldName];
+		if(array_key_exists($fieldName, $values)){
+                    return $values[$fieldName];
+                }
+                else return null;
 	}
 	
-	public function unformat($values) {
+	public function unformat($value) {
 		return $value;
 	}
 	

@@ -10,7 +10,10 @@ final class field_textarea extends genericField implements fieldInterface {
 	
 	
 	public function format($values, $fieldName) {
-		return $values[$fieldName];
+		if(array_key_exists($fieldName, $values)){
+                        return $values[$fieldName];
+                }
+                else return null;
 	}
 	
 	public function unformat($value) {

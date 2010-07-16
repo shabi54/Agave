@@ -11,7 +11,10 @@ final class field_multiselect extends genericField implements fieldInterface {
 	}
 	
 	public function format($values, $fieldName) {
-		return serialize($values[$fieldName]);
+            if(array_key_exists($fieldName, $values)){
+                    return serialize($values[$fieldName]);
+            }
+            else return null;
 	}
 	
 	public function unformat($value) {
