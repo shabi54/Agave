@@ -165,7 +165,7 @@ final class fieldManager {
 	private function processForm($form) {
 		//forms start with state properties as false
 		$form->submitted = FALSE;
-		$form->values = FALSE;
+		$form->values = array();
 		$form->files = FALSE;
 		$form->validateOK = FALSE;
 		$form->block = FALSE;
@@ -175,12 +175,12 @@ final class fieldManager {
 			//if the form was just submitted, populate values/files, mark as submitted
 			if($form->method == "post" && !empty($_POST)) $form->values = $_POST;
 			else if($form->method == "get" && !empty($_GET)) $form->values = $_GET;
-			if($form->values || !empty($_FILES)) $form->submitted = TRUE;
+			if(!empty($form->values) || !empty($_FILES)) $form->submitted = TRUE;
 		}
 		elseif($form->multistep && !$this->firstpass){
 			$form->submitted = FALSE;
 		}
-		
+
 		//if this form has not just been submitted, then it's going out for the user, so add the id, and secureID (if enabled)
 		if(!$form->submitted) {
 			$form->fields['fm_form_id'] = array(
@@ -201,7 +201,7 @@ final class fieldManager {
 		}
 
 		//if this form has just been submitted, validate it
-		if($form->values && $form->submitted) {
+		if(!empty($form->values) && $form->submitted) {
 			//unset($form->values['fm_form_id']);
 			$form->validateOK = $this->validateForm($form); //if fm_secureID is set, it's unset during ->validate()
 		}
@@ -469,12 +469,14 @@ final class fieldManager {
 
         public function format($type, $value){
             $field = $this->loadField($type);
-            return $field->format($value);
+            $values[0]=$value;
+            return $field->format($values,0);
         }
 
         public function unformat($type, $value){
             $field = $this->loadField($type);
-            return $field->unformat($value);
+            $values[0]=$value;
+            return $field->unformat($values,0);
         }
 
         protected function generateMetaData($element) { //TODO: old, try to get away from using
