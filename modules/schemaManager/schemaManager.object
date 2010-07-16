@@ -184,6 +184,7 @@ class schemaManager {
 			foreach ($this->schema as $row) {
 				if(!empty($row['value'])) {
 					if(!isset($data)) $data = new stdClass;
+                                        //$agave->death($row);
 					$data->$row['keyName'] = $fieldManager->unformat($row['type'], $row['value']);
 				}
 			}

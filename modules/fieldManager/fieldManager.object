@@ -436,5 +436,15 @@ final class fieldManager {
 		$html = "<input class='fm-button' type='submit' value='".$value."' onclick='".$onclick."' />$cancel</form>";
 		return $html;
 	}
+
+        public function format($type, $value){
+            $field = $this->loadField($type);
+            return $field->format($value);
+        }
+
+        public function unformat($type, $value){
+            $field = $this->loadField($type);
+            return $field->unformat($value);
+        }
 	
 } //endfieldManager class
