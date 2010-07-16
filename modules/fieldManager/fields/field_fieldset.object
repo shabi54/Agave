@@ -4,6 +4,8 @@ final class field_fieldset extends genericField implements fieldInterface {
 	public function unformat($value) { return $value; } //unformat values for how you want them in PHP
 	public function edit($element){ //generate interface with form elements
             $attributes = $this->generateAttributes($element);
+            //global $agave;
+            //$agave->death($attributes);
             $classes = $attributes['classes'];
             $id = $attributes['id'];
             return "<fieldset $classes $id>";

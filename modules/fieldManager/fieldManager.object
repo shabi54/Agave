@@ -349,7 +349,7 @@ final class fieldManager {
                 //DO UNFORMATS
 		$this->unformatValuesWithFieldsArray($form->fields, $form);
 
-		$html = '<div class="fieldstreelevel">'; //In here go whatever tags needed for child elements
+		//$html = '<div class="fieldstreelevel">'; //In here go whatever tags needed for child elements
 		$props = array();
 		$children = array();
 		if(is_array($array)){
@@ -385,7 +385,7 @@ final class fieldManager {
                 if($isfieldset) {
                     $html .= '</fieldset>';
                 }
-		$html .= '</div>';
+		//$html .= '</div>';
 		return $html;
 	}
 	
@@ -424,12 +424,16 @@ final class fieldManager {
 		if($content && $element) {
 			$html = '';
 			if(isset($element['preHTML'])) $html .= $element['preHTML'];
-			$html .= "<div class='fm-element-wrapper field-edit-wrapper field-".$element['type']."-edit-wrapper'>";
+                        if($element['type'] != "fieldset") {
+                            $html .= "<div class='fm-element-wrapper field-edit-wrapper field-".$element['type']."-edit-wrapper'>";
+                        }
 			$html .= $this->label($element);
 			$html .= $content;
 			$html .= isset($element['error']) ? "<div class='fm-error-text'>".$element['error']."</div>" : "";
 			$html .= isset($element['help']) ? "<div class='fm-help-text'>".$element['help']."</div>" : "";
-			$html .= "</div>";
+                        if($element['type'] != "fieldset") {
+                            $html .= "</div>";
+                        }
 			if(isset($element['postHTML'])) $html .= $element['postHTML'];
 			return $html;
 		}
