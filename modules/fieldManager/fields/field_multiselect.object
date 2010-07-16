@@ -10,12 +10,12 @@ final class field_multiselect extends genericField implements fieldInterface {
 	
 	}
 	
-	public function format($values, $metaData) {
-		return serialize($values);
+	public function format($values, $fieldName) {
+		return serialize($values[$fieldName]);
 	}
 	
-	public function unformat($values) {
-		return unserialize($values);
+	public function unformat($value) {
+		return unserialize($value);
 	}
 
 	public function edit($element) {

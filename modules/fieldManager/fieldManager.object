@@ -181,9 +181,6 @@ final class fieldManager {
 			$form->submitted = FALSE;
 		}
 		
-		//DO FORMATS
-		$this->formatValuesWithFieldsArray($form->fields, $form);
-		
 		//if this form has not just been submitted, then it's going out for the user, so add the id, and secureID (if enabled)
 		if(!$form->submitted) {
 			$form->fields['fm_form_id'] = array(
@@ -207,7 +204,10 @@ final class fieldManager {
 		if($form->values && $form->submitted) {
 			//unset($form->values['fm_form_id']);
 			$form->validateOK = $this->validateForm($form); //if fm_secureID is set, it's unset during ->validate()
-		}	
+		}
+
+                //DO FORMATS
+		$this->formatValuesWithFieldsArray($form->fields, $form);
 		
 		$form->processed = TRUE;
 		return $form;
@@ -220,6 +220,17 @@ final class fieldManager {
 				$field = $this->loadField($class);
 				$form->values[$value['#name']] = $field->format($form->values, $value['#name']);
 				$this->formatValuesWithFieldsArray($value, $form);
+			}
+		}
+	}
+
+        private function unformatValuesWithFieldsArray($array, &$form){
+		foreach($array as $key=>$value){
+			if(!$this->isProp($key)){
+				$class = $value['#type'];
+				$field = $this->loadField($class);
+				$form->values[$value['#name']] = $field->unformat($form->values[$value['#name']]);
+				$this->unformatValuesWithFieldsArray($value, $form);
 			}
 		}
 	}
@@ -334,6 +345,10 @@ final class fieldManager {
 	}
 	
 	private function renderFieldsArray($array, $form) {
+
+                //DO UNFORMATS
+		$this->unformatValuesWithFieldsArray($form->fields, $form);
+
 		$html = '<div class="fieldstreelevel">'; //In here go whatever tags needed for child elements
 		$props = array();
 		$children = array();
@@ -356,8 +371,8 @@ final class fieldManager {
 				$props['error']=$form->errors[$props['name']];
 			}
                         if($props['type'] == "fieldset") {
-                            global $agave;
-                            $agave->death("giga dorill breaku");
+                            //global $agave;
+                            //$agave->death("giga dorill breaku");
                             $isfieldset = true;
                         }
 			$html .= $this->generateElement($props);
@@ -393,7 +408,6 @@ final class fieldManager {
 	
 	public function generateElement($element) {
 		$class = $element['type'];
-                //if($class=="fieldset"){global $agave; $agave->death("GIGA DORILL BREAKU"); }
 		$field = $this->loadField($class);
 		return $this->wrap($field->edit($element), $element);
 	}

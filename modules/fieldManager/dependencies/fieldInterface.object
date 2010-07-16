@@ -1,7 +1,7 @@
 <?php
 interface fieldInterface {
-	public function format($values, $metaData); //format values for how they should be stored in DB
-	public function unformat($values); //unformat values for how you want them in PHP
+	public function format($values, $fieldName); //format values for how they should be stored in DB
+	public function unformat($value); //unformat values for how you want them in PHP
 	public function edit($element); //generate interface with form elements
 	public function display($values, $settings); //format value as it should be displayed on page
 	public function validate($values, $metaData); //special validation before formating for save

@@ -9,12 +9,12 @@ final class field_textarea extends genericField implements fieldInterface {
 	public function __destruct() { }
 	
 	
-	public function format($values, $metaData) {
-		return $values;
+	public function format($values, $fieldName) {
+		return $values[$fieldName];
 	}
 	
-	public function unformat($values) {
-		return $values;
+	public function unformat($value) {
+		return $value;
 	}
 	
 	public function edit($element) {
