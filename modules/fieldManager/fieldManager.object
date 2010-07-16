@@ -347,6 +347,7 @@ final class fieldManager {
 				}
 			}
 		}
+                $isfieldset = false;
 		if(!empty($props)){
 			if(isset($form->values[$props['name']])){
 				$props['default']=$form->values[$props['name']]; // Insert previously entered values.
@@ -354,6 +355,11 @@ final class fieldManager {
 			if(isset($form->errors[$props['name']])){
 				$props['error']=$form->errors[$props['name']];
 			}
+                        if($props['type'] == "fieldset") {
+                            global $agave;
+                            $agave->death("giga dorill breaku");
+                            $isfieldset = true;
+                        }
 			$html .= $this->generateElement($props);
 		}
 		if(!empty($children)){
@@ -361,6 +367,9 @@ final class fieldManager {
 				$html .= $this->renderFieldsArray($child, $form);
 			}
 		}
+                if($isfieldset) {
+                    $html .= '</fieldset>';
+                }
 		$html .= '</div>';
 		return $html;
 	}
@@ -384,6 +393,7 @@ final class fieldManager {
 	
 	public function generateElement($element) {
 		$class = $element['type'];
+                //if($class=="fieldset"){global $agave; $agave->death("GIGA DORILL BREAKU"); }
 		$field = $this->loadField($class);
 		return $this->wrap($field->edit($element), $element);
 	}

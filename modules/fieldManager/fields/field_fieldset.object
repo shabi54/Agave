@@ -3,7 +3,10 @@ final class field_fieldset extends genericField implements fieldInterface {
 	public function format($values, $metaData) { return $values; } //format values for how they should be stored in DB
 	public function unformat($values) { return $values; } //unformat values for how you want them in PHP
 	public function edit($element){ //generate interface with form elements
-            return "";
+            $attributes = $this->generateAttributes($element);
+            $classes = $attributes['classes'];
+            $id = $attributes['id'];
+            return "<fieldset $classes $id>";
         }
 	public function display($values, $settings){ //format value as it should be displayed on page
             return "";
