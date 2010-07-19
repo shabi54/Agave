@@ -140,15 +140,15 @@ ffmpeg -i ".$fileman->realpath($input->uri);
                                                                 '#name'=>'audiobitrate',
                                                                 '#label'=>'Select audio bitrate in kbps:',
                                                                 '#type'=>'select',
-                                                                '#values'=>array('32k', '40k', '48k', '56k', '64k', '80k', '96k', '112k', '128k', '160k', '192k', '224k', '256k', '320k'),
-                                                                '#default'=>'128k',
+                                                                '#values'=>array('32000', '40000', '48000', '56000', '64000', '80000', '96000', '112000', '128000', '160000', '192000', '224000', '256000', '320000'),
+                                                                '#default'=>'128000',
                                                 );
                                                 $formarr['fields']['audiofreq'] = array(
                                                                 '#name'=>'audiofreq',
                                                                 '#label'=>'Select audio frequency cutoff in kHz:',
                                                                 '#type'=>'select',
-                                                                '#values'=>array('32k','44.1k','48k'),
-                                                                '#default'=>'44.1k',
+                                                                '#values'=>array('32000','44100','48000'),
+                                                                '#default'=>'44100',
                                                 );
                                         }
                                         else{

@@ -17,7 +17,7 @@ class transcode_plugin_jodconverter implements transcoder_plugin {  // Needs jod
 		//$agave->death($throw);
 		
 		$shellscript = "#!/bin/sh
-"./*"exec 2>&1".*/"
+"."exec 2>&1"."
 cd ".$fileman->realpath("public://")."
 java -jar ".$agave->agave_root."vendor/jodconverter-*/lib/jodconverter-cli-*.jar ".$fileman->realpath($input->uri);
 		
@@ -58,9 +58,9 @@ java -jar ".$agave->agave_root."vendor/jodconverter-*/lib/jodconverter-cli-*.jar
                                                         '#name'=>'outformat',
                                                         '#label'=>'Select extension to convert to with jodconverter:',
                                                         '#type'=>'select',
-                                                        '#values'=>array('.pdf','.odt','.rtf','.doc','.docx','.txt'),
+                                                        '#values'=>array('pdf','odt','rtf','doc','docx','txt'),
                                                         '#default'=>NULL,
-                                                '#validation'=>'/^\.([A-Za-z0-9]+)$/',
+                                                '#validation'=>'/^([A-Za-z0-9]+)$/',
                                                         '#errormessage'=>'that is not legitimaaaaaate'
                                         );
                                 break;
@@ -69,9 +69,9 @@ java -jar ".$agave->agave_root."vendor/jodconverter-*/lib/jodconverter-cli-*.jar
                                                         '#name'=>'outformat',
                                                         '#label'=>'Select extension to convert to with jodconverter:',
                                                         '#type'=>'select',
-                                                        '#values'=>array('.pdf','.ods','.xls','.xlsx','.csv','.tsv'),
+                                                        '#values'=>array('pdf','ods','xls','xlsx','csv','tsv'),
                                                         '#default'=>NULL,
-                                                '#validation'=>'/^\.([A-Za-z0-9]+)$/',
+                                                '#validation'=>'/^([A-Za-z0-9]+)$/',
                                                         '#errormessage'=>'that is not legitimaaaaaate'
                                         );
                                 break;
@@ -80,9 +80,9 @@ java -jar ".$agave->agave_root."vendor/jodconverter-*/lib/jodconverter-cli-*.jar
                                                         '#name'=>'outformat',
                                                         '#label'=>'Select extension to convert to with jodconverter:',
                                                         '#type'=>'select',
-                                                        '#values'=>array('.pdf','.swf','.odp','.ppt','.pptx'),
+                                                        '#values'=>array('pdf','swf','odp','ppt','pptx'),
                                                         '#default'=>NULL,
-                                                '#validation'=>'/^\.([A-Za-z0-9]+)$/',
+                                                '#validation'=>'/^([A-Za-z0-9]+)$/',
                                                         '#errormessage'=>'that is not legitimaaaaaate'
                                         );
                                 break;

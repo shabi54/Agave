@@ -66,6 +66,7 @@ final class fileManager {
 		global $agave;
 		$query = "SELECT * FROM `files` WHERE `fileKey` IN('".implode("','", $fileKeys)."')";
 		$results = $agave->doSQLQuery($query, 3);
+                //$agave->death($results);
 		$files = array();
 		if($results) foreach($results as $row) $files[] = $this->unpackFileObject($row);
 		unset($results);

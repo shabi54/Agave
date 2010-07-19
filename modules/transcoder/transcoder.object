@@ -67,9 +67,9 @@ final class transcoder {
 			}
 		}
 
-                //move_uploaded_file($input->server_path, $input->server_path.".".$input->extension);
-                //$input->server_path = $input->server_path.".".$input->extension;
-                //$input->uri = $input->uri.".".$input->extension;
+                move_uploaded_file($input->server_path, $input->server_path.".".$input->extension);
+                $input->server_path = $input->server_path.".".$input->extension;
+                $input->uri = $input->uri.".".$input->extension;
 
 		return $plugin->execute($settings, $input, $presetname);
 	}	
