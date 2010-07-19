@@ -34,7 +34,7 @@ $settings['module_versions'] = array(
 	'user'=>'.1',
 	'schemaManager'=>'.1',
 	'fieldManager'=>'.1',
-	'fileManager'=>'.1',
+	'fileManager'=>'.3',
 	'themer'=>'.1',
 );
 

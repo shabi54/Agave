@@ -337,6 +337,8 @@ final class fieldManager {
 	 */
 	
 	public function renderForm($form) {
+		$t = $this->agave->load('themer')->addCSS('fieldManager', 'theme/css/fm-defaults.css');
+
 		$html = "";
 		$html .= $this->startForm($form->action,$form->method, isset($form->cssID) ? $form->cssID : null, isset($form->includesFiles) ? $form->includesFiles : null);
 		$html .= $this->renderFieldsArray($form->fields, $form);
