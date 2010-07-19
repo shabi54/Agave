@@ -37,5 +37,6 @@ function viewContentNode($args=null) {
 	$agave->invoke("contentNode_render", $themevars);
 	
 	//theme the node
+        //$agave->death($themevars);
 	$themer->output = $themer->theme('contentNode', $template, $themevars);
 }

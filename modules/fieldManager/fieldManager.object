@@ -477,8 +477,7 @@ final class fieldManager {
 
         public function unformat($type, $value){
             $field = $this->loadField($type);
-            $values[0]=$value;
-            return $field->unformat($values,0);
+            return $field->unformat($value);
         }
 
         protected function generateMetaData($element) { //TODO: old, try to get away from using

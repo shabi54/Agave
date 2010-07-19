@@ -9,7 +9,7 @@ function saveContentNode($args=null) {
 	$whitelist = array('saveData', 'metaData');
 	$agave->registerARGV($whitelist);
 
-        $agave->death($agave->ARGV);
+        //$agave->death($agave->ARGV);
 	
 	//`contentNode` table data
 	$data = array();
@@ -36,6 +36,7 @@ function saveContentNode($args=null) {
 
 function saveContentNode2($args=null) {
 	global $agave;
+        
 	$fm = $agave->load('fieldManager');
 	
 	$form = $fm->getForm('nodeForm');

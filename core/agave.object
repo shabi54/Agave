@@ -476,7 +476,10 @@ class agave extends olddb {
 			$id = (isset($md->matchKeyValue)) ? $md->matchKeyValue : $id;
 			$valueKey = (isset($md->valueKey)) ? $md->valueKey : NULL;
 
-			$values = ($values) ? mysql_real_escape_string($fm->format($values, $md)) : NULL;
+                        //$this->death($values);
+                        //$this->death($md->type);
+
+			$values = ($values) ? mysql_real_escape_string($fm->format($md->type,$values)) : NULL;
 			
 			//only add a row if there is a real value, else delete the row that was there.  We only store real values
 			if(isset($values)) {
