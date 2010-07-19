@@ -11,7 +11,7 @@ class genericField {
 			$id1 = ($id1) ? "[$id1]" : '';
 			$id2 = ($id2) ? "[$id2]" : '';
 			$name = $element['name'];
-			$block = $element['blockNum'];
+                        isset($element['blockNum']) ? $block = $element['blockNum'] : $block = 0;
 			
 			$name = "saveData[".$block."][".$name."]".$id1.$id2;
 		}

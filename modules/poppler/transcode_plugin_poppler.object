@@ -12,7 +12,7 @@ class transcode_plugin_poppler implements transcoder_plugin {
 		if($settings['format']=='txt'){
 			$shellscript = "#!/bin/sh
 "/*."exec 2>&1"*/."
-cd ".$fileman->realpath("tmp://")."
+cd ".$fileman->realpath("public://")."
 pdftotext ".$fileman->realpath($input->uri);
 			if(isset($settings['enc'])){
 				$shellscript .= " -enc ".$settings['enc'];
@@ -26,7 +26,7 @@ pdftotext ".$fileman->realpath($input->uri);
 		if($settings['format']=="jpg"){
 			$shellscript = "#!/bin/sh
 "./*"exec 2>&1".*/"
-cd ".$fileman->realpath("tmp://")."
+cd ".$fileman->realpath("public://")."
 pdfinfo ".$fileman->realpath("tmp://")."/".$input->filename;
 			exec($shellscript, $out);
 			foreach($out as $line){
@@ -36,7 +36,7 @@ pdfinfo ".$fileman->realpath("tmp://")."/".$input->filename;
 			}
 			$shellscript = "#!/bin/sh
 "./*"exec 2>&1".*/"
-cd ".$fileman->realpath("tmp://")."
+cd ".$fileman->realpath("public://")."
 pdfimages -j ".$fileman->realpath("tmp://")."/".$input->filename;  //TODO: Why does pdfimages not work properly on some pdfs?  Sometimes outputs mirrored files, sometimes outputs nothing.
 			$shellscript .= " "."transcoder_output_".$time;
 			$filenames=array();
@@ -51,7 +51,7 @@ pdfimages -j ".$fileman->realpath("tmp://")."/".$input->filename;  //TODO: Why d
 		if($settings['format']=='html'){
 			$shellscript = "#!/bin/sh
 "."exec 2>&1"."
-cd ".$fileman->realpath("tmp://")."
+cd ".$fileman->realpath("public://")."
 pdftohtml ";
 			if(isset($settings['complex'])){ // Makes the output html really fancy and formatted.  Usually cool, sometimes terrible.
 				$shellscript .= "-c ";

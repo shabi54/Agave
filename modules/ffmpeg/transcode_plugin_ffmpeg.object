@@ -12,7 +12,7 @@ class transcode_plugin_ffmpeg implements transcoder_plugin {
 		$time = time();
 		$shellscript = "#!/bin/sh
 "."exec 2>&1"./*Put in if you want to see a WHOLE LOT of debug output for ffmpeg*/"
-cd ".$fileman->realpath("tmp://")."
+cd ".$fileman->realpath("public://")."
 ffmpeg -i ".$fileman->realpath($input->uri);
 		
 		if(isset($settings['codec'])){

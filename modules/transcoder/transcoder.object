@@ -47,6 +47,7 @@ final class transcoder {
 
 	//execute can either receive a settings array, or the name of a preset to look up in the database
 	public function execute($settings, $input=NULL) { // Returns an array full of file objects.
+                //global $agave;  $agave->death($input);
 		if(!is_array($settings)) {
 			$preset = $this->loadPreset($settings);
 			$settings = unserialize($preset['settings']);
@@ -65,6 +66,11 @@ final class transcoder {
 				agave_error_page("415","<b>Error:  Files with the extension ".$input->extension." are not supported by the chosen transcoding preset. Please go back and try again.</b>");
 			}
 		}
+
+                //move_uploaded_file($input->server_path, $input->server_path.".".$input->extension);
+                //$input->server_path = $input->server_path.".".$input->extension;
+                //$input->uri = $input->uri.".".$input->extension;
+
 		return $plugin->execute($settings, $input, $presetname);
 	}	
 	
@@ -73,7 +79,7 @@ final class transcoder {
 		$user = $this->agave->load('user');
 		$newfile = new stdClass;
 		$newfile->filename = $filename;
-		$newfile->uri = "tmp://".$newfile->filename;
+		$newfile->uri = "public://".$newfile->filename;
 		$newfile->size = $fileman->return_filesize($fileman->realpath($newfile->uri));
 		$newfile->mime = $fileman->return_mime($fileman->realpath($newfile->uri));
 		$newfile->status = FILE_STATUS_TMP;

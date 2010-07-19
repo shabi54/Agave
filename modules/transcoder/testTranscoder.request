@@ -48,6 +48,8 @@ function doit($args=null){
 
 	$fileman = $agave->load('fileManager');
 
+        //$agave->death($agave->);
+
 	$name = $_FILES['original']['name'];
 	$tmp_name = $_FILES['original']['tmp_name'];
 	$size = $_FILES['original']['size'];
@@ -57,8 +59,11 @@ function doit($args=null){
 
 	$trans = $agave->load('transcoder');
 	$outfiles = $trans->execute($_POST['preset'],$file);
+
+        //$agave->death($outfiles);
+
 	foreach($outfiles as $outfile){
-		$link = $outfile->uri;
+		$link = $outfile->url;
 		$t->output .= "<br/><br/>Link to transcoded file:<br/><a href='".$link."'>".$link."</a>";
 	}
 	

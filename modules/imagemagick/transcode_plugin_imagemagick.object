@@ -12,7 +12,7 @@ class transcode_plugin_imagemagick implements transcoder_plugin {//TODO: Have im
 
 		$shellscript = "#!/bin/sh
 "./*"exec 2>&1".*/"
-cd ".$fileman->realpath("tmp://")."
+cd ".$fileman->realpath("public://")."
 convert ".$fileman->realpath($input->uri);
 		
 		if(isset($settings['resize'])){ //Needs a percentage with the % intact eg -resize 200%

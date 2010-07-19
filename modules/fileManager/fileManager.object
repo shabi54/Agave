@@ -86,7 +86,10 @@ final class fileManager {
 			$file->data = unserialize($file->data);
 		}
 		else unset($file->data);
-		
+
+                //global $agave;
+                //$agave->death($file->uri);
+
 		//use stream_wrappers to determine actual URLS to file
 		$wrapper = $this->return_stream_wrapper($file->uri);
 		$file->url = $wrapper->getExternalUrl(); //could be same as absoluteURL, but may be www.example.com/download-file/$fileKey, or something like that
@@ -212,6 +215,7 @@ final class fileManager {
 		$agave->doSQLQuery($query);
 		$fileKey = mysql_insert_id();
 		$file = $this->returnFile($fileKey);
+                //$agave->death($file);
 		return $file;
 	}
 
@@ -332,9 +336,9 @@ final class fileManager {
 	}
 	
 	public function realpath($uri) {
-		if($wrapper = $this->return_stream_wrapper($uri)) return $wrapper->realpath();
-		else if(!empty($uri)) return realpath($uri);
-		else return FALSE;
+		if($wrapper = $this->return_stream_wrapper($uri)) { return $wrapper->realpath(); }
+		else if(!empty($uri)) { return realpath($uri); }
+		else { return FALSE; }
 	}
 	
 	public function dir_name($uri) {
@@ -345,7 +349,7 @@ final class fileManager {
 			if($dir == '.') $dir = '';
 			return $scheme."://".$dir;
 		}
-		else if(!empty($uri)) return dirname($uri);
+		else if(!empty($uri)) return dir_name($uri);
 		else return FALSE;
 	}
 
@@ -406,13 +410,18 @@ final class fileManager {
 			$agave->debug("Uploaded file was not found ($tmp_name)", __METHOD__, $funcArgs, __LINE__, __FILE__);		
 			return FALSE;
 		}
+
+                //$agave->death($tmp_name);
 		
 		//TODO: add error checking based on $error, set error/debug messages and return false
 		
 		//figure out destination, default is temporary file
 		if(!$destination) $destination = "tmp://".basename($tmp_name); //TODO: I changed this
 		$time = time();
-		
+
+                //$agave->death($destination);
+                //$agave->death($this->realpath($destination));
+
 		//create file object
 		$file = new stdClass;
 		$file->filename = $name;
@@ -424,6 +433,9 @@ final class fileManager {
 		$file->time_created = $time;
 		$file->time_modified = $time;
 		$file->userKey = $user->userKey;
+
+                //$agave->death(file_exists($file->uri));
+
 		//scan file for $data using getid3
 		
 		//TODO: start here
@@ -435,12 +447,14 @@ final class fileManager {
 		//TODO: make sure $file->uri is writable
 
 		//TODO: make a little less overhead... maybe change $this->save_file to return object that was passed, with key appended
-   		if(!file_exists($file->uri)) {
-			$agave->message('error', "Uploaded file could not saved.");
+   		if(!file_exists($this->realPath($file->uri))) {
+			$agave->message('error', "Uploaded file could not be saved. The destination is not writeable.");
 			$agave->debug("Uploaded file could not be saved.", __METHOD__, $funcArgs, __LINE__, __FILE__);		
 			return FALSE;
 		}
 		$file = $this->save_file($file);
+
+                
 
 		return $file;
 	}

@@ -481,9 +481,10 @@ final class fieldManager {
 
         protected function generateMetaData($element) { //TODO: old, try to get away from using
 		if(!empty($element['metaData'])) {
+                        isset($element['blockNum']) ? $block = $element['blockNum'] : $block = 0;
 			$element['metaData']['type'] = $element['type'];
 			$metadata = $this->agave->encrypt(json_encode($element['metaData']));
-			$html = "<input type='hidden' class='fm-metadata' name='metaData[".$element['blockNum']."][".$element['name']."]' value='$metadata' />";
+			$html = "<input type='hidden' class='fm-metadata' name='metaData[".$block."][".$element['name']."]' value='$metadata' />";
 			return $html;
 		}
 		else return "";
