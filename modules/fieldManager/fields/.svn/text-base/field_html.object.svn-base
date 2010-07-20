@@ -1,3 +1,0 @@
-<?php
-//display/edit, just return $row['value'] field
-?>

@@ -1,8 +1,0 @@
-<?php
-function showThemes($args=NULL) {
-	global $agave;
-	$t = $agave->load('themer');
-	
-	$t->output = "Write code to manage your themes here.";
-	$t->theme('admin','admin');
-}
