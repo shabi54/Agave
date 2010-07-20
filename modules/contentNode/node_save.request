@@ -1,15 +1,13 @@
 <?php
 function saveContentNode($args=null) {
 	global $agave;
-	//die($args[0]);
+
 	$user = $agave->load('user');
 	$id = (isset($args[0])) ? $args[0] : NULL; //we either received the contentNodeKey in the URL, or it's NULL because we're saving a new one
 
 	//register save/metaData
 	$whitelist = array('saveData', 'metaData');
 	$agave->registerARGV($whitelist);
-
-        //$agave->death($agave->ARGV);
 	
 	//`contentNode` table data
 	$data = array();
@@ -43,6 +41,4 @@ function saveContentNode2($args=null) {
 	
 	$new = isset($form->values->nodeID) ? TRUE : FALSE;
 	$nodeID = $fm->saveForm($form);
-	
-	//
 }

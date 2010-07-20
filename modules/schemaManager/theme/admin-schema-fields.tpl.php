@@ -9,7 +9,7 @@
 	$this->addJS(NULL,NULL,NULL,'vendor/jQuery/ui/minified/ui.sortable.min.js');
 
 	//schemaManager js
-	$this->addJS('admin','theme/js/schema-manager.js');
+	$this->addJS('schemaManager','js/schema-manager.js');
 ?>
 <h2>Edit Schemata</h2>
 <p>You can add/delete/modify fields for the chosen schema below.  Drag and drop the fields to reorder their position on the page/edit form.</p>

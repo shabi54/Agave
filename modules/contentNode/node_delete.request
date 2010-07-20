@@ -8,7 +8,7 @@ function confirm($args=NULL) {
 	global $agave;
 	$id = $args[0];
 	$user = $agave->load('user');
-	$node = $agave->load('contentNode');
+	$node = new contentNode;
 	$t = $agave->load('themer');
 	$fm = $agave->load('fieldManager');
 

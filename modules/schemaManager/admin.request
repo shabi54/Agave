@@ -71,7 +71,7 @@ function editField($mode) {
 
 	$elements = returnEditForm($mode);
 	
-	$output .= $fm->startForm($agave->base_url."admin/schemata", "post");
+	$output = $fm->startForm($agave->base_url."admin/schemata", "post");
 	$output .= $fm->generateElements($elements);
 	$output .= "<p>
 					<input type=submit id=schema-field-save value='Save' />

@@ -1,3 +1,17 @@
 <?php
 $objects = array();
 $objects['schemaManager'] = 'schemaManager.object';
+
+$extensions = array();
+$extensions[] = array(
+	'module'=>'fieldManager',
+	'type'=>'form',
+	'location'=>'forms.inc',
+	'data'=>array('name'=>'field_element_settings','func'=>'schemaManager_return_field_element_settings_form'),
+);
+$extensions[] = array(
+	'module'=>'fieldManager',
+	'type'=>'form',
+	'location'=>'forms.inc',
+	'data'=>array('name'=>'field_element','func'=>'schemaManager_return_field_element_settings_form'),
+);
