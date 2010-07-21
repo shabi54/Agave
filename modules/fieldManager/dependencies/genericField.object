@@ -31,7 +31,9 @@ class genericField {
 		$rows = '';
 		$size = '';
 		$disabled = '';
-		
+                $href = '';
+
+		if(isset($element['href'])) $href = ' href="'.$element['href'].'"';
 		if(isset($element['class'])) $classes .= $element['class'];
 		if(isset($element['collapsed'])) $classes .= " fm-collapsed";
 		if(isset($element['collapsible'])) $classes .= " fm-collapsible";
@@ -59,6 +61,7 @@ class genericField {
 		$attributes['size'] = $size;
 		$attributes['disabled'] = $disabled;
 		$attributes['maxlength'] = $maxlength;
+                $attributes['href'] = $href;
 		
 		return $attributes;	
 	}

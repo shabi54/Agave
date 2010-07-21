@@ -77,7 +77,7 @@ function editContentNode($args=null) {
 }
 
 
-function node_fm2_edit($args=null) {
+/*function node_fm2_edit($args=null) {
 	global $agave;
 	
 	//determine whether or not there is an id, or creating new
@@ -97,7 +97,7 @@ function node_fm2_edit($args=null) {
 	//pass the form either a pre-existing node or a type
 	$form = $fm->getForm('contentNode_edit', $node);
 	$t->output = $fm->render($form);
-}
+}*/
 
 function contentNode_return_edit_form($preform, $node=NULL, $block=NULL) {
 	global $agave;

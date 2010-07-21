@@ -18,6 +18,16 @@ function test($args=null) { //TODO: Switch the file field to fm2
 				'default'=>NULL
 	);
 	$form .= $fm->generateElement($element);
+
+        $element = array(
+				'name'=>'button1',
+				'label'=>'HELLO',
+				'type'=>'button',
+				'href'=>'www.google.com',
+				'class'=>'deadlybutton',
+	);
+        
+	$form .= $fm->generateElement($element);
 	$elements = array();
 	$elements[] = array(
 		'name'=>'original',
