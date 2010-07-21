@@ -9,12 +9,15 @@ final class field_hidden extends genericField implements fieldInterface {
 	public function __destruct() { }
 	
 	
-	public function format($values, $metaData) {
-		return $values;
+	public function format($values, $fieldName) {
+            if(array_key_exists($fieldName, $values)){
+                    return $values[$fieldName];
+            }
+            else return null;
 	}
 	
-	public function unformat($values) {
-		return $values;
+	public function unformat($value) {
+		return $value;
 	}
 	
 	public function edit($element) {

@@ -6,6 +6,8 @@ class genericField {
 		$this->agave = $agave;
 	}
 	
+	// Get regexp validation goin in here
+	
 	protected function generateName($element, $id1=NULL, $id2=NULL) {
 		if(isset($element['metaData'])) {
 			$id1 = ($id1) ? "[$id1]" : '';

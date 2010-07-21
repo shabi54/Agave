@@ -59,26 +59,26 @@ function processForm() {
 	foreach($_POST as $key=>$value) $$key = mysql_real_escape_string($value);
 	
 	if(!$lname || !$fname || !$login || !$email || !$pword || !$pwordConfirm) {
-		$agave->message('error', "MISSING_FIELD");
+		$agave->message('error', "All fields in the form are required.");
 		$agave->redirect("user/register");
 	}
 	
 	if($pword != $pwordConfirm) {
-		$agave->message('error', "NONMATCHING_PASSWORDS");
+		$agave->message('error', "Nonmatching passwords submitted.");
 		$agave->redirect("user/register");
 	}
 	
 	$query = "SELECT * FROM `users` WHERE `email`='$email'";
 	$result = $agave->doSQLQuery($query, 3);
 	if($result) {
-		$agave->message('error', "EMAIL_TAKEN");
+		$agave->message('error', "Email address is taken.  Choose another.");
 		$agave->redirect("user/register");
 	}
 
 	$query = "SELECT * FROM `users` WHERE `login`='$login'";
 	$result = $agave->doSQLQuery($query, 3);
 	if($result) {
-		$agave->message('error', "LOGIN_TAKEN");
+		$agave->message('error', "That login is taken.  Choose another.");
 		$agave->redirect("user/register");
 	}
 	
@@ -87,6 +87,6 @@ function processForm() {
 	
 	//TODO: add session for user, log them in
 	
-	$agave->message('general', NULL, "Welcome to our site!!");
+	$agave->message('general', "Welcome to our site!!");
 	$agave->redirect();
 }

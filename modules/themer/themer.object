@@ -155,6 +155,7 @@ final class themer {
 	}
 	
 	public function addCSS($module=FALSE, $file=FALSE, $inline=FALSE, $vendor=FALSE) {
+		$styles = FALSE;
 		if($file) $styles = $this->agave->modulePath($module).$file;
 		if($vendor) $styles = $vendor;
 		if($inline) $styles = $inline;
@@ -169,6 +170,7 @@ final class themer {
 	}
 
 	public function addJS($module=FALSE, $file=FALSE, $inline=FALSE, $vendor=FALSE) {
+		$js = FALSE;
 		if($file) $js = $this->agave->modulePath($module).$file;
 		if($vendor) $js = $vendor;
 		if($inline) $js = $inline;
@@ -340,9 +342,15 @@ final class themer {
 					if($agave->current_location == $val['^href'] || $agave->base_url.$agave->current_location == $val['^href']) $classes .= " selected";
 					$classes = "class='$classes'";
 					if(($val['^access'] != NULL && $user->access($val['^access'])) || !$val['^access']) {
-						$thehtml .= "<li $title $classes>".$beginLink.$key.$endLink."<ul class='menu-sub'>";
-						$thehtml .= $this->markupMenuItems($val);
-						$thehtml .= "</ul></li>";
+                                                $thehtml .= "<li $title $classes>".$beginLink.$key.$endLink;
+                                                $boolsub = false;
+                                                foreach($val as $k => $v) { if(!$this->isProp($k)){ $boolsub = true; } }
+                                                if($boolsub){
+                                                    $thehtml .= "<ul class='menu-sub'>";
+                                                    $thehtml .= $this->markupMenuItems($val);
+                                                    $thehtml .= "</ul>";
+                                                }
+                                                $thehtml .= "</li>";
 					}
 				}
 				else {

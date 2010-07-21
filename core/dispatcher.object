@@ -36,7 +36,7 @@ final class dispatcher {
 		$agave->invoke('execute_request', $uri); //TODO allow URIargs to modified or not?
 		$func = (!empty($uri['function'])) ? $uri['function'] : 'executeRequest'; //TODO: REMOVE potential for calling generic executeRequest function
 		if(!function_exists($func)) {
-			$agave->message('error', NULL, "Callback function for the requested URL could not be found.");
+			$agave->message('error', "Callback function for the requested URL could not be found.");
 			agave_error_page('404');
 		}
 

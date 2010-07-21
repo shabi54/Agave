@@ -8,16 +8,15 @@ final class field_cktext extends genericField implements fieldInterface {
 	
 	public function __destruct() { }
 	
-	public function format($values, $metaData) {
-		$values = serialize($values);
-		$values = $this->agave->invoke('field_cktext_format', $values);
-		return $values;
+	public function format($values=null, $fieldName) {
+		if(array_key_exists($fieldName, $values)){
+                    return $values[$fieldName];
+                }
+                else return null;
 	}
 	
-	public function unformat($values) {
-		$values = unserialize($values);
-		$values = $this->agave->invoke('field_cktext_unformat', $values);
-		return $values;
+	public function unformat($value) {
+		return $value;
 	}
 	
 	public function edit($element) {

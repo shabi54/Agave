@@ -1,41 +1,29 @@
 K 25
 svn:wc:ra_dav:version-url
-V 50
-/svn/agave/!svn/ver/250/trunk/modules/fieldManager
+V 51
+/svn/agave/!svn/ver/256/trunk/modules/fieldManager2
 END
-admin.request
+fieldManager2.module
 K 25
 svn:wc:ra_dav:version-url
-V 64
-/svn/agave/!svn/ver/152/trunk/modules/fieldManager/admin.request
+V 72
+/svn/agave/!svn/ver/169/trunk/modules/fieldManager2/fieldManager2.module
 END
-fieldManager.module
+fieldManager2.object
 K 25
 svn:wc:ra_dav:version-url
-V 70
-/svn/agave/!svn/ver/169/trunk/modules/fieldManager/fieldManager.module
+V 72
+/svn/agave/!svn/ver/256/trunk/modules/fieldManager2/fieldManager2.object
 END
-fieldManager.object
-K 25
-svn:wc:ra_dav:version-url
-V 70
-/svn/agave/!svn/ver/234/trunk/modules/fieldManager/fieldManager.object
-END
-fieldManager.info
-K 25
-svn:wc:ra_dav:version-url
-V 68
-/svn/agave/!svn/ver/250/trunk/modules/fieldManager/fieldManager.info
-END
-hotswap-save.request
+fieldManager2.info
 K 25
 svn:wc:ra_dav:version-url
 V 70
-/svn/agave/!svn/ver/92/trunk/modules/fieldManager/hotswap-save.request
+/svn/agave/!svn/ver/207/trunk/modules/fieldManager2/fieldManager2.info
 END
-hotswap-get.request
+readme.txt
 K 25
 svn:wc:ra_dav:version-url
-V 69
-/svn/agave/!svn/ver/92/trunk/modules/fieldManager/hotswap-get.request
+V 62
+/svn/agave/!svn/ver/203/trunk/modules/fieldManager2/readme.txt
 END

@@ -10,16 +10,15 @@ final class field_multiselect extends genericField implements fieldInterface {
 	
 	}
 	
-	public function format($values, $metaData) {
-		$values = serialize($values);
-		$values = $this->agave->invoke('field_multiselect_format', $values);
-		return $values;
+	public function format($values, $fieldName) {
+            if(array_key_exists($fieldName, $values)){
+                    return serialize($values[$fieldName]);
+            }
+            else return null;
 	}
 	
-	public function unformat($values) {
-		$values = unserialize($values);
-		$values = $this->agave->invoke('field_multiselect_unformat', $values);
-		return $values;
+	public function unformat($value) {
+		return unserialize($value);
 	}
 
 	public function edit($element) {
@@ -51,7 +50,7 @@ final class field_multiselect extends genericField implements fieldInterface {
 	}
 	
 	public function validate($values, $metaData) {
-	
+		return TRUE;
 	}
 	public function returnSettingsForm($settings) {
 		$elements = array();

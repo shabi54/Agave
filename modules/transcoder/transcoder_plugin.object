@@ -1,0 +1,6 @@
+<?php
+interface transcoder_plugin {
+	public function execute($settings, $input, $presetname);
+	public function creationForm($formarr, $form_values, $step);
+	public function saveForm($form, &$settings, &$acceptedextensions, &$targetextension);
+}

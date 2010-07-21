@@ -1,0 +1,164 @@
+<?php
+//TODO: generate real interface for managing presets
+function adminTranscodingOverview($args=NULL) {
+	global $agave;
+	$transcoder = $agave->load('transcoder');
+
+	//theme admin page
+	$t = $agave->load('themer');
+	$themevars['plugins'] = $transcoder->getPlugins();
+	$t->output = $t->theme('transcoder', 'admin-transcoder', $themevars);
+	$t->output = $t->theme('admin','admin');
+}
+
+function presetDelete($args = null) {
+    $presetKey = $args[0];
+    global $agave;
+    $t =  $agave->load('themer');
+    $t->output = "<h1>Deleting a Transcoder Preset</h1><br />";
+    $query = "SELECT * FROM `transcoding_presets` WHERE `presetKey`='$presetKey'";
+    $sql = $agave->doSQLQuery($query, 2);
+    //$t->output .= print_r($sql,true);
+    if(!isset($_GET['confirm'])){
+        $t->output .= '<p>Are you sure you want to delete the <strong>'.$sql['name'].'</strong> preset?</p><a href="'.$agave->base_url.'admin/transcoder/preset/delete/'.$presetKey.'&confirm=true">Yes</a><br/><a href="'.$agave->base_url.'admin/transcoder/">No</a></p>';
+    }
+    else{
+        $query = "DELETE FROM `transcoding_presets` WHERE `presetKey`='".$presetKey."'";
+	$agave->doSQLQuery($query);
+        $t->output .= '<p>Preset deleted!</p><a href="'.$agave->base_url.'admin/transcoder">Return</a>';
+    }
+}
+
+function presetCreate($args = null){
+	global $agave;
+	$t =  $agave->load('themer');
+	$t->output = "<h1>Creating a Transcoder Preset</h1><br />";
+	$fm2 = $agave->load('fieldManager');
+
+	if(!isset($_POST['step'])){
+		$step = 0;
+	}
+	else{
+		$step = $_POST['step'];
+	}
+
+	//$agave->death($step);
+
+	$form = $fm2->getForm('preset_create', true, $step);
+
+	if($form->submitted && $form->validateOK){
+		if(!isset($_POST['laststep'])){ //Move on to next step while steps still exist
+			//$agave->death((int)$step);
+			$form = $fm2->getForm('preset_create', true, (int)$step + 1);
+		}
+		else{ //Success of entire form (all steps) and time to redirect with values
+			$_SESSION['form'] = $form;
+			//$agave->death($_SESSION);
+			$fm2->saveForm($form);
+			$agave->redirect('admin/transcoder/preset/save');
+		}
+	}
+	//we can has form tiem now, plz?
+	$html = $fm2->renderForm($form);
+	$t->output .= $html;
+}
+
+function viewPresets($args=null) {
+	//provide interface for viewing presets
+        global $agave;
+
+	//get presets from db
+	$query = "SELECT * FROM `transcoding_presets` WHERE `plugin`='".$_GET['name']."'";
+	$presets = $agave->doSQLQuery($query, 3);
+
+	//theme admin page
+	$t = $agave->load('themer');
+	$themevars['presets'] = $presets;
+	$t->output = $t->theme('transcoder', 'admin-transcoder-presets', $themevars);
+	$t->output = $t->theme('admin','admin');
+}
+
+function presetSave($args = null) {
+	$form = $_SESSION['form'];
+	unset($_SESSION['form']);
+	global $agave;
+	
+	$settings = array();
+        $acceptedextensions = array();
+        $targetextension = "";
+
+        $pluginname = $form->values['plugin'];
+        $trans = $agave->load('transcoder');
+        $pluginobject = $trans->loadPlugin($pluginname);
+        $pluginobject->saveForm($form, $settings, $acceptedextensions, $targetextension);
+        
+	$settings = serialize($settings);
+	$plugin = $form->values['plugin'];
+	$name = $form->values['name'];
+	$targetextension = $targetextension;
+	$acceptedextensions = implode(", ",$acceptedextensions);
+
+	$query = "INSERT INTO `transcoding_presets` (`name`,`plugin`,`acceptedExtensions`,`targetExtension`,`settings`) VALUES ('$name','$plugin','$acceptedextensions','$targetextension','$settings')";
+
+	$agave->doSQLQuery($query);
+
+	$t = $agave->load('themer');
+	$t->output = "<h1>We think it's all done!</h1><br/>";
+        $t->output .= '<br/><br/><a href="'.$agave->base_url.'admin/transcoder/presets&name='.$plugin.'">View your preset.</a>';
+	$t->output .= "<br/><br/><a href='".$agave->base_url."admin/transcoder/preset/create'>Go back and create another preset.</a>";
+}
+
+function returnCreationForm($form_values, $step) {  //you and me baby ain't nothing but pupils so let's DO IT LIKE DRUPAL'S
+	$formarr = array();
+	$formarr['method']='post';
+	$formarr['action']='';
+	$formarr['alter']=FALSE;
+	$formarr['id']='preset_create';
+	$formarr['multistep']=TRUE;
+	$formarr['fields']=array();
+
+        global $agave;
+
+	switch ($step) {
+		case 0:
+			$formarr['fields']['name'] = array(
+				'#name'=>'name',
+				'#label'=>'Enter the name for your new transcoding preset:',
+				'#type'=>'text',
+				//'#validation'=>array('alphanumeric','/^[a-zA-Z]+$/'),
+				//'#errormessage'=>'that is not legitimaaaate...',
+			);
+                        $options = array();
+                        foreach($agave->module_env['extensions']['transcoder']['plugin'] as $plugin){
+                                $options[] = $plugin['data']['name'];
+                        }
+			$formarr['fields']['plugin'] = array(
+				'#name'=>'plugin',
+				'#label'=>'Select which plugin your transcoding preset will use:',
+				'#type'=>'select',
+				'#values'=>$options,
+				'#default'=>NULL,
+			);
+		break;
+
+	        default:
+			foreach($form_values as $name=>$value){
+				$formarr['fields'][$name] = array(
+                                    '#name' => $name,
+                                    '#type' => 'hidden',
+                                    '#value' => $value,
+				);
+			}
+                        $pluginname = $form_values['plugin'];
+                        $trans = $agave->load('transcoder');
+                        $pluginobject = $trans->loadPlugin($pluginname);
+                        $formarr = $pluginobject->creationForm($formarr, $form_values, $step);
+		break;
+	}
+	$formarr['fields']['step'] = array(
+    	'#name' => 'step',
+	    '#type' => 'hidden',
+	    '#value' => $step,
+	);
+  	return $formarr;
+}

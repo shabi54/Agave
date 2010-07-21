@@ -2,14 +2,14 @@
 
 dir
 257
-http://192.168.252.17/svn/agave/trunk/modules/fieldManager
+http://192.168.252.17/svn/agave/trunk/modules/fieldManager2
 http://192.168.252.17/svn/agave
 
 
 
-2010-06-25T21:13:58.997871Z
-250
-evillemez
+2010-06-28T19:59:14.933159Z
+256
+shabnam
 
 
 
@@ -26,51 +26,17 @@ evillemez
 
 00dd55a1-faff-4885-b4f7-ed0eed9793ff
 
-admin.request
-file
-
-
-
-
-2010-06-18T18:03:57.704109Z
-2f8f1bdd2fe16ca6b3b7f584cdb129fd
-2010-03-27T00:34:56.679736Z
-152
-evillemez
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-249
-
 theme
 dir
 
-fieldManager.module
+fieldManager2.module
 file
 
 
 
 
-2010-06-18T18:03:57.704109Z
-2dc8ae810e47ee8da58709ad5bcf8731
+2010-06-18T18:03:56.208109Z
+9d19f27523ed024a3a9f0d3f79a47d9f
 2010-05-14T19:24:36.518172Z
 169
 evillemez
@@ -95,19 +61,19 @@ evillemez
 
 
 
-193
+77
 
-fieldManager.object
+fieldManager2.object
 file
 
 
 
 
-2010-06-21T13:53:46.666520Z
-7c167526381a2e656ad6a9c5c017a679
-2010-06-18T19:50:48.345103Z
-234
-evillemez
+2010-06-28T19:54:27.488159Z
+0cdc00d36de7199e3345c26a43725bd3
+2010-06-28T19:59:14.933159Z
+256
+shabnam
 
 
 
@@ -129,116 +95,85 @@ evillemez
 
 
 
-12227
+14682
+
+dependencies
+dir
 
 fields
 dir
 
-fieldManager.info
-file
-
-
-
-
-2010-06-28T13:47:23.888155Z
-235efff3dd8722c62e5dcf4647fca826
-2010-06-25T21:13:58.997871Z
-250
-evillemez
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-915
-
-hotswap-save.request
-file
-
-
-
-
-2010-06-18T18:03:57.704109Z
-d41d8cd98f00b204e9800998ecf8427e
-2010-02-15T16:05:14.101527Z
-92
-evillemez
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-0
-
-hotswap-get.request
-file
-
-
-
-
-2010-06-18T18:03:57.704109Z
-d41d8cd98f00b204e9800998ecf8427e
-2010-02-15T16:05:14.101527Z
-92
-evillemez
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-0
-
-js
+validators
 dir
 
-support
+fieldManager2.info
+file
+
+
+
+
+2010-06-18T18:03:56.208109Z
+834a767c2c72efe7d9d71f393336c907
+2010-06-01T21:59:41.464712Z
+207
+evillemez
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2672
+
+readme.txt
+file
+
+
+
+
+2010-06-18T18:03:56.208109Z
+e279a45739a0b281cbaceff01e69da94
+2010-05-28T22:10:34.893935Z
+203
+evillemez
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+366
+
+js
 dir
 

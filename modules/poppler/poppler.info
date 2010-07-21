@@ -1,0 +1,16 @@
+<?php
+/* 
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+function poppler_info_meta() {
+	return array(
+		'name'=>'Poppler',
+		'machine-name'=>'poppler',
+		'description'=>'Provides a plugin to transcoder module for manipulating pdfs.',
+		'group'=>'Transcoding',
+		'version'=>'.1',
+		'agave-version'=>'1',
+		'dependencies'=>array('transcoder'),
+	);
+}

@@ -52,7 +52,6 @@ function bootstrap($phase=BOOTSTRAP_SETTINGS, $vars=NULL) {
 }
 
 function bootstrap_settings() {
-	//TODO: Change this to look for sites.php
 	/*
 	 * This is the first phase, in here Agave simply looks for the proper settings.php file, corresponding to the request received...
 	 * For example, a request to www.russnet.org/homepage/look/lol will resolve to agave_root/sites/www.russnet.org/settings.php
@@ -63,7 +62,7 @@ function bootstrap_settings() {
 		$initFile = $settings['proj_root']."settings.php";
 		return bootstrap(BOOTSTRAP_AGAVE, $initFile);
 	}
-	else {		
+	else {
 		$confdir = 'sites';
 		$uri = explode('/', $_SERVER['SCRIPT_NAME'] ? $_SERVER['SCRIPT_NAME'] : $_SERVER['SCRIPT_FILENAME']);
 		$server = explode('.', implode('.', array_reverse(explode(':', rtrim($_SERVER['HTTP_HOST'], '.')))));
@@ -86,7 +85,6 @@ function bootstrap_host() {
 	/*
 	 * Second phase, a quick check against any banned hosts specified in your settings.php file
 	 */
-	//TODO: take into account proxies (?) look at Drupal for an example if you need it
 	global $settings;
 	if(isset($settings['ip-include']) && !in_array($_SERVER['REMOTE_ADDR'], $settings['ip-include'])) banned_location();
 	if(isset($settings['ip-exclude']) && in_array($_SERVER['REMOTE_ADDR'], $settings['ip-exclude'])) banned_location();
@@ -166,11 +164,12 @@ function bootstrap_env() {
 	 */
 	global $agave, $settings;
 	$agave->loadSettings();
-	//$agave->death($agave->settings);
 
-//START HERE!!!!! Note that if $agave->rebuildCaches() is called, these environment variables are NOT refreshed...
+	//TODO: fix how settings are loaded, make sure settings are re-built cleanly from $settings array and from system_variables table
+	if($agave->setting('development_mode')) $agave->cache = FALSE;
 
-	//figure out other important paths based on settings
+
+	//TODO: try and get rid of properties like this that are based on a setting, but used externally - this has to stop
 	$agave->modules = $agave->setting('enabled_modules');
 	$agave->module_versions = $agave->setting('module_versions');
 
@@ -240,7 +239,7 @@ function bootstrap_session() {
 		$query = "SELECT * FROM `one_time_access` WHERE `code`='$code'";
 		$data = $agave->doSQLQuery($query, 2); //query for access-code in DB
 		if(!$data) {
-			$agave->message('error', NULL,"You have attempted to use an invalid one-time access code.");
+			$agave->message('error', "You have attempted to use an invalid one-time access code.");
 			$agave->redirect();
 		}
 		$query = "DELETE FROM `one_time_access` WHERE `code`='$code'"; 
@@ -271,7 +270,7 @@ function bootstrap_session() {
 	
 	//redirect if user timed out
 	if($GLOBALS['objects']['user']->timedOut) {
-		$agave->message('error', "TIMED_OUT");
+		$agave->message('error', "Your session has timed out!");
 
 		//TODO add check on login page to notify user of unsaved data
 		$agave->redirect("user/login");
@@ -290,7 +289,6 @@ function bootstrap_access() {
 	 * If URL-level access is specified, we check the user against that access argument, if the user doesn't have access, we stop execution
 	 */
 	global $agave;
-	
 	if(!empty($agave->uri['access']) && !$GLOBALS['objects']['user']->access($agave->uri['access'])) return ACCESS_DENIED;
 	
 	$agave->status = BOOTSTRAP_ACCESS;
@@ -311,11 +309,8 @@ function bootstrap_lang() {
 	 * VALID_REQUEST is returned, and index.php routes the file, returning and printing any output
 	 */
 	global $agave;
+
 	//TODO: figure out best way to deal with languages, where to store interface translation file, etc...
-
-
-
-
 
 	$agave->status = BOOTSTRAP_LANG;
 	return VALID_REQUEST;
@@ -329,14 +324,12 @@ function banned_location() {
 }
 
 function site_not_found() {
-	//TODO: load pretty fail page
 	header('HTTP/1.1 404 Not Found');
 	die("<h1>HTTP/1.1 404 Not Found</h1><h2>Agave could not find the site you requested: <em>".$_SERVER['SERVER_NAME']."</em>.</h2>");
 }
 
 function site_offline() {
 	global $agave;
-	//TODO: load pretty fail page
 	header('HTTP/1.1 404 Not Found');
 	die("<h1>HTTP/1.1 404 Not Found</h1><h2>Agave could not establish a database connection to <em>".$_SERVER['SERVER_NAME']."</em>.</h2><p>$agave->dbError</p>");
 }
@@ -402,7 +395,7 @@ function agave_error_handler($errno, $errstr, $errfile, $errline) {
 
 	$message = "<code>PHP ".$types[$errno]."</code>: \"$errstr\" in <em>$errfile</em> on line <b>$errline</b>";
 	
-	$agave->message('error', NULL, $message);
+	$agave->message('error', $message);
 
     return true;
 }

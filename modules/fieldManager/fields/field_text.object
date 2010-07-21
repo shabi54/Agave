@@ -9,16 +9,15 @@ final class field_text extends genericField implements fieldInterface {
 	public function __destruct() { }
 	
 	
-	public function format($values, $metaData) {
-		$values = serialize($values);
-		$values = $this->agave->invoke('field_text_format', $values);
-		return $values;
+	public function format($values, $fieldName) {
+                if(array_key_exists($fieldName, $values)){
+                    return $values[$fieldName];
+                }
+                else return null;
 	}
 	
-	public function unformat($values) {
-		$values = unserialize($values);
-		$values = $this->agave->invoke('field_text_unformat', $values);
-		return $values;
+	public function unformat($value) {
+		return $value;
 	}
 	
 	public function edit($element) {
@@ -99,7 +98,7 @@ final class field_text extends genericField implements fieldInterface {
 			'name'=>'autosuggest',
 			'type'=>'textarea',
 			'label'=>'Autosuggest',
-			'help'=>'Just explain what you want to happen... the code will write its self. :)',
+			'help'=>'Just explain what you want to happen... the code will write itself. :)',
 			'default'=>(isset($settings['autosuggest'])) ? $settings['autosuggest'] : NULL
 		);
 		

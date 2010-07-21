@@ -9,7 +9,7 @@
 
 	<?php foreach($node->fields->schema as $row): if(($row['access'] && $user->access($row['access']) || !$row['access']) && $row['value']): ?>
 		<div class='node-field node-field-<?php echo $row['keyName'] ?>'>
-			<?php print $node->fields->displayField($row['keyName']); ?>
+			<?php print $row['value'] ?>
 		</div>
 	<?php endif; endforeach; ?>
 </div>

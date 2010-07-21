@@ -9,64 +9,49 @@ final class field_file extends genericField implements fieldInterface {
 	
 	public function __destruct() { }
 	
-	public function format($values=null, $metaData) {
+	public function format($values=null, $fieldName) {
 		$args = func_get_args();
-		$keys = array();
 		$i=0;
-		if($values) {
-			foreach($values as $fileKey=>$status) {
-				switch($status) {
-					case 'BLANK' : $keys[] = NULL; break;
-					case 'FILLED' : $keys[] = $fileKey; break;
-					case 'DELETE' : $keys[] = $this->deleteFile($fileKey); break;
-					case 'REPLACE' : $keys[] = $this->replaceFile($fileKey, $i, $metaData); break;
-					case 'NEWFILE' : $keys[] = $this->saveNewFile($i, $metaData); break;
-				}
-				$i++;
+		if(isset($values[$fieldName.'-key'])){
+			$fileKey = $values[$fieldName.'-key'];
+		}
+		if(isset($values[$fieldName.'-status'])){
+			$status = $values[$fieldName.'-status'];
+			switch($status) {
+				case 'BLANK' : $key = NULL; break;
+				case 'FILLED' : $key = $fileKey; break;
+				case 'DELETE' : $key = NULL; $this->deleteFile($fileKey); break;
+				case 'REPLACE' : $key = $this->replaceFile($fileKey, $fieldName); break;
+				case 'NEWFILE' : $key = $this->saveNewFile($fieldName); break;
 			}
 		}
-		return ($values) ? implode(",", $keys) : NULL;
+		return $key;
 	}
 	
-	private function saveNewFile($id=null, $md) {
+	private function saveNewFile($name) {
 		$args = func_get_args();
-		$fm = $this->agave->load('fileManager');
 		
-		$tmp_name = ($id) ? $_FILES[$md->name]['tmp_name'][$id] : $_FILES[$md->name]['tmp_name'];
-		$name = ($id) ? $_FILES[$md->name]['name'][$id] : $_FILES[$md->name]['name'];
-		$mime = ($id) ? $_FILES[$md->name]['type'][$id] : $_FILES[$md->name]['type'];
-		$size = ($id) ? $_FILES[$md->name]['size'][$id] : $_FILES[$md->name]['size'];
-		$error = ($id) ? $_FILES[$md->name]['size'][$id] : $_FILES[$md->name]['size'];
+		$tmp_name = $_FILES[$name]['tmp_name'];
+		$name = $_FILES[$name]['name'];
+		$mime = $_FILES[$name]['type'];
+		$size = $_FILES[$name]['size'];
+		$error = $_FILES[$name]['error'];
 
-		$file = $fm->save_file_upload($name, $tmp_name, $size, $error, $mime);
-		
-		$file = $fm->move_file($file->uri, 'public://'.$name);
-		$file->status = 1;
-		
-		return $fm->save_file($file);
+		return $this->fm->save_file_upload($name, $tmp_name, $size, $error, $mime)->fileKey;
 	}
 	
 	private function deleteFile($fileKey) {
 		$args = func_get_args();
-		$fm = $this->agave->load('fileManager');
-		//$this->agave->debug("Filefield deleting file $fileKey");
-		return $fm->delete_file($fm->returnFile($fileKey), TRUE); //also deletes children
+		return $this->fm->delete_file($fm->returnFile($fileKey), TRUE); //also deletes children
 	}
 	
-	private function replaceFile($fileKey, $id, $md) {
+	private function replaceFile($fileKey, $name) {
 		$args = func_get_args();
-		$fm = $this->agave->load('fileManager');
-		return $fm->replace_file($fileKey, $this->saveNewFile($id, $md))->fileKey;
+		return $this->fm->replace_file($fileKey, $this->saveNewFile($name))->fileKey;
 	}
 	
-	public function unformat($values=null) {
-		$args = func_get_args();
-		if($values) {
-			$keys = explode(",",$values);
-			$files = $this->fm->returnFiles($keys);
-			$files = $this->agave->invoke('field_file_unformat', $files);
-		}
-		return ($values) ? $files : NULL;
+	public function unformat($fileKeyOrObjectOrWhatever) {
+		return $this->fm->normalize($fileKeyOrObjectOrWhatever);
 	}
 	
 	public function edit($element) {
@@ -76,15 +61,10 @@ final class field_file extends genericField implements fieldInterface {
 		$t->addCSS('fileManager','theme/css/fm-filefield.css');
 		
 		$html = '';
+
 		if(isset($element['default'])) {
-			if(is_object($element['default'])) $html = $this->markupFile($element['default'], $element, TRUE);
-			else if(is_array($element['default'])) {
-				foreach($element['default'] as $file) {
-					$html .= $this->markupFile($file, $element, TRUE);
-				}
-			}
+			$html = $this->markupFile($this->unformat($element['default']), $element, TRUE);
 		}
-		
 		else $html = $this->returnBlankField($element);
 		
 		return $html;
@@ -93,11 +73,10 @@ final class field_file extends genericField implements fieldInterface {
 	private function returnBlankField($element) {
 		$args = func_get_args();
 		$attributes = implode(" ", $this->generateAttributes($element));
-		$addable = (isset($element['addable']) && $element['addable']==TRUE) ? "[]" : NULL;
 		$html = "
 			<div class='fm-file-wrapper'>
 				<input type='file' class='fm-filefield' name='".$element['name']."' $attributes />
-				<input type='hidden' class='file-status' name='".$this->generateName($element, 'BLANK')."' value='BLANK' />
+				<input type='hidden' class='file-status' name='".$element['name']."-status' value='BLANK' />
 			</div>
 		";
 		
@@ -112,7 +91,8 @@ final class field_file extends genericField implements fieldInterface {
 			<div class='fm-file-wrapper'>
 				<span class='fm-file fm-file-$file->extension'>$file->filename</span>
 				$editControls
-				<input type='hidden' class='file-status' name='".$this->generateName($element, $file->fileKey)."' value='FILLED' />
+				<input type='hidden' class='file-status' name='".$element['name']."-status' value='FILLED' />
+				<input type='hidden' class='file-key' name='".$element['name']."-key' value='file-$file->fileKey' />
 			</div>
 		";
 		
@@ -141,17 +121,6 @@ final class field_file extends genericField implements fieldInterface {
 		}
 	}
 	
-/*
-	public function display($values, $row) {
-		$ops = array();
-		$ops['link']['module'] = 'formManager';
-		$ops['link']['function'] = 'displayFileLink';
-		$ops['name']['module'] = 'formManager';
-		$ops['name']['function'] = 'displayFileName';
-		$ops = $this->agave->invoke('filefield_display');
-		
-	}
-*/	
 	private function generateDisplayHTML($file=null) {
 		if($file) {
 			$html = "
@@ -164,9 +133,11 @@ final class field_file extends genericField implements fieldInterface {
 		else return "FILE NOT FOUND";
 	}
 
-	public function validate($values, $md) {
-	
+	public function validate($values, $metaData) {
+		//TODO return true or false
+		return TRUE;
 	}
+	
 	public function returnSettingsForm($settings) {
 		$elements = array();
 		//directory: file

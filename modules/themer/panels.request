@@ -68,7 +68,7 @@ function save() {
 	$agave->saveOrder(NULL, "id");
 	$id = $agave->save();
 	
-	$agave->message('general', NULL, "Saved info for panels.");
+	$agave->message('general', "Saved info for panels.");
 	$agave->redirect("admin/panels");
 }
 
@@ -79,7 +79,7 @@ function deletePanel($args=null) {
 	else {
 		$query = "DELETE FROM `panels` WHERE `id`='$id'";
 		$agave->doSQLQuery($query);
-		$agave->message('general', NULL, "Deleted panel $id");
+		$agave->message('general', "Deleted panel $id");
 		$agave->redirect("admin/panels");
 	}
 }

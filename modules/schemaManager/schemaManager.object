@@ -35,6 +35,7 @@ class schemaManager {
 				WHERE s.`nodeKey` IN(".$nodeKeys.")
 		";
 		$results = $agave->doSQLQuery($query, 3);
+                //$agave->death($results);
 
 		//return unserialized elements, add necessary data
 		$unpacked = array();
@@ -42,6 +43,7 @@ class schemaManager {
 			$unpacked[] = $this->unpackElement($result, $block, $parent, $stem, $stem."Key", $matchKey);
 		}
 		unset($results);
+                //$agave->death($unpacked);
 		return $unpacked;
 	}
 
@@ -118,7 +120,8 @@ class schemaManager {
 		//add default value if present
 		if(isset($row['value'])) {
 			$fm = $agave->load('fieldManager');
-			$element['default'] = $fm->unformat($row['type'], $row['value']);	
+			$element['default'] = $fm->unformat($row['type'], $row['value']);
+                        //$agave->death($element['default']);
 		}
 	
 		return $element;
@@ -184,6 +187,7 @@ class schemaManager {
 			foreach ($this->schema as $row) {
 				if(!empty($row['value'])) {
 					if(!isset($data)) $data = new stdClass;
+                                        //$agave->death($row);
 					$data->$row['keyName'] = $fieldManager->unformat($row['type'], $row['value']);
 				}
 			}

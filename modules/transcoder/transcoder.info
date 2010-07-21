@@ -13,7 +13,7 @@ function transcoder_info_meta() {
 		'group'=>'Transcoding',
 		'version'=>'.1',
 		'agave-version'=>'1',
-		'dependencies'=>array('fileManager'),
+		'dependencies'=>array('fileManager','fieldManager'),
 	);
 }
 
@@ -31,29 +31,12 @@ function transcoder_info_cron() {
 	return $jobs;
 }
 
-function transcoder_info_menu() {
-	$menus = array();
-//	$menus[] = array('name','label','description');
-//	$menus[] = array('name','label','description');
-//	$menus[] = array('name','label','description');
-//	$menus[] = array('name','label','description');
-	
-	return $menus;
-}
-
 function transcoder_info_menu_items() {
 	$items = array();
-//	$items[] = array('menu','weight','label','desc','href','visible?','expanded?','access');
+	$items[] = array('Admin','/Transcoder',0,'Manage transcoding presets.','admin/transcoder',1,1,'administer_transcoder');
+        $items[] = array('Admin','/Transcoder/Transcode',0,'Transcode a file.','admin/transcoder/transcode',1,1,'administer_transcoder');
 	
 	return $items;
-}
-
-function transcoder_info_messages() {
-	$msgs = array();
-//	$msgs[] = array('type','handle','message');
-	
-	return $msgs;
-
 }
 
 function transcoder_info_panels() {
@@ -64,23 +47,22 @@ function transcoder_info_panels() {
 }
 
 function transcoder_info_system_uri() {
+    //	$uris[] = array('dest','alias','access','function','file','panels','actions','fast_route');
 	$uris = array();
-//	$uris[] = array('dest','alias','access','function','file','panels','actions','fast_route');
+	$uris[] = array('admin/transcoder',NULL,'administer_transcoder','adminTranscodingOverview','admin','0','1','0');
+	$uris[] = array('admin/transcoder/preset/create',NULL,'administer_transcoder','presetCreate','admin','0','1','0');
+	$uris[] = array('admin/transcoder/presets',NULL,'administer_transcoder','viewPresets','admin','0','1','0');
+	$uris[] = array('admin/transcoder/preset/save',NULL,'administer_transcoder','presetSave','admin','0','1','0');
+        $uris[] = array('admin/transcoder/preset/delete/%',NULL,'administer_transcoder','presetDelete','admin','0','1','0');
+        $uris[] = array('admin/transcoder/transcode',NULL,'administer_transcoder','test','testTranscoder','0','1','0');
+        $uris[] = array('admin/transcoder/transcode/doit',NULL,'administer_transcoder','doit','testTranscoder','0','1','0');
 	
 	return $uris;
 }
 
-function transcoder_info_system_variables() {
-	$vars = array();
-//	$vars[] = array('key','PHP value');
-	
-	return $vars;
-	
-}
-
 function transcoder_info_user_access() {
 	$args = array();
-//	$args[] = array('action','label','desc','default');
+	$args[] = array('administer_transcoder','Administer Transcoding','Allows user to create and modify presets for transcoding plugins.','0');
 			
 	return $args;
 	
@@ -94,9 +76,22 @@ function transcoder_info_update() {
 }
 
 function transcoder_info_install() {
-	//anything special to run after installation
+	global $agave;
+	$query = "CREATE TABLE IF NOT EXISTS `transcoding_presets` (
+	  `presetKey` int(11) NOT NULL auto_increment,
+	  `name` varchar(128) collate utf8_unicode_ci NOT NULL,
+	  `label` varchar(128) collate utf8_unicode_ci NOT NULL,
+	  `description` text collate utf8_unicode_ci NOT NULL,
+	  `plugin` varchar(128) collate utf8_unicode_ci NOT NULL,
+	  `acceptedExtensions` varchar(512) collate utf8_unicode_ci NOT NULL,
+	  `targetExtension` varchar(128) collate utf8_unicode_ci NOT NULL,
+	  `settings` text collate utf8_unicode_ci NOT NULL,
+	  PRIMARY KEY  (`presetKey`)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1;";
+	$agave->doSQLQuery($query, 0);
 }
 
 function transcoder_info_uninstall() {
-	//anything special to run before uninstall
+	global $agave;
+	$agave->doSQLQuery("DROP TABLE `transcoding_presets`", 0);
 }

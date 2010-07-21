@@ -67,7 +67,7 @@ function saveType($args=NULL) {
 		$query = "SELECT * FROM `contentNode_types` WHERE `name`='$name'";
 		$sql = $agave->doSQLQuery($query, 3);
 		if($sql) {
-			$agave->message('error', NULL, "That internal name already exists, please choose another!");
+			$agave->message('error', "That internal name already exists, please choose another!");
 			$agave->redirect("admin/content/types/add");
 		}
 	}
@@ -107,7 +107,7 @@ function saveType($args=NULL) {
 		$agave->doSQLQuery($query);
 	}
 	
-	$agave->message('general', NULL, "Saved content type $id");
+	$agave->message('general', "Saved content type $id");
 	$agave->redirect("admin/content/types");
 }
 
@@ -152,7 +152,7 @@ function deleteType($args=null) {
 		$query = "DELETE FROM `contentNode_types` WHERE `typeKey`='".$type['typeKey']."'";
 		$agave->doSQLQuery($query);
 		
-		$agave->message('general', NULL, "Deleted content type <em>".$type['label']."</em>");
+		$agave->message('general', "Deleted content type <em>".$type['label']."</em>");
 		$agave->redirect("admin/content/types");
 	}
 }
@@ -198,6 +198,7 @@ function returnEditTypeForm($id=null) {
 		'help'=>'This is an internal name used by Agave, it cannot be changed after creation.',
 		'default'=> ($type) ? $type['name'] : NULL,
 		'disabled'=> ($type) ? TRUE : NULL,
+                'blockNum'=>0,
 		'metaData'=>array(
 			'table'=>'contentNode_types',
 			'field'=>'name'
@@ -209,6 +210,7 @@ function returnEditTypeForm($id=null) {
 		'type'=>'text',
 		'help'=>'This is the label visible in the interface.',
 		'default'=> ($type) ? $type['label'] : NULL,
+                'blockNum'=>0,
 		'metaData'=>array(
 			'table'=>'contentNode_types',
 			'field'=>'label'
@@ -221,6 +223,7 @@ function returnEditTypeForm($id=null) {
 		'cols'=>40,
 		'rows'=>5,
 		'default'=> ($type) ? $type['desc'] : NULL,
+                'blockNum'=>0,
 		'metaData'=>array(
 			'table'=>'contentNode_types',
 			'field'=>'desc'
@@ -230,6 +233,7 @@ function returnEditTypeForm($id=null) {
 		'name'=>'typeKey',
 		'type'=>'hidden',
 		'value'=> ($type) ? $type['typeKey'] : NULL,
+                'blockNum'=>0,
 		'metaData'=>array(
 			'table'=>'contentNode_types',
 			'field'=>'typeKey'

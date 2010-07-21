@@ -7,13 +7,6 @@ $extensions[] = array(
 	'location'=>"file_field.fieldManager.extension",
 	'data'=>array('fieldname'=>'file')
 );
-//fields for fieldManager2
-$extensions[] = array(
-	'module'=>'fieldManager2',
-	'type'=>'fields',
-	'location'=>"file_field.fieldManager2.extension",
-	'data'=>array('fieldname'=>'file')
-);
 
 //stream wrappers for fileManager
 $extensions[] = array(

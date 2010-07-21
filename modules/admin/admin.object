@@ -55,7 +55,6 @@ final class admin {
 		if(function_exists($module."_info_cron")) $this->installCron(call_user_func($module."_info_cron"), $module);
 		if(function_exists($module."_info_menu")) $this->installMenu(call_user_func($module."_info_menu"), $module);
 		if(function_exists($module."_info_menu_items")) $this->installMenuItems(call_user_func($module."_info_menu_items"), $module);
-		if(function_exists($module."_info_messages")) $this->installMessages(call_user_func($module."_info_messages"), $module);
 		if(function_exists($module."_info_panels")) $this->installPanels(call_user_func($module."_info_panels"), $module);
 		if(function_exists($module."_info_system_uri")) $this->installSystemUri(call_user_func($module."_info_system_uri"), $module);
 		if(function_exists($module."_info_system_variables")) $this->installSystemVariables(call_user_func($module."_info_system_variables"));
@@ -84,7 +83,6 @@ final class admin {
 		$this->uninstallCron($module);
 		$this->uninstallMenu($module);
 		$this->uninstallMenuItems($module);
-		$this->uninstallMessages($module);
 		$this->uninstallPanels($module);
 		$this->uninstallSystemUri($module);
 		if(function_exists($module."_info_system_variables")) $this->uninstallSystemVariables(call_user_func($module."_info_system_variables"));
@@ -141,7 +139,6 @@ final class admin {
 		$this->uninstallCron($module);
 		$this->uninstallMenu($module);
 		$this->uninstallMenuItems($module);
-		$this->uninstallMessages($module);
 		$this->uninstallPanels($module);
 		$this->uninstallSystemUri($module);
 
@@ -153,14 +150,13 @@ final class admin {
 		if(function_exists($module."_info_cron")) $this->installCron(call_user_func($module."_info_cron"), $module);
 		if(function_exists($module."_info_menu")) $this->installMenu(call_user_func($module."_info_menu"), $module);
 		if(function_exists($module."_info_menu_items")) $this->installMenuItems(call_user_func($module."_info_menu_items"), $module);
-		if(function_exists($module."_info_messages")) $this->installMessages(call_user_func($module."_info_messages"), $module);
 		if(function_exists($module."_info_panels")) $this->installPanels(call_user_func($module."_info_panels"), $module);
 		if(function_exists($module."_info_system_uri")) $this->installSystemUri(call_user_func($module."_info_system_uri"), $module);
 
 		//save version info for module
 		$this->setModuleVersion($module, $newVersion);
         //let user know that module may need to be reconfigured
-        $this->agave->message('warning', NULL, "Module <b>$module</b> has been updated, it may need to be reconfigured for your site to work properly.");
+        $this->agave->message('warning', "Module <b>$module</b> has been updated, it may need to be reconfigured for your site to work properly.");
 
 		$this->agave->log('module', "Updated module $module from version $oldVersion to $newVersion");
 	}
@@ -265,21 +261,6 @@ final class admin {
 			return false;
 		}
 	} 
-	
-	public function installMessages($messages, $module) {
-		foreach($messages as $message) {
-			$type = $message[0];
-			$handle = $message[1];
-			$message = $message[2];
-		
-			$this->addMessage($type, $handle, $message, $module);
-		}
-	}
-	
-	public function uninstallMessages($module) {
-		$query = "DELETE FROM `messages` WHERE `module`='$module'";
-		$this->agave->doSQLQuery($query, 0);
-	}
 	
 	public function installPanels($panels, $module) {
 		foreach($panels as $panel) {
@@ -406,12 +387,6 @@ final class admin {
 		$this->agave->doSQLQuery($query, 0);
 	}
 	
-	public function addMessage($type=NULL, $handle=NULL, $message=NULL, $module=NULL) {
-		$query = "INSERT INTO `messages` (`type`,`handle`,`message`,`module`) 
-					VALUES('".$type."', '".$handle."', '".$message."', '".$module."')";
-		$this->agave->doSQLQuery($query, 0);
-	}
-	
 	public function addPanel($name, $title, $content, $query, $template, $func, $region, $include, $exclude, $access, $weight, $enabled, $module) {
 		$query = "INSERT INTO `panels` (`name`,`title`,`content`,`query`,`template`,`func`,`region`,`include`,`exclude`,`access`,`weight`,`enabled`,`module`) 
 					VALUES('$name', '$title', '".mysql_real_escape_string($content)."', '".mysql_real_escape_string($query)."', '$template', '$func', '$region', '$include', '$exclude', '$access', '$weight', '$enabled', '$module')";
@@ -447,8 +422,8 @@ final class admin {
 		$current = $this->agave->doSQLQuery($query, 1);
                 if(!$current) $current = array(); // attempting fix
 		if(in_array($action, $current)) {
-			$this->message('error', "DUPLICATE_ACTION");
-			$this->redirect(TRUE);
+			$this->agave->message('error', "An access argument by that name already exists in the database.");
+			$this->agave->redirect(TRUE);
 		}
 		
 		//add new access property
@@ -484,7 +459,7 @@ final class admin {
 		$current = $this->agave->doSQLQuery($query, 1);
                 if(!$current) $current = array(); // attempting fix
 		if(in_array($name, $current)) {
-			$this->agave->message('error', "DUPLICATE_user_type");
+			$this->agave->message('error', "A user type with that name already exists in the database.");
 			$this->agave->redirect("admin/users&mode=types");
 		}
 		

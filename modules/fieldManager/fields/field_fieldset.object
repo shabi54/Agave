@@ -1,0 +1,24 @@
+<?php
+final class field_fieldset extends genericField implements fieldInterface {
+	public function format($values, $fieldName) { //format values for how they should be stored in DB
+            if(array_key_exists($fieldName, $values)){
+                    return $values[$fieldName];
+            }
+            else return null;
+        } 
+	public function unformat($value) { return $value; } //unformat values for how you want them in PHP
+	public function edit($element){ //generate interface with form elements
+            $attributes = $this->generateAttributes($element);
+            //global $agave;
+            //$agave->death($attributes);
+            $classes = $attributes['classes'];
+            $id = $attributes['id'];
+            return "<fieldset $classes $id>";
+        }
+	public function display($values, $settings){ //format value as it should be displayed on page
+            return "";
+        }
+	public function validate($values, $metaData) { return true; } //special validation before formating for save
+	public function returnSettingsForm($settings) { return null; } //return form elements for editing settings specific to the field
+	public function saveSettingsFields($data) { return null; } //format information submitted from the settings form
+}

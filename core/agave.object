@@ -4,7 +4,7 @@ class agave extends olddb {
 	//TODO: organize properties by what is set during bootstrap, and what is set internally
 	public $destination = FALSE;
 	public $current_location = FALSE;
-	public $saveInfo = FALSE; //saveInfo and metaInfo should hopefully become deprecated w/ fieldManager2
+	public $saveInfo = FALSE; //saveInfo and metaInfo should hopefully become deprecated w/ fieldManager
 	public $metaInfo = FALSE;
 	public $uri = FALSE;
 	public $module_env = array();
@@ -86,67 +86,25 @@ class agave extends olddb {
 		return $string;
 	}
 	
-	public function message($type=null, $handle=NULL, $message=NULL, $userKey=NULL, $time_start=NULL, $time_expire=NULL) {
-		if(!$userKey) {
-			if(!isset($_SESSION['messages']['types'][$type])) $_SESSION['messages']['types'][$type] = array();
-			if($handle) $_SESSION['messages']['handles'][] = $handle;
-			if($message) $_SESSION['messages']['types'][$type][] = $message;
-		}
-		else if($userKey && $this->setting('user-messaging')) {
-			//TODO maybe optimize these queries so that all user messages are written once during cleanup
-			$query = "INSERT INTO `messages` (type,message,userKey,time_start,time_expire,time_added)
-						VALUES('$type','".mysql_real_escape_string($message)."','$userKey','$time_start','$time_expire','".time()."')";
-			$this->doSQLQuery($query);
-		}
+	public function message($type=null, $message=NULL) {
+		if($message) $_SESSION['messages'][$type][] = $message;
 	}
-
+	
 	public function getMessages() {
 		//TODO: completely redo - organize by type; unpack user messages IF ENABLED here as well
 		$html = NULL;
-		//unpack normal page-level messages
-		//$this->death($_SESSION);
 		if(isset($_SESSION['messages'])) {
-			$errorMessages = array();
-			if(isset($_SESSION['messages']['handles'])) {
-				$query = "SELECT * FROM `messages` WHERE `handle` IN('".implode("','", $_SESSION['messages']['handles'])."')";
-				$items = $this->doSQLQuery($query, 3);
-				if($items) foreach($items as $item) $errorMessages[$item['type']][] = "<li>".$item['message']."</li>";
+			foreach($_SESSION['messages'] as $type=>$messages) {
+				$html .= "<ul id='agave-messages-$type' class='agave-messages'>";
+				foreach($messages as $message) {
+					$html .= "<li>".t($message)."</li>\n";
+				}
+				$html .= "</ul>";
 			}
-			if(!empty($_SESSION['messages']['types'])) {
-				foreach($_SESSION['messages']['types'] as $type=>$messages) foreach($messages as $message) $errorMessages[$type][] = "<li>".$message."</li>";
-				foreach($errorMessages as $type=>$messages) $html .= "<ul id='agave-messages-$type' class='agave-messages'>".implode("\n", $messages)."</ul>";
-			}			
 			unset($_SESSION['messages']);
+			return($html);
 		}
-
-		//unpack user-specific messages - stick in $agave->js
-		//TODO - make into separate function $agave->getUserMessages($userKey, $types);
-		if($this->setting('user-messaging')) {
-			$user = $this->load('user');
-			$themer = $this->load('themer');
-			//TODO: access checks on message types?
-			//$types = (isset($_POST['messageTypes'])) ? "AND `type` IN('".implode("','", $_POST['messageTypes'])."')": NULL;
-			$types = NULL;
-			
-			$query = "SELECT * FROM `messages` WHERE `userKey`='$user->userKey' $types ORDER BY `time_added` DESC";
-			$messages = $this->doSQLQuery($query, 3);
-			
-			//look for user messages
-			$items = array();
-			if($messages) foreach($messages as $message) {
-				//TODO: scan time_start/expire
-				$item = array();
-				$item['message'] = $message['message'];
-				$item['messageKey'] = $message['messageKey'];
-				$item['type'] = $message['type'];
-				$item['time'] = ($message['time_added']) ? date("D g:i A", $message['time_added']) : NULL;
-				$items[] = $item;
-			}
-			
-			$themer->js['user']['userMessages'] = $items;
-		}
-		
-		return ($html) ? $html : NULL;
+		return FALSE;
 	}
 
 	public function redirect($path=NULL) {
@@ -274,7 +232,7 @@ class agave extends olddb {
 	}
 	
 	public function loadModules() {
-		if($this->module_env = $this->cache('agave_module_env')) $this->modulesLoaded = TRUE; 
+		if($this->module_env = $this->cache('agave_module_env')) $this->modulesLoaded = TRUE;
 		else {
 			foreach($this->setting('enabled_modules') as $module) {
 				$modulePath = $this->modulePath($module);
@@ -456,7 +414,7 @@ class agave extends olddb {
 					
 					//validate metadata, could have been tampered with
 					if(!is_object($md)) {
-						$this->message('error', "INVALID_METADATA");
+						$this->message('error', "Invalid meta data was submitted with your form, your submission has been discarded for security reasons.");
 						$this->redirect($_GET['rd']); //TODO get rid of $_GET[rd]?
 					}
 					
@@ -518,7 +476,10 @@ class agave extends olddb {
 			$id = (isset($md->matchKeyValue)) ? $md->matchKeyValue : $id;
 			$valueKey = (isset($md->valueKey)) ? $md->valueKey : NULL;
 
-			$values = ($values) ? mysql_real_escape_string($fm->format($values, $md)) : NULL;
+                        //$this->death($values);
+                        //$this->death($md->type);
+
+			$values = ($values) ? mysql_real_escape_string($fm->format($md->type,$values)) : NULL;
 			
 			//only add a row if there is a real value, else delete the row that was there.  We only store real values
 			if(isset($values)) {

@@ -9,16 +9,12 @@ final class field_textarea extends genericField implements fieldInterface {
 	public function __destruct() { }
 	
 	
-	public function format($values, $metaData) {
-		$values = serialize($values);
-		$values = $this->agave->invoke('field_textarea_format', $values);
-		return $values;
+	public function format($values, $fieldName) {
+		return $values[$fieldName];
 	}
 	
 	public function unformat($values) {
-		$values = unserialize($values);
-		$values = $this->agave->invoke('field_textarea_unformat', $values);
-		return $values;
+		return $values[$fieldName];
 	}
 	
 	public function edit($element) {
@@ -35,7 +31,7 @@ final class field_textarea extends genericField implements fieldInterface {
 	}
 	
 	public function validate($values, $md) {
-		
+		return TRUE;
 	}
 	public function returnSettingsForm($settings) {
 		$elements = array();

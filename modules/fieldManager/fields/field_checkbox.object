@@ -8,12 +8,15 @@ final class field_checkbox extends genericField implements fieldInterface {
 	public function __destruct() {}
 	
 	
-	public function format($values, $metaData) {
-		return serialize($values);
+	public function format($values=null, $fieldName) {
+		if(array_key_exists($fieldName, $values)){
+                    return serialize($values[$fieldName]);
+                }
+                else return null;
 	}
 	
-	public function unformat($values) {
-		return unserialize($values);
+	public function unformat($value) {
+		return unserialize($value);
 	}
 
 	public function edit($element) {

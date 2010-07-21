@@ -1,11 +1,11 @@
 <?php
-function test($args=null) {
+function test($args=null) { //TODO: Switch the file field to fm2
 	
 	global $agave;
 	$t = $agave->load('themer');
 	$fm = $agave->load("fieldManager");
 	$t->output = "<h1>Transcoding Test Page</h1>";
-	$form = $fm->startForm($agave->base_url."transcoder/doit", "post", NULL, TRUE);
+	$form = $fm->startForm($agave->base_url."admin/transcoder/transcode/doit", "post", NULL, TRUE);
 	
 	$query = "SELECT `name` FROM `transcoding_presets`";
 	$options = $agave->doSQLQuery($query, 1);
@@ -17,6 +17,16 @@ function test($args=null) {
 				'values'=>$options,
 				'default'=>NULL
 	);
+	$form .= $fm->generateElement($element);
+
+        $element = array(
+				'name'=>'button1',
+				'label'=>'HELLO',
+				'type'=>'button',
+				'href'=>'www.google.com',
+				'class'=>'deadlybutton',
+	);
+        
 	$form .= $fm->generateElement($element);
 	$elements = array();
 	$elements[] = array(
@@ -45,8 +55,11 @@ function doit($args=null){
 	else{
 	$t->output .= "No transcoding preset selected.";
 	}
-	
+
 	$fileman = $agave->load('fileManager');
+
+        //$agave->death($agave->);
+
 	$name = $_FILES['original']['name'];
 	$tmp_name = $_FILES['original']['tmp_name'];
 	$size = $_FILES['original']['size'];
@@ -56,11 +69,14 @@ function doit($args=null){
 
 	$trans = $agave->load('transcoder');
 	$outfiles = $trans->execute($_POST['preset'],$file);
+
+        //$agave->death($outfiles);
+
 	foreach($outfiles as $outfile){
 		$link = $outfile->url;
 		$t->output .= "<br/><br/>Link to transcoded file:<br/><a href='".$link."'>".$link."</a>";
 	}
 	
-	$t->output .= "<br/><br/><a href='".$agave->base_url."transcoder'>Go back and transcode another file.</a>";
+	$t->output .= "<br/><br/><a href='".$agave->base_url."admin/transcoder/transcode'>Go back and transcode another file.</a>";
 	
 }

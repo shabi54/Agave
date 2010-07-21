@@ -1,0 +1,16 @@
+<?php
+/* 
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+function jodconverter_info_meta() {
+	return array(
+		'name'=>'JODconverter',
+		'machine-name'=>'jodconverter',
+		'description'=>'Provides a plugin to transcoder module for manipulating documents.',
+		'group'=>'Transcoding',
+		'version'=>'.1',
+		'agave-version'=>'1',
+		'dependencies'=>array('transcoder'),
+	);
+}

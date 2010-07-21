@@ -5,7 +5,7 @@ function createContentNode($args=null) {
 	$user = $agave->load('user');
 	
 	if(!$user->access("create_content")) {
-		$agave->message('error', "ACCESS_DENIED");
+		$agave->message('error', "You do not have access to perform the action you requested.");
 		$agave->redirect();
 	}
 	

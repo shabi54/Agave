@@ -1,71 +1,77 @@
 K 25
 svn:wc:ra_dav:version-url
-V 57
-/svn/agave/!svn/ver/234/trunk/modules/fieldManager/fields
+V 58
+/svn/agave/!svn/ver/256/trunk/modules/fieldManager2/fields
+END
+field_custom.object
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/agave/!svn/ver/167/trunk/modules/fieldManager2/fields/field_custom.object
 END
 field_multiselect.object
 K 25
 svn:wc:ra_dav:version-url
-V 82
-/svn/agave/!svn/ver/152/trunk/modules/fieldManager/fields/field_multiselect.object
+V 83
+/svn/agave/!svn/ver/256/trunk/modules/fieldManager2/fields/field_multiselect.object
 END
 field_hidden.object
 K 25
 svn:wc:ra_dav:version-url
-V 76
-/svn/agave/!svn/ver/81/trunk/modules/fieldManager/fields/field_hidden.object
+V 78
+/svn/agave/!svn/ver/256/trunk/modules/fieldManager2/fields/field_hidden.object
 END
 field_textarea.object
 K 25
 svn:wc:ra_dav:version-url
-V 79
-/svn/agave/!svn/ver/100/trunk/modules/fieldManager/fields/field_textarea.object
+V 80
+/svn/agave/!svn/ver/256/trunk/modules/fieldManager2/fields/field_textarea.object
 END
 genericField.object
 K 25
 svn:wc:ra_dav:version-url
-V 77
-/svn/agave/!svn/ver/206/trunk/modules/fieldManager/fields/genericField.object
+V 78
+/svn/agave/!svn/ver/211/trunk/modules/fieldManager2/fields/genericField.object
 END
 field_radio.object
 K 25
 svn:wc:ra_dav:version-url
-V 75
-/svn/agave/!svn/ver/97/trunk/modules/fieldManager/fields/field_radio.object
+V 77
+/svn/agave/!svn/ver/256/trunk/modules/fieldManager2/fields/field_radio.object
 END
 field_select.object
 K 25
 svn:wc:ra_dav:version-url
-V 77
-/svn/agave/!svn/ver/166/trunk/modules/fieldManager/fields/field_select.object
+V 78
+/svn/agave/!svn/ver/256/trunk/modules/fieldManager2/fields/field_select.object
 END
 fieldInterface.object
 K 25
 svn:wc:ra_dav:version-url
-V 79
-/svn/agave/!svn/ver/206/trunk/modules/fieldManager/fields/fieldInterface.object
-END
-field_cktext.object
-K 25
-svn:wc:ra_dav:version-url
-V 77
-/svn/agave/!svn/ver/234/trunk/modules/fieldManager/fields/field_cktext.object
+V 80
+/svn/agave/!svn/ver/206/trunk/modules/fieldManager2/fields/fieldInterface.object
 END
 field_password.object
 K 25
 svn:wc:ra_dav:version-url
-V 79
-/svn/agave/!svn/ver/112/trunk/modules/fieldManager/fields/field_password.object
+V 80
+/svn/agave/!svn/ver/256/trunk/modules/fieldManager2/fields/field_password.object
+END
+field_html.object
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/agave/!svn/ver/167/trunk/modules/fieldManager2/fields/field_html.object
 END
 field_text.object
 K 25
 svn:wc:ra_dav:version-url
-V 74
-/svn/agave/!svn/ver/93/trunk/modules/fieldManager/fields/field_text.object
+V 76
+/svn/agave/!svn/ver/256/trunk/modules/fieldManager2/fields/field_text.object
 END
 field_checkbox.object
 K 25
 svn:wc:ra_dav:version-url
-V 78
-/svn/agave/!svn/ver/97/trunk/modules/fieldManager/fields/field_checkbox.object
+V 80
+/svn/agave/!svn/ver/256/trunk/modules/fieldManager2/fields/field_checkbox.object
 END

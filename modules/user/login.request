@@ -46,7 +46,7 @@ function processLogin() {
 	
 	//redirect if no match on login/password
 	if (!$userKey) {
-		$agave->message('error', 'INVALID_LOGIN');
+		$agave->message('error', 'The login or password you entered was invalid, please try again.');
 		$agave->redirect();
 	}
 
@@ -63,13 +63,12 @@ function processLogin() {
 			//TESTING
 			$u = $agave->load('user', TRUE);
 			$u->build($userKey);
-			$agave->message('general', NULL, "$u->firstName $u->lastName just logged in!!", 1);
 			//END TESTING
 						
 			$agave->redirect();
 		}
 		else if($result) {
-			$agave->message('error', "ALREADY_LOGGED_IN");
+			$agave->message('error', "You cannot be logged in more than once.");
 			$agave->redirect();
 		}
 	}

@@ -1,6 +1,6 @@
 <?php
 /*
- * The following is to provide stream wrapper support for Agave, it is largely taken from Drupal7's Stream Wrapper support
+ * The following is to provide stream wrapper support for Agave, it is largely taken from Drupal7's Stream Wrapper support; see http://api.drupal.org
  * */
 //From PHP.net
 interface StreamWrapperInterface {
@@ -165,16 +165,8 @@ abstract class agaveLocalStreamWrapper implements AgaveStreamWrapperInterface {
     }
     $path = $this->getDirectoryPath() . '/' . $fm->get_target($uri);
 
-    $realpath = realpath($path);
-    if (!$realpath) {
-      // This file does not yet exist.
-      $realpath = realpath(dirname($path)) . '/' . basename($path);
-    }
-    $directory = realpath($this->getDirectoryPath());
-    if (!$realpath || !$directory || strpos($realpath, $directory) !== 0) {
-      return FALSE;
-    }
-    return $realpath;
+   
+    return $path;
   }
 
   /**
