@@ -1,5 +1,0 @@
-<?php
-$objects = array();
-$objects['fieldManager'] = 'fieldManager.object';
-$objects['genericField'] = 'dependencies/genericField.object';
-$objects['fieldInterface'] = 'dependencies/fieldInterface.object';
