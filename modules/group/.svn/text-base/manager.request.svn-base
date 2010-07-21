@@ -1,7 +1,0 @@
-<?php
-	//this is to provide semi-admin level tools for the group manager, such as:
-	//add user to group, message group, delete group
-	
-	//group-view function
-	//do general chat view, but wrap it in basic group template file
-?>

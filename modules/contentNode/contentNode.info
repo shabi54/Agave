@@ -1,19 +1,33 @@
 <?php
-//TODO: consider combining .module and .info... objects and extensions could just as easily be defined here
 
-/**
- * Module meta data - run during install/uninstall
- */
 function contentNode_info_meta() {
 	return array(
 		'name'=>'Content Node',
 		'machine-name'=>'contentNode',
 		'description'=>'Provides a general framework for page-level content and support for multiple content types.',
 		'group'=>'Basic Content',
-		'version'=>'.2',
+		'version'=>'.3',
 		'agave-version'=>'1',
 		'dependencies'=>array('user','schemaManager'),
 	);
+}
+
+function contentNode_info_objects() {
+	$objects = array();
+	$objects['contentNode'] = 'contentNode.object';
+	$objects['contentNodeManager'] = 'contentNodeManager.object';
+	return $objects;
+}
+
+function contentNode_info_extensions() {
+	$extensions = array();
+	$extensions[] = array(
+		'module'=>'fieldManager',
+		'type'=>'form',
+		'location'=>'node_edit.request',
+		'data'=>array('name'=>'contentNode_edit','func'=>'contentNode_return_edit_form'),
+	);
+	return $extensions;
 }
 
 function contentNode_info_menu_items() {

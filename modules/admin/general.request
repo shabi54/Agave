@@ -1,6 +1,7 @@
 <?php
 function general($args=NULL) {
 	global $agave;
+
 	$agave->rebuildCaches();
 	if($_POST) save();
 	else view();

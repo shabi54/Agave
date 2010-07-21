@@ -1,7 +1,0 @@
-<?php
-class query extends PDOStatement {
-	private $table_prefix;
-	private $db_target;
-	
-	
-}

@@ -8,18 +8,48 @@ function schemaManager_info_meta() {
 		'name'=>'Schema Manager', //name of module in modules interfaces
 		'machine-name'=>'schemaManager', //name of directory in the modules folder
 		'description'=>'Provides an object for managing dynamic data fields in the database. Displaying the data, and managing necessary form elements for changing the data.',
-		'group'=>'Core', //the category in which you module will appear on modules page, if 
-		'version'=>'.1', //the current version of your module, increment this any time you make changes to db in your module
+		'group'=>'Core', //the category in which you module will appear on modules page, if
+		'version'=>'.2', //the current version of your module, increment this any time you make changes to db in your module
 		'agave-version'=>'1', //what version of agave is required for this module to work?
 		'dependencies'=>array('user'), //what other modules does this module rely on?
 	);
 }
 
+function schemaManager_info_objects() {
+	$objects = array();
+	$objects['schemaManager'] = 'schemaManager.object';
+	return $objects;
+}
+
+function schemaManager_info_extensions() {
+	$extensions = array();
+	$extensions[] = array(
+		'module'=>'fieldManager',
+		'type'=>'form',
+		'location'=>'forms.inc',
+		'data'=>array('name'=>'sm_field_element_settings','func'=>'schemaManager_return_field_element_settings_form'),
+	);
+	
+	$extensions[] = array(
+		'module'=>'fieldManager',
+		'type'=>'form',
+		'location'=>'forms.inc',
+		'data'=>array('name'=>'sm_field_element','func'=>'schemaManager_return_field_element_form'),
+	);
+
+	return $extensions;
+}
+
 function schemaManager_info_system_uri() {
 	$uris = array();
 //	$uris[] = array('dest','alias','access','function','file','panels','actions','fast_route');
-	$uris[] = array('admin/schemata',NULL,'administer_schemata','sm_dostuff','admin','0','1','0');
-	
+	$uris[] = array('admin/schemata',NULL,'administer_schemata','browseSchema','admin','0','1','0');
+	$uris[] = array('admin/schemata/save/field',NULL,'administer_schemata','saveField','admin','0','1','0');
+	$uris[] = array('admin/schemata/save/field/settings',NULL,'administer_schemata','saveFieldSettings','admin','0','1','0');
+	$uris[] = array('admin/schemata/edit/field',NULL,'administer_schemata','editField','admin','0','1','0');
+	$uris[] = array('admin/schemata/edit/field/settings',NULL,'administer_schemata','editFieldSettings','admin','0','1','0');
+	$uris[] = array('admin/schemata/update/weights',NULL,'administer_schemata','updateWeights','admin','0','1','0');
+	$uris[] = array('admin/schemata/delete/field',NULL,'administer_schemata','deleteField','admin','0','1','0');
 	return $uris;
 }
 

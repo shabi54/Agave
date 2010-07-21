@@ -11,6 +11,25 @@ function admin_info_meta() {
 	);
 }
 
+function admin_info_objects() {
+	$objects = array();
+	$objects['admin'] = 'admin.object';
+	return $objects;
+}
+
+function admin_info_extensions() {
+	$extensions = array();
+
+	$extensions[] = array(
+		'module'=>'fieldManager',
+		'type'=>'form',
+		'location'=>'general.request',
+		'data'=>array('name'=>'admin_general','func'=>'returnGeneralForm'),
+	);
+
+	return $extensions;
+}
+
 function admin_info_actions() {
 	$actions = array();
 	//$actions[] = array('name','action','description','function','file','enabled?');

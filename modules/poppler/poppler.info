@@ -14,3 +14,14 @@ function poppler_info_meta() {
 		'dependencies'=>array('transcoder'),
 	);
 }
+
+function poppler_info_extensions() {
+	$extensions=array();
+	$extensions[] = array(
+		'module'=>'transcoder',
+		'type'=>'plugin',
+		'location'=>"transcode_plugin_poppler.object",
+		'data'=>array('name'=>'poppler')
+	);
+	return $extensions;
+}

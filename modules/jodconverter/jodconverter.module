@@ -1,8 +1,0 @@
-<?php
-$extensions=array();
-$extensions[] = array(
-	'module'=>'transcoder',
-	'type'=>'plugin',
-	'location'=>"transcode_plugin_jodconverter.object",
-	'data'=>array('name'=>'jodconverter')
-);

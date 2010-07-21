@@ -6,7 +6,7 @@ function viewContentNode($args=null) {
 	//load stuff and build node
 	$user = $agave->load('user');	
 	$themer = $agave->load('themer');
-	$node = $agave->load('contentNode');
+	$node = new contentNode();
 	
 	if(!$node->build($contentID)) agave_error_page("404");
 
@@ -37,6 +37,5 @@ function viewContentNode($args=null) {
 	$agave->invoke("contentNode_render", $themevars);
 	
 	//theme the node
-        //$agave->death($themevars);
 	$themer->output = $themer->theme('contentNode', $template, $themevars);
 }

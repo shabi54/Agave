@@ -3,7 +3,11 @@
 ###############################################################################################################
 
 #
-# Apache/PHP/Drupal settings:
+#	NOTICE!!  This is taken almost verbatim from Drupal 6's default .htaccess file
+#
+
+#
+# Apache/PHP/Agave settings:
 #
 
 # Protect files and directories from prying eyes.
@@ -17,7 +21,7 @@ Options -Indexes
 # Follow symbolic links in this directory.
 Options +FollowSymLinks
 
-# Make Drupal handle any 404 errors.
+# Make Agave handle any 404 errors.
 ErrorDocument 404 /index.php
 ErrorDocument 403 /index.php
 
@@ -95,9 +99,9 @@ DirectoryIndex index.php
   # RewriteCond %{HTTP_HOST} ^www\.example\.com$ [NC]
   # RewriteRule ^(.*)$ http://example.com/$1 [L,R=301]
 
-  # Modify the RewriteBase if you are using Drupal in a subdirectory or in a
+  # Modify the RewriteBase if you are using Agave in a subdirectory or in a
   # VirtualDocumentRoot and the rewrite rules are not working properly.
-  # For example if your site is at http://example.com/drupal uncomment and
+  # For example if your site is at http://example.com/Agave uncomment and
   # modify the following line:
   # RewriteBase /agave
   #
@@ -107,17 +111,26 @@ DirectoryIndex index.php
 
   # Rewrite URLs of the form 'x' to the form 'index.php?dest=x'.
 
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_URI} !=/favicon.ico
+	RewriteCond %{REQUEST_URI} ^/media/(.*)$
+  RewriteRule ^(.*)$ /media/index.php?dest=$1 [L,QSA]
 
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteCond %{REQUEST_URI} !=/favicon.ico
-  RewriteRule ^(.*)$ /agave/index.php?dest=$1 [L,QSA]
+	RewriteCond %{REQUEST_URI} ^/exams/(.*)$
+  RewriteRule ^(.*)$ /exams/index.php?dest=$1 [L,QSA]
 
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_URI} !=/favicon.ico
+	RewriteCond %{REQUEST_URI} ^/agave/(.*)$
+  RewriteRule ^(.*)$ /agave/index.php?dest=$1 [L,QSA]
 
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteCond %{REQUEST_URI} !=/favicon.ico
   RewriteRule ^(.*)$ index.php?dest=$1 [L,QSA]
 </IfModule>
-
-# $Id: .htaccess,v 1.90.2.3 2008/12/10 20:04:08 goba Exp $

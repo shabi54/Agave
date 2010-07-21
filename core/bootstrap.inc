@@ -7,8 +7,6 @@
  * 	4. Make sure the bootstrap function that should execute BEFORE your phase returns a call to bootstrap with your new phase
  */
 
-
-
 //bootstrap status definitions
 define('SITE_NOT_FOUND', 1);
 define('SITE_OFFLINE', 2);
@@ -53,27 +51,25 @@ function bootstrap($phase=BOOTSTRAP_SETTINGS, $vars=NULL) {
 
 function bootstrap_settings() {
 	/*
+	 * This function is taken from Drupal 6 bootstrap.inc - see http://api.drupal.org
+	 *
 	 * This is the first phase, in here Agave simply looks for the proper settings.php file, corresponding to the request received...
 	 * For example, a request to www.russnet.org/homepage/look/lol will resolve to agave_root/sites/www.russnet.org/settings.php
 	 * Likewise, if the site root is www.livefromrussia.org/stage1, the request will resolve to agave_root/sites/www.livefromrussia.org.stage1/settings.php
 	 */
 	global $settings;
-	if(isset($settings['proj_root'])) {
-		$initFile = $settings['proj_root']."settings.php";
-		return bootstrap(BOOTSTRAP_AGAVE, $initFile);
-	}
-	else {
-		$confdir = 'sites';
-		$uri = explode('/', $_SERVER['SCRIPT_NAME'] ? $_SERVER['SCRIPT_NAME'] : $_SERVER['SCRIPT_FILENAME']);
-		$server = explode('.', implode('.', array_reverse(explode(':', rtrim($_SERVER['HTTP_HOST'], '.')))));
-		for ($i = count($uri) - 1; $i > 0; $i--) {
-			for ($j = count($server); $j > 0; $j--) {
-				$dir = implode('.', array_slice($server, -$j)) . implode('.', array_slice($uri, 0, $i));
-				if(file_exists("$confdir/$dir/settings.php")) {
-					global $initFile;
-					$initFile = "$confdir/$dir/settings.php";				
-					return bootstrap(BOOTSTRAP_HOST);
-				}
+
+	$confdir = 'sites';
+	$uri = explode('/', $_SERVER['SCRIPT_NAME'] ? $_SERVER['SCRIPT_NAME'] : $_SERVER['SCRIPT_FILENAME']);
+	$server = explode('.', implode('.', array_reverse(explode(':', rtrim($_SERVER['HTTP_HOST'], '.')))));
+	for ($i = count($uri) - 1; $i > 0; $i--) {
+		for ($j = count($server); $j > 0; $j--) {
+			$dir = implode('.', array_slice($server, -$j)) . implode('.', array_slice($uri, 0, $i));
+			
+			if(file_exists("$confdir/$dir/settings.php")) {
+				global $initFile;
+				$initFile = "$confdir/$dir/settings.php";
+				return bootstrap(BOOTSTRAP_HOST);
 			}
 		}
 	}

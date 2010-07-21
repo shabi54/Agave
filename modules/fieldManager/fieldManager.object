@@ -33,7 +33,7 @@ final class fieldManager {
 	private function registerForms() {
 		if(!empty($this->agave->module_env['extensions']['fieldManager']['form'])) {
 			foreach($this->agave->module_env['extensions']['fieldManager']['form'] as $form) {
-				$this->forms[$form['data']['name']]['func'] = $form['data']['func']; 
+				$this->forms[$form['data']['name']] = $form;
 			}
 		}
 	}
@@ -118,11 +118,15 @@ final class fieldManager {
 	 * Methods for retrieving and processing forms
 	 */
 
+	private function includeForm($id) {
+		include_once($this->forms[$id]['file']);
+	}
+
 	public function getForm() { // Give it arguments like: getForm($formname, $multistep, $argtopass1, $argstopass2, ...)
 		$args= func_get_args();
 		$id = array_shift($args);
 		$multistep = array_shift($args);
-		
+
 		//For multistep forms which need $form_values
 		if($multistep){
 			$form_values = $_POST;
@@ -131,9 +135,10 @@ final class fieldManager {
 		}
 
 		//run necessary function to build form properties
-		$func = $this->forms[$id]['func'];
+		$func = $this->forms[$id]['data']['func'];
+		if(!function_exists($func)) $this->includeForm($id);
 		$data = call_user_func_array($func, $args);
-		
+
 		//assign properties to $form object
 		$form = new stdClass; // $form->fields points to hierarchically nested array of fields and their properties - #attrib for properties and normal for nested children?
 		if($data) foreach($data as $key=>$value) $form->$key = $value;
@@ -207,7 +212,7 @@ final class fieldManager {
 		}
 
                 //DO FORMATS
-		$this->formatValuesWithFieldsArray($form->fields, $form);
+		//$this->formatValuesWithFieldsArray($form->fields, $form);
 		
 		$form->processed = TRUE;
 		return $form;

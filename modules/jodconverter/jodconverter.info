@@ -14,3 +14,14 @@ function jodconverter_info_meta() {
 		'dependencies'=>array('transcoder'),
 	);
 }
+
+function jodconverter_info_extensions() {
+	$extensions=array();
+	$extensions[] = array(
+		'module'=>'transcoder',
+		'type'=>'plugin',
+		'location'=>"transcode_plugin_jodconverter.object",
+		'data'=>array('name'=>'jodconverter')
+	);
+	return $extensions;
+}

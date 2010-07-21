@@ -1,9 +1,0 @@
-<?php
-$objects = array();
-$objects['admin'] = 'admin.object';
-$extensions[] = array(
-	'module'=>'fieldManager',
-	'type'=>'form',
-	'location'=>'general.request',
-	'data'=>array('name'=>'admin_general','func'=>'returnGeneralForm'),
-);

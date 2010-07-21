@@ -1,7 +1,9 @@
 <?php
 /*
- * The following is to provide stream wrapper support for Agave, it is largely taken from Drupal7's Stream Wrapper support; see http://api.drupal.org
- * */
+ * The following is to provide stream wrapper support for Agave, it is almost entirely taken from Drupal7's Stream Wrapper support; see http://api.drupal.org
+ * Note that this includes the stream wrappers as well.
+ */
+
 //From PHP.net
 interface StreamWrapperInterface {
 	public function stream_open($uri, $mode, $options, &$opened_url);
@@ -46,14 +48,14 @@ interface AgaveStreamWrapperInterface extends StreamWrapperInterface {
 
 
 /**
- * Drupal stream wrapper base class for local files.
+ * Agave stream wrapper base class for local files.
  *
  * This class provides a complete stream wrapper implementation. URIs such as
  * "public://example.txt" are expanded to a normal filesystem path such as
  * "sites/default/files/example.txt" and then PHP filesystem functions are
  * invoked.
  *
- * DrupalLocalStreamWrapper implementations need to implement at least the
+ * agaveLocalStreamWrapper implementations need to implement at least the
  * getDirectoryPath() and getExternalUrl() methods.
  */
 abstract class agaveLocalStreamWrapper implements AgaveStreamWrapperInterface {

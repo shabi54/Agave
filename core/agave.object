@@ -236,10 +236,12 @@ class agave extends olddb {
 		else {
 			foreach($this->setting('enabled_modules') as $module) {
 				$modulePath = $this->modulePath($module);
-				$file = $modulePath.$module.".module";
+				$file = $modulePath.$module.".info";
 				if(file_exists($file)) {
-					include($file); 
-					if(isset($extensions)) foreach($extensions as $extension) {
+					include_once($file);
+					$extensions = (function_exists($module."_info_extensions")) ? call_user_func($module."_info_extensions") : FALSE;
+					$objects = (function_exists($module."_info_objects")) ? call_user_func($module."_info_objects") : FALSE;
+					if($extensions) foreach($extensions as $extension) {
 						//TODO: Change this, include each file, add $extensions together, 1 foreach after all included
 						$data['file'] = $modulePath.$extension['location'];
 						$data['data'] = $extension['data'];
@@ -249,9 +251,6 @@ class agave extends olddb {
 					if(isset($objects)) foreach($objects as $object=>$location) $this->module_env['objects'][$object] = $modulePath.$location;
 					//TODO: Maybe one day add another section in .module file for object oriented libraries instead of generic functions?
 				}
-
-				if(isset($extensions)) unset($extensions);
-				if(isset($objects)) unset($objects);
 			}
 
 			$this->cache('agave_module_env', $this->module_env, 'admin');

@@ -2,16 +2,13 @@
 class contentNode {
 	public $contentNodeKey;
 	public $fields;
-	
-	public function __construct() {
-		global $agave;
-		$this->agave = $agave;
-	}
 
 	public function build($id) {
+		global $agave;
+		$this->agave = $agave;
 		$this->contentNodeKey = $id;
 		$this->matchKeyValue = $id;
-		
+
 		//get properties from node table first
 		$query = "SELECT * FROM `contentNode` WHERE `contentNodeKey`='$id'";
 		$sqlData = $this->agave->doSQLQuery($query, 2);
@@ -22,16 +19,16 @@ class contentNode {
 			unset($sqlData);
 		}
 		else return FALSE;
-		
+
 		if(!isset($this->published)) $this->published = FALSE;
 
 		//get nodeKeys
 		$matchFields = array( array('contentNode_type'=>$this->type) );
 		$this->buildFields($matchFields);
-		
+
 		return TRUE;
 	}
-	
+
 	public function buildFields($matchFields=NULL) {
 		$this->fields = $this->agave->load('schemaManager');
 		$this->fields->stem = "contentNode";

@@ -1,11 +1,7 @@
 <?php
 /**
- * Drupal temporary (temporary://) stream wrapper class.
- *
- * Provides support for storing temporarily accessible files with the Drupal
- * file interface.
- *
- * Extends DrupalPublicStreamWrapper.
+ *  * This is taken from Drupal 7's stream wrapper support.  See http://api.drupal.org
+ * Agave temporary (tmp://) stream wrapper class.
  */
 class stream_wrapper_tmp extends agaveLocalStreamWrapper {
   /**

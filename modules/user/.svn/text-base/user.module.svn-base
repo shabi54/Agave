@@ -1,3 +1,0 @@
-<?php
-$objects = array();
-$objects['userManager'] = 'userManager.object';

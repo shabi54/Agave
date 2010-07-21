@@ -1,3 +1,0 @@
-<?php
-$objects = array();
-$objects['fieldManager2'] = 'fieldManager2.object';

@@ -17,7 +17,11 @@ function themer_info_meta() {
 	);
 }
 
-
+function themer_info_objects() {
+	$objects = array();
+	$objects['themer'] = 'themer.object';
+	return $objects;
+}
 function themer_info_menu_items() {
 	$items = array();
 	$items[] = array('Admin','/Menus',0,'Manage menus on your site.','admin/menus',1,1,'administer_menus');

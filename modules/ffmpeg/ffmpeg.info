@@ -14,3 +14,14 @@ function ffmpeg_info_meta() {
 		'dependencies'=>array('transcoder'),
 	);
 }
+
+function ffmpeg_info_extensions() {
+	$extensions=array();
+	$extensions[] = array(
+		'module'=>'transcoder',
+		'type'=>'plugin',
+		'location'=>"transcode_plugin_ffmpeg.object",
+		'data'=>array('name'=>'ffmpeg')
+	);
+	return $extensions;
+}

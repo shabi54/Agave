@@ -39,7 +39,7 @@ function getModuleData($loc) {
 	
 	//include .module files
 	$globals = array();
-	foreach($modules as $module) if(file_exists($file=$dir."/".$module."/$module.info")) include($file);
+	foreach($modules as $module) if(file_exists($file=$dir."/".$module."/$module.info")) include_once($file);
 	
 	//get data from _info_meta hook if it exists, add module data into setting
 	$moduleData = $agave->setting('module_data');
