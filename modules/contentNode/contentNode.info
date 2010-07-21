@@ -23,14 +23,12 @@ function contentNode_info_menu_items() {
 	$items[] = array('Admin','/Content/Content Types',0,'Manage the types of content on your site.','admin/content/types',1,1,'administer_content');
 	$items[] = array('User','/My Content',0,'Manage the content you have created.','user/content',1,1,NULL);
 	$items[] = array('User','/Create Content',0,'Create content on this site.','content/create',1,1,NULL);
-	
 	return $items;
 }
 
 function contentNode_info_system_uri() {
 	$uris = array();
 //	$uris[] = array('dest','alias','access','function','file','panels','actions','fast_route');
-	
 	$uris[] = array('admin/content',NULL,'administer_content','listContent','admin','1','1','0');
 	$uris[] = array('admin/content/types',NULL,'administer_content','viewTypes','admin','1','1','0');
 	$uris[] = array('admin/content/types/save',NULL,'administer_content','saveType','admin','1','1','0');
@@ -44,14 +42,12 @@ function contentNode_info_system_uri() {
 	$uris[] = array('content/save',NULL,NULL,'saveContentNode','node_save','1','1','0');
 	$uris[] = array('content/save/%',NULL,NULL,'saveContentNode','node_save','1','1','0');
 	$uris[] = array('user/content',NULL,NULL,'userContentNode','user','1','1','0');
-	
 	return $uris;
 }
 
 function contentNode_info_user_access() {
 	$args = array();
 //	$args[] = array('action','label','desc','default');
-	
 	$args[] = array('view_content','View Any Content','Allows users to view ANY content item.','0');
 	$args[] = array('create_content','Create Any Content','Allows users to create ANY types of content.','0');
 	$args[] = array('edit_content','Edit Any Content','Allows users to edit ANY content item.','0');

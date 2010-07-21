@@ -218,7 +218,8 @@ final class fieldManager2 {
 			if(!$this->isProp($key)){
 				$class = $value['#type'];
 				$field = $this->loadField($class);
-				$form->values[$field['name']] = $field->format($form->values, $field['name']);
+				//$form->values[$field['name']] = $field->format($form->values, $field['name']);
+                                $form->values[$value['#name']] = $field->format($form->values, $value['#name']);
 				$this->formatValuesWithFieldsArray($value, $form);
 			}
 		}
