@@ -1,39 +1,111 @@
 <?php
 function editContentNode($args=null) {
 	global $agave;
+		
 	$user = $agave->load('user');
-
+	$node = $agave->load('contentNode');
+	$sm = $agave->load('schemaManager');
+	$fm = $agave->load('fieldManager');
+	$themer = $agave->load('themer');
+	
 	//determine whether or not there is an id, or creating new
-	$id = (isset($args[0])) ? $args[0] : FALSE;
-	$type = (!$id) ? end($args['all']) : FALSE;
+	$id = (isset($args[0])) ? $args[0] : NULL;
+	$type = (!$id) ? end($args['all']) : NULL;
 	
 	//probably an impossible condition... but just in case
 	if(!$id && !$type) agave_error_page("404");
 	
 	//access checks for editing existing or creating
 	if($id) {
-		$node = new contentNode;
 		if(!$node->build($id)) agave_error_page("404");
 		elseif($user->userKey != $node->userKey && !$user->access("edit_content_".$node->type)) agave_error_page("403");
 	}
-	$nodeInfo = ($id) ? $node : $type;
+
+	//determine schemata based on either type or id of existing
+	if(!$id) {
+		$matchFields = array( array('contentNode_type'=>$type) );
+		$schemata = array(); 
+		$schemata[] = $sm->get_node_keys('contentNode', $matchFields);
+	}
+
+	$nodeType = ($id) ? $node->type : $type;
+	$cancel = ($id) ? $id : "create";
+
+	//assemble elements	
+	$elements = ($id) ? $node->fields->returnElements() : $sm->get_form_elements("contentNode", $schemata, $id);
+	//$agave->death($elements);
+	$elements[] = array(
+		'type'=>'hidden',
+		'name'=>'type',
+		'value'=>$nodeType,
+		'metaData'=> array(
+			'table'=>'contentNode',
+			'field'=>'type'
+		)
+	);
+	$elements[] = array(
+		'type'=>'fieldset',
+		'name'=>'meta',
+		'label'=>'Metadata',
+		'weight'=>50,
+		'collapsible'=>TRUE,
+		'collapsed'=>TRUE
+	);
+	$elements[] = array(
+		'type'=>'radio',
+		'name'=>'meta/published',
+		'label'=>'Published?',
+		'values'=>array('yes'=>'1', 'no'=>'0'),
+		'default'=>(isset($node->published)) ? '1' : '0',
+		'metaData'=>array (
+			'table'=>'contentNode',
+			'field'=>'published'
+		)
+	);
+
+	
+	//generate form
+	$form = $fm->startForm($agave->base_url."content/save/$id", "POST", "node-edit-form", TRUE);
+	$form .= $fm->generateElements($elements);
+	//$form .= "<div class='fm-element-wrapper fm-text-wrapper ' ><div class='fm-element-title'><label>Title: </lable></div><input type='text' name='saveData[1][title]'  class=' fm-text'     size='60'    /><input type='hidden' class='fm-metadata' name='metaData[1][title]' value='6Br8qo7C83g2ZZmOk3s7YXNFrgoCCW9lExFMQ20OBQVWzhvZB2X2k8_U-sqwQeQZ' /></div> <!--/element wrapper --><div class='fm-element-wrapper fm-cktext-wrapper ' ><div class='fm-element-title'><label>Body Text:</lable></div><textarea name='saveData[1][body]'  class=' fm-cktext'       '></textarea><input type='hidden' class='fm-metadata' name='metaData[1][body]' value='6Br8qo7C83g2ZZmOk3s7YXNFrgoCCW9lExFMQ20OBQWuzye-g_J5NVVzTch2IvNM' /></div> <!--/element wrapper --><div class='fm-element-wrapper fm-text-wrapper ' ><div class='fm-element-title'><label>Categories:</lable></div><input type='text' name='saveData[1][topic]'  class=' fm-text'     size='60'    /><input type='hidden' class='fm-metadata' name='metaData[1][topic]' value='6Br8qo7C83g2ZZmOk3s7YXNFrgoCCW9lExFMQ20OBQXmbTgNa6SALerbqhFR9DoY' /></div> <!--/element wrapper --><div class='fm-element-wrapper fm-file-wrapper ' ><div class='fm-element-title'><label>PDF Version:</lable></div><input type='file' name='saveData[1][pdf]'  class=' fm-file'        /><input type='hidden' class='fm-metadata' name='metaData[1][pdf]' value='_YIr6KAIo6doy-6rFtR3uPIB1JLRv8OCxvDBxSs7V9IqOrIcM4bf02lCXFOQeti-Nc6qFB6pHXkbQP2XXs7CRg~~' /></div> <!--/element wrapper --><div class='fm-element-wrapper fm-file-wrapper ' ><div class='fm-element-title'><label>Word Doc version</lable></div><input type='file' name='saveData[1][doc]'  class=' fm-file'        /><input type='hidden' class='fm-metadata' name='metaData[1][doc]' value='_YIr6KAIo6doy-6rFtR3uPIB1JLRv8OCxvDBxSs7V9IqOrIcM4bf02lCXFOQeti-SlXEx070oq594Ty3bPkeCQ~~' /></div> <!--/element wrapper --><div class='fm-element-wrapper fm-hidden-wrapper ' ><input type='hidden' value='announcement' name='saveData[1][type]'  class=' fm-hidden'        /><input type='hidden' class='fm-metadata' name='metaData[1][type]' value='9RBncPI6MopKapZm1lZBC57MHn_xpud7m2-YBuulapJLZaqn-xH5f-k0llgwdRJI' /></div> <!--/element wrapper --><input type='submit' value='Save' onclick='' />";
+	$form .= $fm->endForm("Save", $agave->base_url."content/$cancel");
+	//$form .= " or <a href='".$agave->base_url."content/$cancel'>cancel</a>";
+
+	//send output to themer	
+	$themer->page['title'] = ($id) ? "Edit '".$node->fields->values->title."'" : "Create new $type";
+	$themer->output = $form;
+}
+
+
+function node_fm2_edit($args=null) {
+	global $agave;
+	
+	//determine whether or not there is an id, or creating new
+	$id = (isset($args[0])) ? $args[0] : NULL;
+	$type = (!$id) ? end($args['all']) : NULL;
+	
+	//probably an impossible condition... but just in case
+	if(!$id && !$type) agave_error_page("404");
+	
+	//access checks for editing existing or creating
+	if($id) {
+		if(!$node->build($id)) agave_error_page("404");
+		elseif($user->userKey != $node->userKey && !$user->access("edit_content_".$node->type)) agave_error_page("403");
+	}
+	else $node = $type;
 	
 	//pass the form either a pre-existing node or a type
-	$fm = $agave->load('fieldManager');
-	$t = $agave->load('themer');
-	$form = $fm->getForm('contentNode_edit', $nodeInfo);
-	$t->output = $fm->renderForm($form);
-	$t->output = $t->theme('user','user');
 }
 
 function contentNode_return_edit_form($preform, $node=NULL, $block=NULL) {
 	global $agave;
+	//if(!$node) agave_error_page('404', "dude wtf?");
 	$newItem = (is_object($node)) ? FALSE : TRUE;
 	$nodeKey = ($newItem) ? NULL : $node->contentNodeKey;
 	
 	//define basic form attributes
 	$form = array();
-	$form['action'] = $agave->base_url.'content/save';
+	$form['action'] = 'content/save';
 	$form['method'] = 'post';
 	$form['files'] = TRUE;
 	$form['blockNum'] = $block;
@@ -58,8 +130,7 @@ function contentNode_return_edit_form($preform, $node=NULL, $block=NULL) {
 		$schemata = array();
 		$schemata[] = $sm->get_node_keys('contentNode', $matchFields);
 	}
-	
-	$fields = ($newItem) ? $sm->get_form_elements("contentNode", $schemata, $nodeKey) : $node->fields->returnElements();
+	$fields = ($newItem) ? $sm->get_form_fields("contentNode", $schemata, $nodeKey) : $node->fields->returnElements();
 
 	if($preform->values['submitted']) {
 		$fields[] = array(

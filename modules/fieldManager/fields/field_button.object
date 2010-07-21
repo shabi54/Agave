@@ -1,0 +1,82 @@
+<?php
+final class field_button extends genericField implements fieldInterface {
+		
+	public function __construct() {
+		global $agave;
+		$this->agave = $agave;
+	}
+	
+	public function __destruct() { }
+	
+	
+	public function format($values, $fieldName) {
+                if(array_key_exists($fieldName, $values)){
+                    return $values[$fieldName];
+                }
+                else return null;
+	}
+	
+	public function unformat($value) {
+		return $value;
+	}
+	
+	public function edit($element) {
+		$attributes = $this->generateAttributes($element);
+                $name = $this->generateName($element);
+		$classes = $attributes['classes'];
+		$id = $attributes['id'];
+                $href = $attributes['href'];
+                $label = $element['label'];
+		
+		$html = "<a ".$href." name='".$name."' $classes $id >".$label."</a>";
+		
+		return $html;		
+	}
+	
+	public function display($values, $settings) {
+		//TODO check settings - always have default setting
+		$html = $this->listView($values);
+		if(isset($settings['display'])) {
+			switch ($settings['display']) {
+				case 1 :
+					$html = $this->listView($values);				
+					break;
+				case 2 :
+					$html = $this->fieldView($values);				
+					break;
+			}
+		}
+		
+		return $html;
+	}
+	
+	public function validate($values, $metaData) {
+		//TODO return true or false
+		return TRUE;
+	}
+	
+	private function listView($values) {
+		return (is_array($values)) ? implode(", ", $values) : $values;
+	}
+
+	private function fieldView($values) {
+		foreach($values as $value) $value = "<p>".$value."</p>";
+		return (is_array($values)) ? implode("\n\n", $values) : $values;
+	}
+
+	public function returnSettingsForm($settings) {$form->values = $this->cleanup($form->values);
+		$elements = array();
+		//settings for a button?
+		return $elements;
+	}
+
+	public function saveSettingsFields($data) {
+		$settings = array();
+		
+		$settings = $data;
+				
+		return $settings;
+	}
+	
+}
+?>
