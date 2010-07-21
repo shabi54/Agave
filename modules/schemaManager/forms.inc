@@ -49,7 +49,6 @@ function schemaManager_return_field_element_form($data=FALSE) {
 		'#type'=>'checkbox',
 		'#label'=>'Show label',
 		'#values'=>array('show'),
-		'#default'=>array('show'),
 		'#nolabel'=>true,
 		'#weight'=>3,
 		'#default'=> ($nodeKey) ? $label : array('show'),

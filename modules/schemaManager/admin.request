@@ -219,14 +219,18 @@ function saveField($args=NULL) {
 
 	$form = $fm->getForm('sm_field_element');
 
+	$agave->death($form->values);
+
+
 	$form->values = $fm->cleanup($form->values); //mysql_real_escape_string's any strings
+
 
 	$stem = $form->values['stem'];
 	$nodeKey = $form->values['nodeKey'];
-	$keyName = $form->values['keyName'];
+	$keyName = $form->values['fieldName'];
 	$type = $form->values['type'];
 	$label = $form->values['label'];
-	$help = $form->values['help'];
+	$help = $form->values['helpText'];
 	$access = $form->values['access'];
 	$types = $form->values['types'];
 	$showLabel = $form->values['showLabel'];

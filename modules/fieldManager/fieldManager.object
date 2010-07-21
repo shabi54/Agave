@@ -212,7 +212,7 @@ final class fieldManager {
 		}
 
                 //DO FORMATS
-		$this->formatValuesWithFieldsArray($form->fields, $form);
+		//$this->formatValuesWithFieldsArray($form->fields, $form);
 		
 		$form->processed = TRUE;
 		return $form;

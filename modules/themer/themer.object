@@ -190,7 +190,7 @@ final class themer {
 			$styles .= "<link rel='stylesheet' type='text/css' href='".$path."' />\n";
 		}
 		if(isset($this->styles['inline'])) {
-			$styles .= "<style>\n";
+			$styles .= "<style type='text/css'>\n";
 			foreach($this->styles['inline'] as $style) $styles .= $style."\n\n";
 			$styles .= "</style>\n";
 		}
