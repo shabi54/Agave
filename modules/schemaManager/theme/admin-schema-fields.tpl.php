@@ -26,7 +26,7 @@
 <div id='schema-field-container'>
 	<a id='new-field'>
 		Add field
-		<input class='fieldmeta' type='hidden' value='<?php echo $table.".".$type ?>' />
+		<input class='fieldmeta' type='hidden' value='<?php echo $table.".0.".$type ?>' />
 	</a>
 	<ul id='schema-field-list'>
 		<?php if($fields): foreach($fields as $field): ?>

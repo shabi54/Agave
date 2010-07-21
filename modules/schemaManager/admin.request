@@ -56,29 +56,27 @@ function presentFields($table, $type) {
 	$t->output = $t->theme('admin', 'admin');
 }
 
-function editField($mode) {
-	//TODO rewrite using getform
+function editField($args=null) {
 	global $agave;
-	$t = $agave->load('themer');
 	$fm = $agave->load('fieldManager');
 
-	$elements = returnEditForm($mode);
-	
-	$output = $fm->startForm($agave->base_url."admin/schemata", "post");
-	$output .= $fm->generateElements($elements);
-	$output .= "<p>
-					<input type=submit id=schema-field-save value='Save' />
-					<input type=button id=schema-field-cancel value='Cancel' />
-				</p>";
-	$output .= "</form>";
-	if($mode=='editfield') $output .= "<span id='show-field-settings' value='$nodeKey'>".$data['type']." field settings</span>";
-	
-	//flush output
-	exit($output);
+	$md = explode(".", $_POST['metadata']);
+	$data['table'] = $md[0];
+	$data['nodeKey'] = $md[1];
+	$data['type'] = $md[2];
+
+	$form = $fm->getForm('sm_field_element', FALSE, $data);
+
+	$agave->stop($fm->renderForm($form));
 }
 
-function editFieldSettings() {
-	//TODO: Write this, using getform
+function editFieldSettings($args=null) {
+	global $agave;
+	$fm = $agave->load('fieldManager');
+
+	$form = $fm->getForm('sm_field_element_settings');
+
+	exit($fm->render($form));
 }
 
 function deleteField($meta) {
@@ -96,8 +94,10 @@ function deleteField($meta) {
 	$agave->doSQLQuery($query);
 }
 
-function updateWeights($weights) {
+function updateWeights($args=null) {
 	global $agave;
+	
+	$weights = $_POST['weightdata'];
 	$weights = explode(",", $weights);
 	for($i=0; $i<count($weights); $i++) {
 		$data = explode("_", $weights[$i]);
@@ -213,18 +213,23 @@ function returnEditForm($mode) {
 	return $elements;
 }
 
-function saveField($data) {
+function saveField($args=NULL) {
 	global $agave;
-	$stem = $data['stem'];
-	$nodeKey = (isset($data['nodeKey'])) ? $data['nodeKey'] : "NULL";
-	
-	$keyName = (isset($data['fieldName'])) ? mysql_real_escape_string($data['fieldName']) : NULL;
-	$type = mysql_real_escape_string($data['type']);
-	$label = (isset($data['label'])) ? mysql_real_escape_string($data['label']) : NULL;
-	$help = (isset($data['helpText'])) ? mysql_real_escape_string($data['helpText']) : NULL;
-	$access = (isset($data['access'])) ? mysql_real_escape_string($data['access']) : NULL;
-	$types = (isset($data['types'])) ? mysql_real_escape_string($data['types']) : NULL;
-	$showLabel = isset($data['showLabel']) ? TRUE : NULL;
+	$fm = $agave->load('fieldManager');
+
+	$form = $fm->getForm('sm_field_element');
+
+	$form->values = $fm->cleanup($form->values); //mysql_real_escape_string's any strings
+
+	$stem = $form->values['stem'];
+	$nodeKey = $form->values['nodeKey'];
+	$keyName = $form->values['keyName'];
+	$type = $form->values['type'];
+	$label = $form->values['label'];
+	$help = $form->values['help'];
+	$access = $form->values['access'];
+	$types = $form->values['types'];
+	$showLabel = $form->values['showLabel'];
 	
 	$query = "	INSERT INTO `".$stem."_schema` (nodeKey, keyName, type, label, help, access, showLabel, ".$stem."_type)
 				VALUES($nodeKey, '$keyName', '$type', '$label', '$help', '$access', '$showLabel', '$types') 
