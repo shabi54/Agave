@@ -6,3 +6,4 @@ $extensions[] = array(
 	'location'=>"transcode_plugin_imagemagick.object",
 	'data'=>array('name'=>'imagemagick')
 );
+

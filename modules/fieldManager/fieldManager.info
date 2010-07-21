@@ -11,10 +11,18 @@ function fieldManager_info_meta() {
 		'machine-name'=>'fieldManager', //name of directory in the modules folder
 		'description'=>'Provides an object for managing all aspects of form manipulation, as well as field-level objects.', //... a description, say something about what this thing does
 		'group'=>'Core', //the category in which you module will appear on modules page, if 
-		'version'=>'.1', //the current version of your module, increment this any time you make changes to db in your module
+		'version'=>'.2', //the current version of your module, increment this any time you make changes to db in your module
 		'agave-version'=>'1', //what version of agave is required for this module to work?
 		'dependencies'=>array('user','schemaManager'), //what other modules does this module rely on?
 	);
+}
+
+function fieldManager_info_objects() {
+	$objects = array();
+	$objects['fieldManager'] = 'fieldManager.object';
+	$objects['genericField'] = 'dependencies/genericField.object';
+	$objects['fieldInterface'] = 'dependencies/fieldInterface.object';
+	return $objects;
 }
 
 function fieldManager_info_actions() {

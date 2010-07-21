@@ -1,14 +1,7 @@
 <?php
-function sm_dostuff($args=NULL) {
-	if(isset($_GET['table']) && !isset($_GET['type']) && !isset($_GET['nodeKey'])) presentTypes($_GET['table']);
-	else if(isset($_GET['type']) && !isset($_GET['field'])) presentFields($_GET['table'], $_GET['type']);
-	else if(isset($_GET['nodeKey'])) presentField($_GET['table'], $_GET['nodeKey']);
-	else if(isset($_POST['weightdata'])) updateWeights($_POST['weightdata']);
-	else if(isset($_POST['mode']) && $_POST['mode']=='delete') deleteField($_POST['metadata']);
-	else if(isset($_POST['mode']) && $_POST['mode']=='fieldSettings') returnSettingsFields($_POST['metadata']);
-	else if(isset($_POST['mode']) && ($_POST['mode']=='newfield' || $_POST['mode']=='editfield')) editField($_POST['mode']);
-	else if(isset($_POST['mode']) && $_POST['mode']=='savefield') saveField($_POST);
-	else if(isset($_POST['mode']) && $_POST['mode']=='savefieldsettings') saveSettingsFields($_POST);
+function browseSchema($args=NULL) {
+	if(isset($_GET['table']) && !isset($_GET['type'])) presentTypes($_GET['table']);
+	else if(isset($_GET['type']) && isset($_GET['table'])) presentFields($_GET['table'], $_GET['type']);
 	else presentTables();
 }
 
@@ -64,7 +57,7 @@ function presentFields($table, $type) {
 }
 
 function editField($mode) {
-	//TODO if no meta, blank form for new field
+	//TODO rewrite using getform
 	global $agave;
 	$t = $agave->load('themer');
 	$fm = $agave->load('fieldManager');
@@ -82,6 +75,10 @@ function editField($mode) {
 	
 	//flush output
 	exit($output);
+}
+
+function editFieldSettings() {
+	//TODO: Write this, using getform
 }
 
 function deleteField($meta) {
@@ -114,7 +111,7 @@ function updateWeights($weights) {
 }
 
 function returnEditForm($mode) {
-global $agave;	
+	global $agave;
 	if($mode=='editfield') {
 		$md = explode(".", $_POST['metadata']);
 		$stem = $md[0];
@@ -211,7 +208,7 @@ global $agave;
 	}
 	
 	//get fields for settings - these change depending on field
-	//$settingsElements = returnSettingsFields();
+	//$rsettingsElements = returnSettingsFields();
 	//foreach($settingsElements as $field) $elements[] = $field;
 	return $elements;
 }
@@ -229,14 +226,14 @@ function saveField($data) {
 	$types = (isset($data['types'])) ? mysql_real_escape_string($data['types']) : NULL;
 	$showLabel = isset($data['showLabel']) ? TRUE : NULL;
 	
-	$query = "INSERT INTO `".$stem."_schema` (nodeKey, keyName, type, label, help, access, showLabel, ".$stem."_type)
+	$query = "	INSERT INTO `".$stem."_schema` (nodeKey, keyName, type, label, help, access, showLabel, ".$stem."_type)
 				VALUES($nodeKey, '$keyName', '$type', '$label', '$help', '$access', '$showLabel', '$types') 
 				ON DUPLICATE KEY UPDATE 
 				`nodeKey`=VALUES(`nodeKey`), `keyName`=VALUES(`keyName`),
 				`type`=VALUES(`type`), `label`=VALUES(`label`),
 				`help`=VALUES(`help`), `access`=VALUES(`access`),
 				`showLabel`=VALUES(`showLabel`), `".$stem."_type`=VALUES(`".$stem."_type`)
-				";
+			";
 	$agave->doSQLQuery($query);
 	$agave->redirect("admin/schemata&table=$stem&type=$types");
 }
@@ -245,8 +242,7 @@ function saveField($data) {
 function returnAvailableFieldTypes() {
 	//TODO first check dir, then check settings for custom fields
 	global $agave;
-	$fm = $agave->load('fieldManager');
-	return $fm->fields;
+	return $agave->load('fieldManager')->fields;
 }
 
 function returnSettingsFields($metadata) {
@@ -278,7 +274,7 @@ function returnSettingsFields($metadata) {
 	die($html);
 }
 
-function saveSettingsFields($data) {
+function saveFieldSettings($data) {
 	global $agave;
 	$fm = $agave->load('fieldManager');
 

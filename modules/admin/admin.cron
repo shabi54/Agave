@@ -1,8 +1,0 @@
-<?php
-
-function clearOldMessages() {
-	global $agave;
-	//TODO: check messages table, remove all messages past expiration date
-}
-
-?>

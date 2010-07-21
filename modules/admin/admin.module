@@ -1,6 +1,7 @@
 <?php
 $objects = array();
 $objects['admin'] = 'admin.object';
+
 $extensions[] = array(
 	'module'=>'fieldManager',
 	'type'=>'form',

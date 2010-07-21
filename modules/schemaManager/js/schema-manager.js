@@ -23,7 +23,6 @@ $(document).ready(function() {
 		editField(metadata, mode);
 	});
 	
-	
 	//cancel
 	$('#schema-field-cancel').live('click', function() {
 		$('#field-edit-frame').remove();
@@ -58,9 +57,9 @@ $(document).ready(function() {
 
 function editFieldSettings(metadata) {
 	$.ajax({
-		url: agave.base_url+'admin/schemata',
+		url: agave.base_url+'admin/schemata/edit/field/settings',
 		type: 'POST',
-		data: 'mode=fieldSettings&metadata='+encodeURIComponent(metadata),
+		data: 'metadata='+encodeURIComponent(metadata),
 		dataType: 'html',
 		error: function(XMLHttpRequest, textStatus, errorThrown) {
 			alert("Error updating fields.  Status: "+XMLHttpRequest.status);
@@ -76,7 +75,7 @@ function editFieldSettings(metadata) {
 //function updates weight fields based on how they were sorted on the page
 function updateweights(weights) {
 	$.ajax({
-		url: agave.base_url+'admin/schemata',
+		url: agave.base_url+'admin/schemata/update/weights',
 		type: 'POST',
 		data: 'weightdata='+encodeURIComponent(weights),
 		dataType: 'html',
@@ -91,9 +90,9 @@ function updateweights(weights) {
 
 function deleteField(metadata) {
 	$.ajax({
-		url: agave.base_url+'admin/schemata',
+		url: agave.base_url+'admin/schemata/delete/field',
 		type: 'POST',
-		data: 'mode=delete&metadata='+encodeURIComponent(metadata),
+		data: 'metadata='+encodeURIComponent(metadata),
 		dataType: 'html',
 		error: function(XMLHttpRequest, textStatus, errorThrown) {
 			alert("Error deleting field.  Status: "+XMLHttpRequest.status);
@@ -105,11 +104,12 @@ function deleteField(metadata) {
 }
 
 function editField(metadata, mode) {
-	if(mode=='edit') var urldata = 'mode=editfield&metadata='+encodeURIComponent(metadata);
-	else var urldata = 'mode=newfield&metadata='+encodeURIComponent(metadata);
+	var urldata = false;
+	if(mode=='edit') urldata = 'metadata='+encodeURIComponent(metadata);
+	else urldata = 'mode=newfield&metadata='+encodeURIComponent(metadata);
 
 	$.ajax({
-		url: agave.base_url+'admin/schemata',
+		url: agave.base_url+'admin/schemata/edit/field',
 		type: 'POST',
 		data: urldata,
 		dataType: 'html',

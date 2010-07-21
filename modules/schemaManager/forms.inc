@@ -105,5 +105,6 @@ function schemaManager_return_field_element_form($field) {
 
 function schemaManager_return_field_element_settings_form($values, $settings=FALSE) {
 	global $agave;
-	
+
+	//for fields load fieldManager, have it returnElementSettings, or whatever
 }

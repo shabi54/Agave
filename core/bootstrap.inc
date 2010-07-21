@@ -53,6 +53,8 @@ function bootstrap($phase=BOOTSTRAP_SETTINGS, $vars=NULL) {
 
 function bootstrap_settings() {
 	/*
+	 * This function is taken from Drupal 6 bootstrap.inc - see http://api.drupal.org
+	 *
 	 * This is the first phase, in here Agave simply looks for the proper settings.php file, corresponding to the request received...
 	 * For example, a request to www.russnet.org/homepage/look/lol will resolve to agave_root/sites/www.russnet.org/settings.php
 	 * Likewise, if the site root is www.livefromrussia.org/stage1, the request will resolve to agave_root/sites/www.livefromrussia.org.stage1/settings.php

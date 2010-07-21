@@ -17,6 +17,16 @@ function user_info_meta() {
 	);
 }
 
+function user_info_objects() {
+	$objects = array();
+	$objects['userManager'] = 'userManager.object';
+	return $objects;
+}
+
+function user_info_extensions() {
+	
+}
+
 function user_info_actions() {
 	$actions = array();
 	//$actions[] = array('name','action','description','function','file','enabled?');
